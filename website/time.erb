@@ -1,0 +1,24 @@
+<% wrap_layout :inner do %>
+    <% content_for :sidebar do %>
+        <div class="docs-sidebar hidden-print affix-top" role="complementary">
+            <a href="#" class="subnav-toggle">(Expand/collapse all)</a>
+            <ul class="nav docs-sidenav">
+                <li>
+                    <a href="/docs/providers/index.html">All Providers</a>
+                </li>
+                <li>
+                    <a href="/docs/providers/time/index.html">Time Provider</a>
+                </li>
+                <li>
+                    <a href="#">Resources</a>
+                    <ul class="nav">
+                        <li>
+                            <a href="/docs/providers/time/r/static.html">time_static</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    <% end %>
+    <%= yield %>
+<% end %>

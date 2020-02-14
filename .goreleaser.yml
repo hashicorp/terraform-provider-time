@@ -1,0 +1,47 @@
+archives:
+- format: zip
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+builds:
+- env:
+  - CGO_ENABLED=0
+  goos:
+    - freebsd
+    - openbsd
+    - solaris
+    - windows
+    - linux
+    - darwin
+  goarch:
+    - amd64
+    - '386'
+    - arm
+    - arm64
+  ignore:
+    - goos: darwin
+      goarch: '386'
+    - goos: darwin
+      goarch: arm
+    - goos: darwin
+      goarch: arm64
+    # - goos: openbsd
+    #   goarch: arm
+    # - goos: openbsd
+    #   goarch: arm64
+    # - goos: solaris
+    #   goarch: arm
+    # - goos: solaris
+    #   goarch: arm64
+    # - goos: solaris
+    #   goarch: '386'
+    # - goos: windows
+    #   goarch: arm
+    # - goos: windows
+    #   goarch: arm64
+changelog:
+  skip: true
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
