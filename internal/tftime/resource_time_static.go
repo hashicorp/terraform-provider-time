@@ -2,10 +2,8 @@ package tftime
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -14,64 +12,7 @@ func resourceTimeStatic() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceTimeStaticCreate,
 		Read:   resourceTimeStaticRead,
-		Update: resourceTimeStaticUpdate,
 		Delete: schema.Noop,
-
-		CustomizeDiff: customdiff.Sequence(
-			customdiff.If(resourceTimeStaticConditionExpirationChange,
-				func(diff *schema.ResourceDiff, meta interface{}) error {
-					if diff.Id() == "" {
-						return nil
-					}
-
-					timestamp, err := time.Parse(time.RFC3339, diff.Id())
-
-					if err != nil {
-						return fmt.Errorf("error parsing timestamp (%s): %s", diff.Id(), err)
-					}
-
-					var expirationTimestamp *time.Time
-
-					if v, ok := diff.GetOk("expiration_days"); ok {
-						expirationTimestamp = timePtr(timestamp.AddDate(0, 0, v.(int)))
-					}
-
-					if v, ok := diff.GetOk("expiration_hours"); ok {
-						expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Hour))
-					}
-
-					if v, ok := diff.GetOk("expiration_minutes"); ok {
-						expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Minute))
-					}
-
-					if v, ok := diff.GetOk("expiration_months"); ok {
-						expirationTimestamp = timePtr(timestamp.AddDate(0, v.(int), 0))
-					}
-
-					if v, ok := diff.GetOk("expiration_years"); ok {
-						expirationTimestamp = timePtr(timestamp.AddDate(v.(int), 0, 0))
-					}
-
-					if expirationTimestamp != nil {
-						if err := diff.SetNew("expiration_rfc3339", expirationTimestamp.Format(time.RFC3339)); err != nil {
-							return fmt.Errorf("error setting new expiration_rfc3339: %s", err)
-						}
-					}
-
-					return nil
-				},
-			),
-			customdiff.ForceNewIf("expiration_rfc3339", func(diff *schema.ResourceDiff, meta interface{}) bool {
-				now := time.Now().UTC()
-				expirationTimestamp, err := time.Parse(time.RFC3339, diff.Get("expiration_rfc3339").(string))
-
-				if err != nil {
-					return false
-				}
-
-				return now.After(expirationTimestamp)
-			}),
-		),
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -81,79 +22,6 @@ func resourceTimeStatic() *schema.Resource {
 			"day": {
 				Type:     schema.TypeInt,
 				Computed: true,
-			},
-			"expiration_days": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ConflictsWith: []string{
-					"expiration_hours",
-					"expiration_minutes",
-					"expiration_months",
-					"expiration_rfc3339",
-					"expiration_years",
-				},
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"expiration_hours": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ConflictsWith: []string{
-					"expiration_days",
-					"expiration_minutes",
-					"expiration_months",
-					"expiration_rfc3339",
-					"expiration_years",
-				},
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"expiration_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ConflictsWith: []string{
-					"expiration_days",
-					"expiration_hours",
-					"expiration_months",
-					"expiration_rfc3339",
-					"expiration_years",
-				},
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"expiration_months": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ConflictsWith: []string{
-					"expiration_days",
-					"expiration_hours",
-					"expiration_minutes",
-					"expiration_rfc3339",
-					"expiration_years",
-				},
-				ValidateFunc: validation.IntAtLeast(1),
-			},
-			"expiration_rfc3339": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ConflictsWith: []string{
-					"expiration_days",
-					"expiration_hours",
-					"expiration_minutes",
-					"expiration_months",
-					"expiration_years",
-				},
-				ValidateFunc: validation.IsRFC3339Time,
-			},
-			"expiration_years": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ConflictsWith: []string{
-					"expiration_days",
-					"expiration_hours",
-					"expiration_minutes",
-					"expiration_months",
-					"expiration_rfc3339",
-				},
-				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"hour": {
 				Type:     schema.TypeInt,
@@ -228,34 +96,6 @@ func resourceTimeStaticCreate(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(timestamp.Format(time.RFC3339))
 
-	var expirationTimestamp *time.Time
-
-	if v, ok := d.GetOk("expiration_days"); ok {
-		expirationTimestamp = timePtr(timestamp.AddDate(0, 0, v.(int)))
-	}
-
-	if v, ok := d.GetOk("expiration_hours"); ok {
-		expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Hour))
-	}
-
-	if v, ok := d.GetOk("expiration_minutes"); ok {
-		expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Minute))
-	}
-
-	if v, ok := d.GetOk("expiration_months"); ok {
-		expirationTimestamp = timePtr(timestamp.AddDate(0, v.(int), 0))
-	}
-
-	if v, ok := d.GetOk("expiration_years"); ok {
-		expirationTimestamp = timePtr(timestamp.AddDate(v.(int), 0, 0))
-	}
-
-	if expirationTimestamp != nil {
-		if err := d.Set("expiration_rfc3339", expirationTimestamp.Format(time.RFC3339)); err != nil {
-			return fmt.Errorf("error setting expiration_rfc3339: %s", err)
-		}
-	}
-
 	return resourceTimeStaticRead(d, m)
 }
 
@@ -264,21 +104,6 @@ func resourceTimeStaticRead(d *schema.ResourceData, m interface{}) error {
 
 	if err != nil {
 		return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
-	}
-
-	if v, ok := d.GetOk("expiration_rfc3339"); ok && !d.IsNewResource() {
-		now := time.Now().UTC()
-		expirationTimestamp, err := time.Parse(time.RFC3339, v.(string))
-
-		if err != nil {
-			return fmt.Errorf("error parsing expiration_rfc3339 (%s): %s", v.(string), err)
-		}
-
-		if now.After(expirationTimestamp) {
-			log.Printf("[INFO] Expiration timestamp (%s) is after current timestamp (%s), removing from state", v.(string), now.Format(time.RFC3339))
-			d.SetId("")
-			return nil
-		}
 	}
 
 	if err := d.Set("day", timestamp.Day()); err != nil {
@@ -338,57 +163,4 @@ func resourceTimeStaticRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return nil
-}
-
-func resourceTimeStaticUpdate(d *schema.ResourceData, m interface{}) error {
-	if d.HasChanges("expiration_days", "expiration_hours", "expiration_minutes", "expiration_months", "expiration_years") {
-		timestamp, err := time.Parse(time.RFC3339, d.Id())
-
-		if err != nil {
-			return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
-		}
-
-		var expirationTimestamp *time.Time
-
-		if v, ok := d.GetOk("expiration_days"); ok {
-			expirationTimestamp = timePtr(timestamp.AddDate(0, 0, v.(int)))
-		}
-
-		if v, ok := d.GetOk("expiration_hours"); ok {
-			expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Hour))
-		}
-
-		if v, ok := d.GetOk("expiration_minutes"); ok {
-			expirationTimestamp = timePtr(timestamp.Add(time.Duration(v.(int)) * time.Minute))
-		}
-
-		if v, ok := d.GetOk("expiration_months"); ok {
-			expirationTimestamp = timePtr(timestamp.AddDate(0, v.(int), 0))
-		}
-
-		if v, ok := d.GetOk("expiration_years"); ok {
-			expirationTimestamp = timePtr(timestamp.AddDate(v.(int), 0, 0))
-		}
-
-		if expirationTimestamp != nil {
-			if err := d.Set("expiration_rfc3339", expirationTimestamp.Format(time.RFC3339)); err != nil {
-				return fmt.Errorf("error setting expiration_rfc3339: %s", err)
-			}
-		}
-	}
-
-	return resourceTimeStaticRead(d, m)
-}
-
-func resourceTimeStaticConditionExpirationChange(diff *schema.ResourceDiff, meta interface{}) bool {
-	return diff.HasChange("expiration_days") ||
-		diff.HasChange("expiration_hours") ||
-		diff.HasChange("expiration_minutes") ||
-		diff.HasChange("expiration_months") ||
-		diff.HasChange("expiration_rfc3339") ||
-		diff.HasChange("expiration_years")
-}
-
-func timePtr(t time.Time) *time.Time {
-	return &t
 }

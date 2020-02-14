@@ -7,13 +7,11 @@ description: |-
 
 # Resource: time_static
 
-Manages a static time resource, which keeps an UTC timestamp saved in the Terraform state. This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html). Optionally, this resource can be configured with expiration settings to automatically rotate.
+Manages a static time resource, which keeps an UTC timestamp saved in the Terraform state. This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).
 
 -> Further manipulation of incoming or outgoing values can be accomplished with the [`formatdate()` function](https://www.terraform.io/docs/configuration/functions/formatdate.html) and the [`timeadd()` function](https://www.terraform.io/docs/configuration/functions/timeadd.html).
 
 ## Example Usage
-
-### Saving and Accessing Resource Creation Time
 
 ```hcl
 resource "time_static" "example" {}
@@ -23,27 +21,11 @@ output "current_time" {
 }
 ```
 
-### Rotating Resource with Expiration
-
-This example configuration will rotate (destroy/create) the resource every 30 days.
-
-```hcl
-resource "time_static" "example" {
-  expiration_days = 30
-}
-```
-
 ## Argument Reference
 
 The following arguments are optional:
 
-* `expiration_days` - (Optional) Number of days to add to the timestamp to configure the expiration timestamp. When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `expiration_hours` - (Optional) Number of hours to add to the timestamp to configure the expiration timestamp. When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `expiration_minutes` - (Optional) Number of minutes to add to the timestamp to configure the expiration timestamp. When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `expiration_months` - (Optional) Number of months to add to the timestamp to configure the expiration timestamp. When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `expiration_rfc3339` - (Optional) Configure the expiration timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `expiration_years` - (Optional) Number of years to add to the timestamp to configure the expiration timestamp. When the current time has passed the expiration timestamp, the resource will trigger recreation. Conflicts with other `expiration_` arguments.
-* `rfc3339` - (Optional) Configure the timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`).
+* `rfc3339` - (Optional) Configure the base timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 
 ## Attributes Reference
 
@@ -72,5 +54,3 @@ This resource can be imported using the UTC RFC3339 value, e.g.
 ```console
 $ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
-
-Certain resource arguments, like the `expiration_` arguments, will not be included in the initial import. Terraform will show a difference for these first apply.
