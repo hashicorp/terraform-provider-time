@@ -6,6 +6,7 @@ BREAKING CHANGES:
 
 FEATURES:
 
+* **New Resource:** `time_offset`
 * **New Resource:** `time_rotating`
 
 # v0.1.0

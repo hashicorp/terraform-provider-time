@@ -16,6 +16,7 @@ This Terraform Provider is not available to install automatically via `terraform
 
 Until this Terraform Provider is brought under the Terraform Provider development program, resource documentation can be found within this repository.
 
+- [`time_offset` Resource](./website/docs/r/offset.html.markdown)
 - [`time_rotating` Resource](./website/docs/r/rotating.html.markdown)
 - [`time_static` Resource](./website/docs/r/static.html.markdown)
 
