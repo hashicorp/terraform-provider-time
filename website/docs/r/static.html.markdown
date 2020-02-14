@@ -13,6 +13,8 @@ Manages a static time resource, which keeps an UTC timestamp saved in the Terraf
 
 ## Example Usage
 
+### Basic Usage
+
 ```hcl
 resource "time_static" "example" {}
 
@@ -21,10 +23,34 @@ output "current_time" {
 }
 ```
 
+### Keepers Usage
+
+```hcl
+resource "time_static" "ami_update" {
+  keepers = {
+    # Save the time each switch of an AMI id
+    ami_id = data.aws_ami.example.id
+  }
+}
+
+resource "aws_instance" "server" {
+  # Read the AMI id "through" the time_static resource to ensure that
+  # both will change together.
+  ami = time_static.ami_update.keepers.ami_id
+
+  tags = {
+    AmiUpdateTime = time_static.ami_update.rfc3339
+  }
+
+  # ... (other aws_instance arguments) ...
+}
+```
+
 ## Argument Reference
 
 The following arguments are optional:
 
+* `keepers` - (Optional) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.html) for more information.
 * `rfc3339` - (Optional) Configure the base timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 
 ## Attributes Reference
@@ -54,3 +80,5 @@ This resource can be imported using the UTC RFC3339 value, e.g.
 ```console
 $ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
+
+The `keepers` argument cannot be imported.

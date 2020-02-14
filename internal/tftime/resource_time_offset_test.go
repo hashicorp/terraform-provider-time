@@ -10,6 +10,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func TestAccTimeOffset_Keepers(t *testing.T) {
+	var time1, time2 string
+	resourceName := "time_offset.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeOffsetKeepers1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time1),
+					testSleep(1),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"base_rfc3339", "keepers"},
+			},
+			{
+				Config: testAccConfigTimeOffsetKeepers1("key1", "value1updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time2),
+					testCheckAttributeValuesDiffer(&time1, &time2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTimeOffset_OffsetDays(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
@@ -266,6 +303,17 @@ func testAccTimeOffsetImportStateIdFunc(resourceName string) resource.ImportStat
 
 		return fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s", rs.Primary.ID, offsetYears, offsetMonths, offsetDays, offsetHours, offsetMinutes, offsetSeconds), nil
 	}
+}
+
+func testAccConfigTimeOffsetKeepers1(keeperKey1 string, keeperKey2 string) string {
+	return fmt.Sprintf(`
+resource "time_offset" "test" {
+  keepers = {
+    %[1]q = %[2]q
+  }
+  offset_days = 1
+}
+`, keeperKey1, keeperKey2)
 }
 
 func testAccConfigTimeOffsetOffsetDays(baseRfc3339 string, offsetDays int) string {

@@ -9,6 +9,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+func TestAccTimeRotating_Keepers(t *testing.T) {
+	var time1, time2 string
+	resourceName := "time_rotating.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeRotatingKeepers1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time1),
+					testSleep(1),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"keepers"},
+			},
+			{
+				Config: testAccConfigTimeRotatingKeepers1("key1", "value1updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time2),
+					testCheckAttributeValuesDiffer(&time1, &time2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTimeRotating_RotationDays_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 	timestamp := time.Now().UTC()
@@ -298,6 +335,17 @@ func testAccTimeRotatingImportStateIdFunc(resourceName string) resource.ImportSt
 
 		return fmt.Sprintf("%s,%s", rs.Primary.ID, rs.Primary.Attributes["rotation_rfc3339"]), nil
 	}
+}
+
+func testAccConfigTimeRotatingKeepers1(keeperKey1 string, keeperKey2 string) string {
+	return fmt.Sprintf(`
+resource "time_rotating" "test" {
+  keepers = {
+    %[1]q = %[2]q
+  }
+  rotation_days = 1
+}
+`, keeperKey1, keeperKey2)
 }
 
 func testAccConfigTimeRotatingRotationDays(rfc3339 string, rotationDays int) string {

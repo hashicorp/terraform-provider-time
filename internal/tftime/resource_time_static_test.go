@@ -45,6 +45,42 @@ func TestAccTimeStatic_basic(t *testing.T) {
 	})
 }
 
+func TestAccTimeStatic_Keepers(t *testing.T) {
+	var time1, time2 string
+	resourceName := "time_static.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeStaticKeepers1("key1", "value1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time1),
+					testSleep(1),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"keepers"},
+			},
+			{
+				Config: testAccConfigTimeStaticKeepers1("key1", "value1updated"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time2),
+					testCheckAttributeValuesDiffer(&time1, &time2),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTimeStatic_Rfc3339(t *testing.T) {
 	resourceName := "time_static.test"
 	timestamp := time.Now().UTC()
@@ -92,6 +128,16 @@ func testAccConfigTimeStatic() string {
 	return fmt.Sprintf(`
 resource "time_static" "test" {}
 `)
+}
+
+func testAccConfigTimeStaticKeepers1(keeperKey1 string, keeperKey2 string) string {
+	return fmt.Sprintf(`
+resource "time_static" "test" {
+  keepers = {
+    %[1]q = %[2]q
+  }
+}
+`, keeperKey1, keeperKey2)
 }
 
 func testAccConfigTimeStaticRfc3339(rfc3339 string) string {
