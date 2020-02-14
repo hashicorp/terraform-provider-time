@@ -7,7 +7,8 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"time_static": resourceTimeStatic(),
+			"time_rotating": resourceTimeRotating(),
+			"time_static":   resourceTimeStatic(),
 		},
 	}
 }
