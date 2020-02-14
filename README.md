@@ -10,7 +10,7 @@ Please note: Issues on this repository are intended to be related to bugs or fea
 
 ## Using the Provider
 
-This Terraform Provider is not available to install automatically via `terraform init` at this time. Instead, follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-plugins). Pre-built releases of this Terraform Provider are available for download in [GitHub Releases](./releases). After placing the custom provider into your plugins directory, run `terraform init` to initialize it.
+This Terraform Provider is not available to install automatically via `terraform init` at this time. Instead, follow the instructions to [install it as a plugin](https://www.terraform.io/docs/plugins/basics.html#installing-plugins). Pre-built releases of this Terraform Provider are available for download in [GitHub Releases](https://github.com/bflad/terraform-provider-time/releases). After placing the custom provider into your plugins directory, run `terraform init` to initialize it.
 
 ### Resource Documentation
 
