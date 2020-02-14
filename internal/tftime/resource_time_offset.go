@@ -376,6 +376,10 @@ func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId(timestamp.Format(time.RFC3339))
 
+	if err := d.Set("base_rfc3339", timestamp.Format(time.RFC3339)); err != nil {
+		return fmt.Errorf("error setting base_rfc3339: %s", err)
+	}
+
 	var offsetTimestamp time.Time
 
 	if v, ok := d.GetOk("offset_days"); ok {
