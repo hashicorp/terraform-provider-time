@@ -274,6 +274,12 @@ func resourceTimeRotating() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"keepers": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"minute": {
 				Type:     schema.TypeInt,
 				Computed: true,

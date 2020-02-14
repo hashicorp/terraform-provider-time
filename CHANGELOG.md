@@ -1,3 +1,11 @@
+# v0.3.0
+
+ENHANCEMENTS:
+
+* resource/time_offset: Add `keepers` argument
+* resource/time_rotating: Add `keepers` argument
+* resource/time_static: Add `keepers` argument
+
 # v0.2.0
 
 BREAKING CHANGES:
