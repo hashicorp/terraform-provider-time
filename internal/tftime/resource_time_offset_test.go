@@ -32,7 +32,7 @@ func TestAccTimeOffset_Keepers(t *testing.T) {
 				ImportState:             true,
 				ImportStateIdFunc:       testAccTimeOffsetImportStateIdFunc(resourceName),
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"base_rfc3339", "keepers"},
+				ImportStateVerifyIgnore: []string{"keepers"},
 			},
 			{
 				Config: testAccConfigTimeOffsetKeepers1("key1", "value1updated"),

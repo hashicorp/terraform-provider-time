@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * resource/time_rotating: Add `keepers` argument
 * resource/time_static: Add `keepers` argument
 
+BUG FIXES:
+
+* resource/time_offset: Ensure `base_rfc3339` is always set in Terraform state during creation, even if unconfigured
+
 # v0.2.0
 
 BREAKING CHANGES:
