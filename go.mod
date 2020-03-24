@@ -1,4 +1,4 @@
-module github.com/bflad/terraform-provider-time
+module github.com/hashicorp/terraform-provider-time
 
 go 1.13
 
