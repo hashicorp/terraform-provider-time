@@ -1,0 +1,48 @@
+name: Incoming Checks
+on: [pull_request, push]
+
+jobs:
+  go_mod:
+    # Ignore duplicate events for local repository pull requests
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+    name: "go mod"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: "1.14"
+      - name: go mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum || \
+            (echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+  go_test:
+    # Ignore duplicate events for local repository pull requests
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+    name: "go test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: "1.14"
+      - run: go test ./...
+  goreleaser:
+    # Ignore duplicate events for local repository pull requests
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+    name: "goreleaser"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: "1.14"
+      - name: goreleaser check
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          args: check
+      - name: goreleaser release --skip-publish
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          args: release --rm-dist --skip-publish  --skip-sign
