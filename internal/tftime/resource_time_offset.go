@@ -232,7 +232,7 @@ func resourceTimeOffset() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"keepers": {
+			"triggers": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,

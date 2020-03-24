@@ -27,7 +27,7 @@ resource "time_rotating" "example" {
 
 The following arguments are optional:
 
-* `keepers` - (Optional) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. These conditions recreate the resource in addition to other rotation arguments. See [the main provider documentation](../index.html) for more information.
+* `triggers` - (Optional) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. These conditions recreate the resource in addition to other rotation arguments. See [the main provider documentation](../index.html) for more information.
 * `rotation_days` - (Optional) Number of days to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
 * `rotation_hours` - (Optional) Number of hours to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
 * `rotation_minutes` - (Optional) Number of minutes to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
@@ -70,4 +70,4 @@ Otherwise, to import with the rotation RFC3339 value, the base UTC RFC3339 value
 $ terraform import time_rotation.example 2020-02-12T06:36:13Z,2020-02-13T06:36:13Z
 ```
 
-The `keepers` argument cannot be imported.
+The `triggers` argument cannot be imported.
