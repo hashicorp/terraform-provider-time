@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccTimeOffset_Keepers(t *testing.T) {
+func TestAccTimeOffset_Triggers(t *testing.T) {
 	var time1, time2 string
 	resourceName := "time_offset.test"
 
@@ -19,10 +19,10 @@ func TestAccTimeOffset_Keepers(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTimeOffsetKeepers1("key1", "value1"),
+				Config: testAccConfigTimeOffsetTriggers1("key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time1),
 					testSleep(1),
 				),
@@ -32,13 +32,13 @@ func TestAccTimeOffset_Keepers(t *testing.T) {
 				ImportState:             true,
 				ImportStateIdFunc:       testAccTimeOffsetImportStateIdFunc(resourceName),
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"keepers"},
+				ImportStateVerifyIgnore: []string{"triggers"},
 			},
 			{
-				Config: testAccConfigTimeOffsetKeepers1("key1", "value1updated"),
+				Config: testAccConfigTimeOffsetTriggers1("key1", "value1updated"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time2),
 					testCheckAttributeValuesDiffer(&time1, &time2),
 				),
@@ -269,10 +269,10 @@ func testAccTimeOffsetImportStateIdFunc(resourceName string) resource.ImportStat
 	}
 }
 
-func testAccConfigTimeOffsetKeepers1(keeperKey1 string, keeperKey2 string) string {
+func testAccConfigTimeOffsetTriggers1(keeperKey1 string, keeperKey2 string) string {
 	return fmt.Sprintf(`
 resource "time_offset" "test" {
-  keepers = {
+  triggers = {
     %[1]q = %[2]q
   }
   offset_days = 1

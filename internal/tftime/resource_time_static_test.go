@@ -39,7 +39,7 @@ func TestAccTimeStatic_basic(t *testing.T) {
 	})
 }
 
-func TestAccTimeStatic_Keepers(t *testing.T) {
+func TestAccTimeStatic_Triggers(t *testing.T) {
 	var time1, time2 string
 	resourceName := "time_static.test"
 
@@ -48,10 +48,10 @@ func TestAccTimeStatic_Keepers(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTimeStaticKeepers1("key1", "value1"),
+				Config: testAccConfigTimeStaticTriggers1("key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time1),
 					testSleep(1),
 				),
@@ -60,13 +60,13 @@ func TestAccTimeStatic_Keepers(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"keepers"},
+				ImportStateVerifyIgnore: []string{"triggers"},
 			},
 			{
-				Config: testAccConfigTimeStaticKeepers1("key1", "value1updated"),
+				Config: testAccConfigTimeStaticTriggers1("key1", "value1updated"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time2),
 					testCheckAttributeValuesDiffer(&time1, &time2),
 				),
@@ -118,10 +118,10 @@ resource "time_static" "test" {}
 `)
 }
 
-func testAccConfigTimeStaticKeepers1(keeperKey1 string, keeperKey2 string) string {
+func testAccConfigTimeStaticTriggers1(keeperKey1 string, keeperKey2 string) string {
 	return fmt.Sprintf(`
 resource "time_static" "test" {
-  keepers = {
+  triggers = {
     %[1]q = %[2]q
   }
 }
