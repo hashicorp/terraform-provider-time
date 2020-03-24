@@ -41,26 +41,6 @@ func resourceTimeStatic() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"rfc822": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc822z": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc850": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc1123": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc1123z": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"rfc3339": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -74,10 +54,6 @@ func resourceTimeStatic() *schema.Resource {
 			},
 			"unix": {
 				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"unixdate": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"year": {
@@ -128,26 +104,6 @@ func resourceTimeStaticRead(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("error setting month: %s", err)
 	}
 
-	if err := d.Set("rfc822", timestamp.Format(time.RFC822)); err != nil {
-		return fmt.Errorf("error setting rfc822: %s", err)
-	}
-
-	if err := d.Set("rfc822z", timestamp.Format(time.RFC822Z)); err != nil {
-		return fmt.Errorf("error setting rfc822z: %s", err)
-	}
-
-	if err := d.Set("rfc850", timestamp.Format(time.RFC850)); err != nil {
-		return fmt.Errorf("error setting rfc850: %s", err)
-	}
-
-	if err := d.Set("rfc1123", timestamp.Format(time.RFC1123)); err != nil {
-		return fmt.Errorf("error setting rfc1123: %s", err)
-	}
-
-	if err := d.Set("rfc1123z", timestamp.Format(time.RFC1123Z)); err != nil {
-		return fmt.Errorf("error setting rfc1123z: %s", err)
-	}
-
 	if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
 		return fmt.Errorf("error setting rfc3339: %s", err)
 	}
@@ -158,10 +114,6 @@ func resourceTimeStaticRead(d *schema.ResourceData, m interface{}) error {
 
 	if err := d.Set("unix", timestamp.Unix()); err != nil {
 		return fmt.Errorf("error setting unix: %s", err)
-	}
-
-	if err := d.Set("unixdate", timestamp.Format(time.UnixDate)); err != nil {
-		return fmt.Errorf("error setting unixdate: %s", err)
 	}
 
 	if err := d.Set("year", timestamp.Year()); err != nil {

@@ -62,15 +62,9 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - UTC RFC3339 timestamp format, e.g. `2020-02-12T06:36:13Z`.
 * `minute` - Number minute of timestamp.
 * `month` - Number month of timestamp.
-* `rfc822` - RFC822 timestamp (named timezone) format, e.g. `12 Feb 20 06:36 UTC`.
-* `rfc822z` - RFC822 timestamp (+/-#### time offset) format, e.g. `12 Feb 20 06:36 +0000`.
-* `rfc850` - RFC850 timestamp format, e.g. `Wednesday, 12-Feb-20 06:36:13 UTC`
-* `rfc1123` - RFC1123 timestamp (named timezone) format, e.g. `Wed, 12 Feb 2020 06:36:13 UTC`.
-* `rfc1123z` - RFC1123 timestamp (+/-#### time offset) format, e.g. `Wed, 12 Feb 2020 06:36:13 +0000`.
-* `rfc3339` - RFC3339 timestamp format, e.g. `2020-02-12T06:36:13Z`.
+* `rfc3339` - UTC RFC3339 format of timestamp, e.g. `2020-02-12T06:36:13Z`.
 * `second` - Number second of timestamp.
 * `unix` - Number of seconds since epoch time, e.g. `1581489373`.
-* `unixdate` - UNIX date format, e.g. `Wed Feb 12 06:36:13 UTC 2020`.
 * `year` - Number year of timestamp.
 
 ## Import

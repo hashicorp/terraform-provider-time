@@ -19,7 +19,7 @@ func resourceTimeOffset() *schema.Resource {
 		Delete: schema.Noop,
 
 		CustomizeDiff: customdiff.Sequence(
-			customdiff.If(resourceTimeRotatingConditionExpirationChange,
+			customdiff.If(resourceTimeOffsetConditionExpirationChange,
 				func(diff *schema.ResourceDiff, meta interface{}) error {
 					if diff.Id() == "" {
 						return nil
@@ -71,26 +71,6 @@ func resourceTimeOffset() *schema.Resource {
 						return fmt.Errorf("error setting new month: %s", err)
 					}
 
-					if err := diff.SetNew("rfc822", timestamp.Format(time.RFC822)); err != nil {
-						return fmt.Errorf("error setting new rfc822: %s", err)
-					}
-
-					if err := diff.SetNew("rfc822z", timestamp.Format(time.RFC822Z)); err != nil {
-						return fmt.Errorf("error setting new rfc822z: %s", err)
-					}
-
-					if err := diff.SetNew("rfc850", timestamp.Format(time.RFC850)); err != nil {
-						return fmt.Errorf("error setting new rfc850: %s", err)
-					}
-
-					if err := diff.SetNew("rfc1123", timestamp.Format(time.RFC1123)); err != nil {
-						return fmt.Errorf("error setting new rfc1123: %s", err)
-					}
-
-					if err := diff.SetNew("rfc1123z", timestamp.Format(time.RFC1123Z)); err != nil {
-						return fmt.Errorf("error setting new rfc1123z: %s", err)
-					}
-
 					if err := diff.SetNew("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
 						return fmt.Errorf("error setting new rfc3339: %s", err)
 					}
@@ -101,10 +81,6 @@ func resourceTimeOffset() *schema.Resource {
 
 					if err := diff.SetNew("unix", timestamp.Unix()); err != nil {
 						return fmt.Errorf("error setting new unix: %s", err)
-					}
-
-					if err := diff.SetNew("unixdate", timestamp.Format(time.UnixDate)); err != nil {
-						return fmt.Errorf("error setting new unixdate: %s", err)
 					}
 
 					if err := diff.SetNew("year", timestamp.Year()); err != nil {
@@ -318,26 +294,6 @@ func resourceTimeOffset() *schema.Resource {
 					"offset_years",
 				},
 			},
-			"rfc822": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc822z": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc850": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc1123": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"rfc1123z": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"rfc3339": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -348,10 +304,6 @@ func resourceTimeOffset() *schema.Resource {
 			},
 			"unix": {
 				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"unixdate": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"year": {
@@ -436,26 +388,6 @@ func resourceTimeOffsetRead(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("error setting month: %s", err)
 	}
 
-	if err := d.Set("rfc822", timestamp.Format(time.RFC822)); err != nil {
-		return fmt.Errorf("error setting rfc822: %s", err)
-	}
-
-	if err := d.Set("rfc822z", timestamp.Format(time.RFC822Z)); err != nil {
-		return fmt.Errorf("error setting rfc822z: %s", err)
-	}
-
-	if err := d.Set("rfc850", timestamp.Format(time.RFC850)); err != nil {
-		return fmt.Errorf("error setting rfc850: %s", err)
-	}
-
-	if err := d.Set("rfc1123", timestamp.Format(time.RFC1123)); err != nil {
-		return fmt.Errorf("error setting rfc1123: %s", err)
-	}
-
-	if err := d.Set("rfc1123z", timestamp.Format(time.RFC1123Z)); err != nil {
-		return fmt.Errorf("error setting rfc1123z: %s", err)
-	}
-
 	if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
 		return fmt.Errorf("error setting rfc3339: %s", err)
 	}
@@ -466,10 +398,6 @@ func resourceTimeOffsetRead(d *schema.ResourceData, m interface{}) error {
 
 	if err := d.Set("unix", timestamp.Unix()); err != nil {
 		return fmt.Errorf("error setting unix: %s", err)
-	}
-
-	if err := d.Set("unixdate", timestamp.Format(time.UnixDate)); err != nil {
-		return fmt.Errorf("error setting unixdate: %s", err)
 	}
 
 	if err := d.Set("year", timestamp.Year()); err != nil {

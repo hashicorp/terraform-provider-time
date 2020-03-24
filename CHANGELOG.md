@@ -1,3 +1,11 @@
+# v0.4.0
+
+BREAKING CHANGES:
+
+* resource/time_offset: Remove non-RFC3339 RFC and `unixdate` attributes
+* resource/time_rotating: Remove non-RFC3339 RFC and `unixdate` attributes
+* resource/time_static: Remove non-RFC3339 RFC and `unixdate` attributes
+
 # v0.3.0
 
 ENHANCEMENTS:
