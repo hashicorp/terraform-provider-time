@@ -25,11 +25,11 @@ output "one_week_from_now" {
 }
 ```
 
-### Keepers Usage
+### Triggers Usage
 
 ```hcl
 resource "time_offset" "ami_update" {
-  keepers = {
+  triggers = {
     # Save the time each switch of an AMI id
     ami_id = data.aws_ami.example.id
   }
@@ -40,7 +40,7 @@ resource "time_offset" "ami_update" {
 resource "aws_instance" "server" {
   # Read the AMI id "through" the time_offset resource to ensure that
   # both will change together.
-  ami = time_offset.ami_update.keepers.ami_id
+  ami = time_offset.ami_update.triggers.ami_id
 
   tags = {
     ExpirationTime = time_offset.ami_update.rfc3339
@@ -57,7 +57,7 @@ resource "aws_instance" "server" {
 The following arguments are optional:
 
 * `base_rfc3339` - (Optional) Configure the base timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
-* `keepers` - (Optional) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.html) for more information.
+* `triggers` - (Optional) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.html) for more information.
 * `offset_days` - (Optional) Number of days to offset the base timestamp. Conflicts with other `offset_` arguments.
 * `offset_hours` - (Optional) Number of hours to offset the base timestamp. Conflicts with other `offset_` arguments.
 * `offset_minutes` - (Optional) Number of minutes to offset the base timestamp. Conflicts with other `offset_` arguments.
@@ -93,4 +93,4 @@ This resource can be imported using the base UTC RFC3339 timestamp and offset ye
 $ terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
 ```
 
-The `keepers` argument cannot be imported.
+The `triggers` argument cannot be imported.

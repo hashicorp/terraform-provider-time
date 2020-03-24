@@ -1,3 +1,11 @@
+# v0.4.0
+
+BREAKING CHANGES:
+
+* resource/time_offset: `keepers` argument renamed to `triggers`
+* resource/time_rotating: `keepers` argument renamed to `triggers`
+* resource/time_static: `keepers` argument renamed to `triggers`
+
 # v0.3.0
 
 ENHANCEMENTS:

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccTimeRotating_Keepers(t *testing.T) {
+func TestAccTimeRotating_Triggers(t *testing.T) {
 	var time1, time2 string
 	resourceName := "time_rotating.test"
 
@@ -18,10 +18,10 @@ func TestAccTimeRotating_Keepers(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTimeRotatingKeepers1("key1", "value1"),
+				Config: testAccConfigTimeRotatingTriggers1("key1", "value1"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time1),
 					testSleep(1),
 				),
@@ -31,13 +31,13 @@ func TestAccTimeRotating_Keepers(t *testing.T) {
 				ImportState:             true,
 				ImportStateIdFunc:       testAccTimeRotatingImportStateIdFunc(resourceName),
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"keepers"},
+				ImportStateVerifyIgnore: []string{"triggers"},
 			},
 			{
-				Config: testAccConfigTimeRotatingKeepers1("key1", "value1updated"),
+				Config: testAccConfigTimeRotatingTriggers1("key1", "value1updated"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "keepers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "keepers.key1", "value1updated"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					testExtractResourceAttr(resourceName, "rfc3339", &time2),
 					testCheckAttributeValuesDiffer(&time1, &time2),
 				),
@@ -337,10 +337,10 @@ func testAccTimeRotatingImportStateIdFunc(resourceName string) resource.ImportSt
 	}
 }
 
-func testAccConfigTimeRotatingKeepers1(keeperKey1 string, keeperKey2 string) string {
+func testAccConfigTimeRotatingTriggers1(keeperKey1 string, keeperKey2 string) string {
 	return fmt.Sprintf(`
 resource "time_rotating" "test" {
-  keepers = {
+  triggers = {
     %[1]q = %[2]q
   }
   rotation_days = 1
