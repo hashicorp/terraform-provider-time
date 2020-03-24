@@ -15,7 +15,7 @@ This Terraform Provider is available to install automatically via `terraform ini
 ```hcl
 terraform {
   required_providers = {
-    time = "~> 0.3"
+    time = "~> X.Y" # where X.Y is the current major version and minor version
   }
 }
 ```
