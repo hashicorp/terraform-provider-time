@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/bflad/terraform-provider-time/internal/tftime"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-provider-time/internal/tftime"
 )
 
 func main() {
