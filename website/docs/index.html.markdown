@@ -13,9 +13,13 @@ Use the navigation to the left to read about the available resources.
 
 ## Resource "Triggers"
 
-The time resources, except `time_rotating`, save base timestamps only when they are created; the results produced are stored in the Terraform state and re-used until the inputs change, prompting the resource to be recreated.
+Certain time resources, only perform actions during specific lifecycle actions:
 
-The resources all provide a map argument called `triggers` that can be populated with arbitrary key/value pairs that should be selected such that they remain the same until new time values are desired.
+- `time_offset`: Saves base timestamp into Terraform state only when created.
+- `time_sleep`: Sleeps when created and/or destroyed.
+- `time_static`: Saves base timestamp into Terraform state only when created.
+
+These resources provide an optional map argument called `triggers` that can be populated with arbitrary key/value pairs. When the keys or values of this argument are updated, Terraform will re-perform the desired action, such as updating the base timestamp or sleeping again.
 
 For example:
 
@@ -40,8 +44,6 @@ resource "aws_instance" "server" {
 }
 ```
 
-Resource "triggers" are optional. The other arguments to each resource must *also* remain constant in order to retain the same time result.
-
 `triggers` are *not* treated as sensitive attributes; a value used for `triggers` will be displayed in Terraform UI output as plaintext.
 
-To force a base timestamp to be replaced, the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) can be used to produce a new time on the next run.
+To force a these actions to reoccur without updating `triggers`, the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) can be used to produce the action on the next run.
