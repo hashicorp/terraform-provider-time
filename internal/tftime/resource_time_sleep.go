@@ -2,7 +2,7 @@ package tftime
 
 import (
 	"fmt"
-	"strconv"
+	"regexp"
 	"strings"
 	"time"
 
@@ -22,21 +22,26 @@ func resourceTimeSleep() *schema.Resource {
 				idParts := strings.Split(d.Id(), ",")
 
 				if len(idParts) != 2 || (idParts[0] == "" && idParts[1] == "") {
-					return nil, fmt.Errorf("Unexpected format of ID (%q), expected CREATESECONDS,DESTROYSECONDS where at least one value is non-empty", d.Id())
+					return nil, fmt.Errorf("Unexpected format of ID (%q), expected CREATEDURATION,DESTROYDURATION where at least one value is non-empty", d.Id())
 				}
 
-				createSeconds, _ := strconv.Atoi(idParts[0])
-				destroySeconds, _ := strconv.Atoi(idParts[1])
+				if idParts[0] != "" {
+					if _, err := time.ParseDuration(idParts[0]); err != nil {
+						return nil, fmt.Errorf("error parsing create_duration (%s): %w", idParts[0], err)
+					}
 
-				if createSeconds > 0 {
-					if err := d.Set("create_seconds", createSeconds); err != nil {
-						return nil, fmt.Errorf("error setting create_seconds: %s", err)
+					if err := d.Set("create_duration", idParts[0]); err != nil {
+						return nil, fmt.Errorf("error setting create_duration: %s", err)
 					}
 				}
 
-				if destroySeconds > 0 {
-					if err := d.Set("destroy_seconds", destroySeconds); err != nil {
-						return nil, fmt.Errorf("error setting destroy_seconds: %s", err)
+				if idParts[1] != "" {
+					if _, err := time.ParseDuration(idParts[1]); err != nil {
+						return nil, fmt.Errorf("error parsing destroy_duration (%s): %w", idParts[1], err)
+					}
+
+					if err := d.Set("destroy_duration", idParts[1]); err != nil {
+						return nil, fmt.Errorf("error setting destroy_duration: %s", err)
 					}
 				}
 
@@ -47,23 +52,23 @@ func resourceTimeSleep() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"create_seconds": {
-				Type:     schema.TypeInt,
+			"create_duration": {
+				Type:     schema.TypeString,
 				Optional: true,
 				AtLeastOneOf: []string{
-					"create_seconds",
-					"destroy_seconds",
+					"create_duration",
+					"destroy_duration",
 				},
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9]+(\.[0-9]+)?(ms|s|m|h)$`), "must be a number immediately followed by ms (milliseconds), s (seconds), m (minutes), or h (hours). For example, \"30s\" for 30 seconds."),
 			},
-			"destroy_seconds": {
-				Type:     schema.TypeInt,
+			"destroy_duration": {
+				Type:     schema.TypeString,
 				Optional: true,
 				AtLeastOneOf: []string{
-					"create_seconds",
-					"destroy_seconds",
+					"create_duration",
+					"destroy_duration",
 				},
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9]+(\.[0-9]+)?(ms|s|m|h)$`), "must be a number immediately followed by ms (milliseconds), s (seconds), m (minutes), or h (hours). For example, \"30s\" for 30 seconds."),
 			},
 			"triggers": {
 				Type:     schema.TypeMap,
@@ -76,8 +81,14 @@ func resourceTimeSleep() *schema.Resource {
 }
 
 func resourceTimeSleepCreate(d *schema.ResourceData, m interface{}) error {
-	if v, ok := d.GetOk("create_seconds"); ok {
-		time.Sleep(time.Duration(v.(int)) * time.Second)
+	if v, ok := d.GetOk("create_duration"); ok {
+		duration, err := time.ParseDuration(v.(string))
+
+		if err != nil {
+			return fmt.Errorf("error parsing create_duration (%s): %w", v.(string), err)
+		}
+
+		time.Sleep(duration)
 	}
 
 	d.SetId(time.Now().UTC().Format(time.RFC3339))
@@ -86,8 +97,14 @@ func resourceTimeSleepCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceTimeSleepDelete(d *schema.ResourceData, m interface{}) error {
-	if v, ok := d.GetOk("destroy_seconds"); ok {
-		time.Sleep(time.Duration(v.(int)) * time.Second)
+	if v, ok := d.GetOk("destroy_duration"); ok {
+		duration, err := time.ParseDuration(v.(string))
+
+		if err != nil {
+			return fmt.Errorf("error parsing destroy_duration (%s): %w", v.(string), err)
+		}
+
+		time.Sleep(duration)
 	}
 
 	return nil

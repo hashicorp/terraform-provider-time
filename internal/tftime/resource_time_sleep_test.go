@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccTimeSleep_CreateSeconds(t *testing.T) {
+func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	var time1, time2 string
 	resourceName := "time_sleep.test"
 
@@ -17,9 +17,9 @@ func TestAccTimeSleep_CreateSeconds(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTimeSleepCreateSeconds(1),
+				Config: testAccConfigTimeSleepCreateDuration("1ms"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
@@ -30,9 +30,9 @@ func TestAccTimeSleep_CreateSeconds(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccConfigTimeSleepCreateSeconds(2),
+				Config: testAccConfigTimeSleepCreateDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_seconds", "2"),
+					resource.TestCheckResourceAttr(resourceName, "create_duration", "2ms"),
 					testExtractResourceAttr(resourceName, "id", &time2),
 					testCheckAttributeValuesSame(&time1, &time2),
 				),
@@ -41,7 +41,7 @@ func TestAccTimeSleep_CreateSeconds(t *testing.T) {
 	})
 }
 
-func TestAccTimeSleep_DestroySeconds(t *testing.T) {
+func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	var time1, time2 string
 	resourceName := "time_sleep.test"
 
@@ -50,9 +50,9 @@ func TestAccTimeSleep_DestroySeconds(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigTimeSleepDestroySeconds(1),
+				Config: testAccConfigTimeSleepDestroyDuration("1ms"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "destroy_seconds", "1"),
+					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "1ms"),
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
@@ -63,9 +63,9 @@ func TestAccTimeSleep_DestroySeconds(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccConfigTimeSleepDestroySeconds(2),
+				Config: testAccConfigTimeSleepDestroyDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "destroy_seconds", "2"),
+					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "2ms"),
 					testExtractResourceAttr(resourceName, "id", &time2),
 					testCheckAttributeValuesSame(&time1, &time2),
 				),
@@ -117,33 +117,33 @@ func testAccTimeSleepImportStateIdFunc(resourceName string) resource.ImportState
 			return "", fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		createSeconds := rs.Primary.Attributes["create_seconds"]
-		destroySeconds := rs.Primary.Attributes["destroy_seconds"]
+		createDuration := rs.Primary.Attributes["create_duration"]
+		destroyDuration := rs.Primary.Attributes["destroy_duration"]
 
-		return fmt.Sprintf("%s,%s", createSeconds, destroySeconds), nil
+		return fmt.Sprintf("%s,%s", createDuration, destroyDuration), nil
 	}
 }
 
-func testAccConfigTimeSleepCreateSeconds(createSeconds int) string {
+func testAccConfigTimeSleepCreateDuration(createDuration string) string {
 	return fmt.Sprintf(`
 resource "time_sleep" "test" {
-  create_seconds = %[1]d
+  create_duration = %[1]q
 }
-`, createSeconds)
+`, createDuration)
 }
 
-func testAccConfigTimeSleepDestroySeconds(destroySeconds int) string {
+func testAccConfigTimeSleepDestroyDuration(destroyDuration string) string {
 	return fmt.Sprintf(`
 resource "time_sleep" "test" {
-  destroy_seconds = %[1]d
+  destroy_duration = %[1]q
 }
-`, destroySeconds)
+`, destroyDuration)
 }
 
 func testAccConfigTimeSleepTriggers1(keeperKey1 string, keeperKey2 string) string {
 	return fmt.Sprintf(`
 resource "time_sleep" "test" {
-  create_seconds = 1
+  create_duration = "1s"
 
   triggers = {
     %[1]q = %[2]q

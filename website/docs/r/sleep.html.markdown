@@ -13,7 +13,7 @@ Manages a resource that delays creation and/or destruction, typically for furthe
 
 ## Example Usage
 
-### Creation Delay Usage
+### Delay Create Usage
 
 ```hcl
 # This resource will destroy (potentially immediately) after null_resource.next
@@ -22,7 +22,7 @@ resource "null_resource" "previous" {}
 resource "time_sleep" "wait_30_seconds" {
   depends_on = [null_resource.previous]
 
-  create_seconds = 30
+  create_duration = "30s"
 }
 
 # This resource will create (at least) 30 seconds after null_resource.previous
@@ -31,7 +31,7 @@ resource "null_resource" "next" {
 }
 ```
 
-### Destruction Delay Usage
+### Delay Destroy Usage
 
 ```hcl
 # This resource will destroy (at least) 30 seconds after null_resource.next
@@ -40,7 +40,7 @@ resource "null_resource" "previous" {}
 resource "time_sleep" "wait_30_seconds" {
   depends_on = [null_resource.previous]
 
-  destroy_seconds = 30
+  destroy_duration = "30s"
 }
 
 # This resource will create (potentially immediately) after null_resource.previous
@@ -60,7 +60,7 @@ resource "aws_ram_resource_association" "example" {
 # AWS resources shared via Resource Access Manager can take a few seconds to
 # propagate across AWS accounts after RAM returns a successful association.
 resource "time_sleep" "ram_resource_propagation" {
-  create_seconds = 60
+  create_duration = "60s"
 
   triggers = {
     # This sets up a proper dependency on the RAM association
@@ -82,8 +82,8 @@ resource "aws_db_subnet_group" "example" {
 
 The following arguments are optional:
 
-* `create_seconds` - (Optional) Number of seconds to sleep on resource creation. Updating this value by itself will not trigger sleeping.
-* `destroy_seconds` - (Optional) Number of seconds to sleep on resource destroy. Updating this value by itself will not trigger sleeping. This value or any updates to it must be successfully applied into the Terraform state before destroying this resource to take effect.
+* `create_duration` - (Optional) [Time duration][1] to delay resource creation. For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay.
+* `destroy_duration` - (Optional) [Time duration][1] to delay resource destroy. For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay. This value or any updates to it must be successfully applied into the Terraform state before destroying this resource to take effect.
 * `triggers` - (Optional) Arbitrary map of values that, when changed, will run any creation or destroy delays again. See [the main provider documentation](../index.html) for more information.
 
 ## Attributes Reference
@@ -94,10 +94,20 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-This resource can be imported with the `create_seconds` and `destroy_seconds`, separated by a comma (`,`), e.g.
+This resource can be imported with the `create_duration` and `destroy_duration`, separated by a comma (`,`).
+
+e.g. For 30 seconds create duration with no destroy duration:
 
 ```console
-$ terraform import time_sleep.example 30,0
+$ terraform import time_sleep.example 30s,
+```
+
+e.g. For 30 seconds destroy duration with no create duration:
+
+```console
+$ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
+
+[1]: https://golang.org/pkg/time/#ParseDuration
