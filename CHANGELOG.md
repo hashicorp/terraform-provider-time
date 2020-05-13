@@ -1,8 +1,8 @@
-## 0.5.0 (Unreleased)
+## 0.5.0 (May 13, 2020)
 
 FEATURES
 
-* **New Resource:** `time_sleep` [GH-12]
+* **New Resource:** `time_sleep` ([#12](https://github.com/hashicorp/terraform-provider-time/issues/12))
 
 # 0.4.0 (April 21, 2020)
 
