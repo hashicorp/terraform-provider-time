@@ -1,4 +1,9 @@
 ## 0.5.0 (Unreleased)
+
+ENHANCEMENTS
+
+* Added `time_sleep` resource [GH-12]
+
 # 0.4.0 (April 21, 2020)
 
 BREAKING CHANGES:
