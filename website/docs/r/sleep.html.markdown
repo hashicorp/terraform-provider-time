@@ -9,7 +9,7 @@ description: |-
 
 Manages a resource that delays creation and/or destruction, typically for further resources. This prevents cross-platform compatibility and destroy-time issues with using the [`local-exec` provisioner](https://www.terraform.io/docs/provisioners/local-exec.html).
 
--> In many cases, this resource should be considered a workaround for issues that should be reported and handled in downstream Terraform Provider logic. Downstream resources can usually introduce or adjust retries in their code to handle time delay issues for all Terraform configurations.
+-> In many cases, this resource should be considered a workaround for issues that should be reported and handled in downstream Terraform Provider logic. Downstream resources can usually introduce or adjust retries in their code to handle time delay issues for all Terraform configurations or upstream resources can be improved to better wait for a resource to be fully ready and available.
 
 ## Example Usage
 
