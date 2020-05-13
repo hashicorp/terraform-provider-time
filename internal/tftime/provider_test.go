@@ -36,6 +36,16 @@ func testCheckAttributeValuesDiffer(i *string, j *string) resource.TestCheckFunc
 	}
 }
 
+func testCheckAttributeValuesSame(i *string, j *string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if testStringValue(i) != testStringValue(j) {
+			return fmt.Errorf("attribute values are different")
+		}
+
+		return nil
+	}
+}
+
 func testExtractResourceAttr(resourceName string, attributeName string, attributeValue *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
