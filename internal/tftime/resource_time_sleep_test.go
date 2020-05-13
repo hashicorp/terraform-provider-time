@@ -3,10 +3,61 @@ package tftime
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
+
+// Since the acceptance testing framework can introduce uncontrollable time delays,
+// verify that sleeping works as expected via unit testing.
+func TestResourceTimeSleepCreate(t *testing.T) {
+	durationStr := "1s"
+	expectedDuration, err := time.ParseDuration("1s")
+
+	if err != nil {
+		t.Fatalf("unable to parse test duration: %s", err)
+	}
+
+	d := resourceTimeSleep().Data(nil)
+	d.SetType("time_sleep")
+	d.SetId("test")
+	d.Set("create_duration", durationStr)
+
+	start := time.Now()
+	resourceTimeSleepCreate(d, nil)
+	end := time.Now()
+	elapsed := end.Sub(start)
+
+	if elapsed < expectedDuration {
+		t.Errorf("did not sleep long enough, expected duration: %d got: %d", expectedDuration, elapsed)
+	}
+}
+
+// Since the acceptance testing framework can introduce uncontrollable time delays,
+// verify that sleeping works as expected via unit testing.
+func TestResourceTimeSleepDelete(t *testing.T) {
+	durationStr := "1s"
+	expectedDuration, err := time.ParseDuration("1s")
+
+	if err != nil {
+		t.Fatalf("unable to parse test duration: %s", err)
+	}
+
+	d := resourceTimeSleep().Data(nil)
+	d.SetType("time_sleep")
+	d.SetId("test")
+	d.Set("destroy_duration", durationStr)
+
+	start := time.Now()
+	resourceTimeSleepDelete(d, nil)
+	end := time.Now()
+	elapsed := end.Sub(start)
+
+	if elapsed < expectedDuration {
+		t.Errorf("did not sleep long enough, expected duration: %d got: %d", expectedDuration, elapsed)
+	}
+}
 
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	var time1, time2 string
