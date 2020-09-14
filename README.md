@@ -13,6 +13,17 @@ Please note: Issues on this repository are intended to be related to bugs or fea
 This Terraform Provider is available to install automatically via `terraform init`. It is recommended to setup the following Terraform configuration to pin the major version:
 
 ```hcl
+# Terraform 0.13 and later
+terraform {
+  required_providers = {
+    time = {
+      source  = "hashicorp/time"
+      version = "~> X.Y" # where X.Y is the current major version and minor version
+    }
+  }
+}
+
+# Terraform 0.12
 terraform {
   required_providers = {
     time = "~> X.Y" # where X.Y is the current major version and minor version
