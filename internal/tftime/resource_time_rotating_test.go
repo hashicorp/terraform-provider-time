@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
@@ -14,8 +14,8 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingTriggers1("key1", "value1"),
@@ -51,8 +51,8 @@ func TestAccTimeRotating_RotationDays_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 7),
@@ -76,8 +76,8 @@ func TestAccTimeRotating_RotationDays_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(0, 0, -2)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 1),
@@ -96,8 +96,8 @@ func TestAccTimeRotating_RotationHours_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationHours(timestamp.Format(time.RFC3339), 3),
@@ -121,8 +121,8 @@ func TestAccTimeRotating_RotationHours_expired(t *testing.T) {
 	timestamp := time.Now().UTC().Add(-2 * time.Hour)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationHours(timestamp.Format(time.RFC3339), 1),
@@ -141,8 +141,8 @@ func TestAccTimeRotating_RotationMinutes_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 3),
@@ -166,8 +166,8 @@ func TestAccTimeRotating_RotationMinutes_expired(t *testing.T) {
 	timestamp := time.Now().UTC().Add(-2 * time.Minute)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 1),
@@ -186,8 +186,8 @@ func TestAccTimeRotating_RotationMonths_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 3),
@@ -211,8 +211,8 @@ func TestAccTimeRotating_RotationMonths_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(0, -2, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 1),
@@ -232,8 +232,8 @@ func TestAccTimeRotating_RotationRfc3339_basic(t *testing.T) {
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationRfc3339(timestamp.Format(time.RFC3339), rotationTimestamp.Format(time.RFC3339)),
@@ -257,8 +257,8 @@ func TestAccTimeRotating_RotationRfc3339_expired(t *testing.T) {
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, -1)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationRfc3339(timestamp.Format(time.RFC3339), rotationTimestamp.Format(time.RFC3339)),
@@ -276,8 +276,8 @@ func TestAccTimeRotating_RotationYears_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
@@ -301,8 +301,8 @@ func TestAccTimeRotating_RotationYears_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(-2, 0, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: nil,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 1),
