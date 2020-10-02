@@ -1,6 +1,7 @@
 package tftime
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 	d.Set("create_duration", durationStr)
 
 	start := time.Now()
-	resourceTimeSleepCreate(d, nil)
+	resourceTimeSleepCreate(context.Background(), d, nil)
 	end := time.Now()
 	elapsed := end.Sub(start)
 
@@ -50,7 +51,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 	d.Set("destroy_duration", durationStr)
 
 	start := time.Now()
-	resourceTimeSleepDelete(d, nil)
+	resourceTimeSleepDelete(context.Background(), d, nil)
 	end := time.Now()
 	elapsed := end.Sub(start)
 

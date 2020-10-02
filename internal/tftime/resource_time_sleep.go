@@ -1,25 +1,26 @@
 package tftime
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceTimeSleep() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTimeSleepCreate,
-		Read:   schema.Noop,
-		Update: schema.Noop,
-		Delete: resourceTimeSleepDelete,
+		CreateContext: resourceTimeSleepCreate,
+		ReadContext:   schema.NoopContext,
+		UpdateContext: schema.NoopContext,
+		DeleteContext: resourceTimeSleepDelete,
 
 		Importer: &schema.ResourceImporter{
-
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 
 				if len(idParts) != 2 || (idParts[0] == "" && idParts[1] == "") {
@@ -81,15 +82,18 @@ func resourceTimeSleep() *schema.Resource {
 	}
 }
 
-func resourceTimeSleepCreate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeSleepCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if v, ok := d.GetOk("create_duration"); ok {
 		duration, err := time.ParseDuration(v.(string))
-
 		if err != nil {
-			return fmt.Errorf("error parsing create_duration (%s): %w", v.(string), err)
+			return diag.Errorf("error parsing create_duration (%s): %s", v.(string), err)
 		}
 
-		time.Sleep(duration)
+		select {
+		case <-ctx.Done():
+			return diag.FromErr(ctx.Err())
+		case <-time.After(duration):
+		}
 	}
 
 	d.SetId(time.Now().UTC().Format(time.RFC3339))
@@ -97,15 +101,18 @@ func resourceTimeSleepCreate(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceTimeSleepDelete(d *schema.ResourceData, m interface{}) error {
+func resourceTimeSleepDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if v, ok := d.GetOk("destroy_duration"); ok {
 		duration, err := time.ParseDuration(v.(string))
-
 		if err != nil {
-			return fmt.Errorf("error parsing destroy_duration (%s): %w", v.(string), err)
+			return diag.Errorf("error parsing destroy_duration (%s): %s", v.(string), err)
 		}
 
-		time.Sleep(duration)
+		select {
+		case <-ctx.Done():
+			return diag.FromErr(ctx.Err())
+		case <-time.After(duration):
+		}
 	}
 
 	return nil
