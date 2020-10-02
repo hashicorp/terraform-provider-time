@@ -1,15 +1,16 @@
 package tftime
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceTimeRotating() *schema.Resource {
@@ -21,7 +22,7 @@ func resourceTimeRotating() *schema.Resource {
 
 		CustomizeDiff: customdiff.Sequence(
 			customdiff.If(resourceTimeRotatingConditionExpirationChange,
-				func(diff *schema.ResourceDiff, meta interface{}) error {
+				func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 					if diff.Id() == "" {
 						return nil
 					}
@@ -70,7 +71,7 @@ func resourceTimeRotating() *schema.Resource {
 					return nil
 				},
 			),
-			customdiff.ForceNewIf("rotation_rfc3339", func(diff *schema.ResourceDiff, meta interface{}) bool {
+			customdiff.ForceNewIf("rotation_rfc3339", func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
 				now := time.Now().UTC()
 				rotationTimestamp, err := time.Parse(time.RFC3339, diff.Get("rotation_rfc3339").(string))
 
@@ -458,7 +459,7 @@ func resourceTimeRotatingUpdate(d *schema.ResourceData, m interface{}) error {
 	return resourceTimeRotatingRead(d, m)
 }
 
-func resourceTimeRotatingConditionExpirationChange(diff *schema.ResourceDiff, meta interface{}) bool {
+func resourceTimeRotatingConditionExpirationChange(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
 	return diff.HasChange("rotation_days") ||
 		diff.HasChange("rotation_hours") ||
 		diff.HasChange("rotation_minutes") ||

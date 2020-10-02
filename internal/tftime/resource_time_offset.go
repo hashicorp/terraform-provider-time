@@ -1,14 +1,15 @@
 package tftime
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceTimeOffset() *schema.Resource {
@@ -20,7 +21,7 @@ func resourceTimeOffset() *schema.Resource {
 
 		CustomizeDiff: customdiff.Sequence(
 			customdiff.If(resourceTimeOffsetConditionExpirationChange,
-				func(diff *schema.ResourceDiff, meta interface{}) error {
+				func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 					if diff.Id() == "" {
 						return nil
 					}
@@ -447,7 +448,7 @@ func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
 	return resourceTimeOffsetRead(d, m)
 }
 
-func resourceTimeOffsetConditionExpirationChange(diff *schema.ResourceDiff, meta interface{}) bool {
+func resourceTimeOffsetConditionExpirationChange(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
 	return diff.HasChange("offset_days") ||
 		diff.HasChange("offset_hours") ||
 		diff.HasChange("offset_minutes") ||
