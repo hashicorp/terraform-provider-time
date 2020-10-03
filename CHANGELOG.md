@@ -1,4 +1,13 @@
 ## 0.6.0 (Unreleased)
+
+BREAKING CHANGES:
+
+* Dropped support for Terraform 0.11 and lower [GH-16]
+
+ENHANCEMENTS
+
+* Made `time_sleep` context aware, allowing easier early cancellation [GH-16]
+
 ## 0.5.0 (May 13, 2020)
 
 FEATURES
