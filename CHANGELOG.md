@@ -1,12 +1,12 @@
-## 0.6.0 (Unreleased)
+## 0.6.0 (October 04, 2020)
 
 BREAKING CHANGES:
 
-* Dropped support for Terraform 0.11 and lower [GH-16]
+* Dropped support for Terraform 0.11 and lower ([#16](https://github.com/hashicorp/terraform-provider-time/issues/16))
 
 ENHANCEMENTS
 
-* Made `time_sleep` context aware, allowing easier early cancellation [GH-16]
+* Made `time_sleep` context aware, allowing easier early cancellation ([#16](https://github.com/hashicorp/terraform-provider-time/issues/16))
 
 ## 0.5.0 (May 13, 2020)
 
