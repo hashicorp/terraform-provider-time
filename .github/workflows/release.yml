@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+env:
+  GOPROXY: https://proxy.golang.org/
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Read go version
+        id: go-version
+        run: |
+          content=`cat ./.go-version`
+          echo "::set-output name=content::$content"
+      - uses: actions/setup-go@v2
+        with:
+          # TODO: Replace with go-version-from-file when it is supported
+          # https://github.com/actions/setup-go/pull/62
+          go-version: ${{ steps.go-version.outputs.content }}
+      - name: Install hc-releases
+        run: |
+          DOWNLOAD_URL=$(curl -SsL \
+            -H "Authorization: token ${{ secrets.RELEASE_GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/hashicorp/hc-releases/releases/latest \
+            | jq -r '.assets[] | select(.name | contains("linux_amd64.tgz")) | .url')
+          curl -SsL -o /tmp/hc-releases.tgz \
+            -H "Authorization: token ${{ secrets.RELEASE_GITHUB_TOKEN }}" \
+            -H "Accept: application/octet-stream" ${DOWNLOAD_URL}
+          tar xzf /tmp/hc-releases.tgz
+          sudo mv hc-releases /usr/bin/hc-releases
+          hc-releases version
+      - name: Release Notes
+        run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > /tmp/RELEASE-NOTES.md
+      - name: gpg import
+        run: echo -e "${{ secrets.RELEASE_GPG_SIGNING_KEY }}" | gpg --import
+      - name: goreleaser check
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: check
+      - name: goreleaser release
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: release --release-notes /tmp/RELEASE-NOTES.md --rm-dist
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.RELEASE_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASE_AWS_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_USER_ID: ${{ secrets.RELEASE_GPG_USER_ID }}
+      - name: hc-releases publish
+        run: hc-releases publish -product=terraform-provider-time
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.RELEASE_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RELEASE_AWS_SECRET_ACCESS_KEY }}
+          FASTLY_API_TOKEN: ${{ secrets.RELEASE_FASTLY_API_TOKEN }}
+      - name: Terraform Registry Sync
+        run: curl --fail --include -X POST "${{ secrets.RELEASE_TERRAFORM_REGISTRY_SYNC_URL }}"
