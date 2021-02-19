@@ -1,4 +1,4 @@
-## 0.7.0 (Unreleased)
+## 0.7.0 (February 19, 2021)
 
 Binary releases of this provider now include the darwin-arm64 platform. This version contains no further changes.
 
