@@ -1,3 +1,7 @@
+## 0.7.0 (Unreleased)
+
+Binary releases of this provider now include the darwin-arm64 platform. This version contains no further changes.
+
 ## 0.6.0 (October 04, 2020)
 
 BREAKING CHANGES:
