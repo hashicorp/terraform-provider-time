@@ -18,8 +18,6 @@ builds:
       goarch: '386'
     - goos: darwin
       goarch: arm
-    - goos: darwin
-      goarch: arm64
 changelog:
   skip: true
 checksum:
