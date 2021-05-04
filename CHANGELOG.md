@@ -1,4 +1,4 @@
-## 0.7.1 (Unreleased)
+## 0.7.1 (May 04, 2021)
 
 BUG FIXES:
 
