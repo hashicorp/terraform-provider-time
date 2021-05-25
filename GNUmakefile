@@ -1,4 +1,4 @@
-GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
+GOFMT_FILES?=$$(find . -name '*.go')
 PKG_NAME=internal/tftime
 TEST?=./...
 WEBSITE_REPO=github.com/hashicorp/terraform-website
