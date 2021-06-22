@@ -25,7 +25,7 @@ terraform {
 
 # Terraform 0.12
 terraform {
-  required_providers = {
+  required_providers {
     time = "~> X.Y" # where X.Y is the current major version and minor version
   }
 }
