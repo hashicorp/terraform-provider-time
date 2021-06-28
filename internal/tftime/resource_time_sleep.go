@@ -14,10 +14,10 @@ import (
 
 func resourceTimeSleep() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceTimeSleepCreate,
-		ReadContext:   schema.NoopContext,
-		UpdateContext: schema.NoopContext,
-		DeleteContext: resourceTimeSleepDelete,
+		CreateWithoutTimeout: resourceTimeSleepCreate,
+		ReadWithoutTimeout:   schema.NoopContext,
+		UpdateWithoutTimeout: schema.NoopContext,
+		DeleteWithoutTimeout: resourceTimeSleepDelete,
 
 		Importer: &schema.ResourceImporter{
 			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
