@@ -1,3 +1,9 @@
+## 0.7.2 (Unreleased)
+
+BUG FIXES:
+
+* resource/time_sleep: Prevent `context deadline exceeded` error when timeout duration is configured above 20 minutes ([#45](https://github.com/hashicorp/terraform-provider-time/issues/45))
+
 ## 0.7.1 (May 04, 2021)
 
 BUG FIXES:
