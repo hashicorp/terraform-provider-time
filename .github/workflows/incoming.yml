@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2.2.0
+      - uses: actions/setup-go@v3.0.0
         with:
           go-version: "1.16.0"
       - name: go mod tidy
@@ -29,7 +29,7 @@ jobs:
       TF_ACC: 1
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2.2.0
+      - uses: actions/setup-go@v3.0.0
         with:
           go-version: "1.16.0"
       - run: go test -v -race -cover ./...
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2.2.0
+      - uses: actions/setup-go@v3.0.0
         with:
           go-version: "1.16.0"
       - name: goreleaser check
