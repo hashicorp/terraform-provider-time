@@ -15,7 +15,7 @@ This Terraform Provider is available to install automatically via `terraform ini
 ```hcl
 # Terraform 0.13 and later
 terraform {
-  required_providers = {
+  required_providers {
     time = {
       source  = "hashicorp/time"
       version = "~> X.Y" # where X.Y is the current major version and minor version
@@ -25,7 +25,7 @@ terraform {
 
 # Terraform 0.12
 terraform {
-  required_providers = {
+  required_providers {
     time = "~> X.Y" # where X.Y is the current major version and minor version
   }
 }
