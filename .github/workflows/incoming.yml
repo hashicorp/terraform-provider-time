@@ -44,10 +44,10 @@ jobs:
         with:
           go-version: "1.16.0"
       - name: goreleaser check
-        uses: goreleaser/goreleaser-action@v3.0.0
+        uses: goreleaser/goreleaser-action@v3
         with:
           args: check
       - name: goreleaser release --skip-publish
-        uses: goreleaser/goreleaser-action@v3.0.0
+        uses: goreleaser/goreleaser-action@v3
         with:
           args: release --rm-dist --skip-publish  --skip-sign
