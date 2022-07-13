@@ -26,7 +26,7 @@ resource "time_rotating" "example" {
 
 ### Optional
 
-- `rfc3339` (String) Configure the base timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
+- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `rotation_days` (Number) Number of days to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
 - `rotation_hours` (Number) Number of hours to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
 - `rotation_minutes` (Number) Number of minutes to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. Conflicts with other `rotation_` arguments.
@@ -45,7 +45,6 @@ resource "time_rotating" "example" {
 - `second` (Number) Number second of timestamp.
 - `unix` (Number) Number of seconds since epoch time, e.g. `1581489373`.
 - `year` (Number) Number year of timestamp.
-~> **NOTE:** At least one of the `rotation_` arguments must be configured.
 
 ## Import
 

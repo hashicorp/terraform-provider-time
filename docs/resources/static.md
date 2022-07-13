@@ -51,7 +51,7 @@ resource "aws_instance" "server" {
 
 ### Optional
 
-- `rfc3339` (String) UTC RFC3339 format of timestamp, e.g. `2020-02-12T06:36:13Z`.
+- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `triggers` (Map of String) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.md) for more information.
 
 ### Read-Only

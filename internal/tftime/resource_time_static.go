@@ -51,7 +51,10 @@ func resourceTimeStatic() *schema.Resource {
 				Computed:    true,
 			},
 			"rfc3339": {
-				Description:  "UTC RFC3339 format of timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,

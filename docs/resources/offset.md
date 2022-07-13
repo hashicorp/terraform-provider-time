@@ -55,7 +55,7 @@ resource "aws_instance" "server" {
 
 ### Optional
 
-- `base_rfc3339` (String) Configure the base timestamp with an UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
+- `base_rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `offset_days` (Number) Number of days to offset the base timestamp. Conflicts with other `offset_` arguments.
 - `offset_hours` (Number) Number of hours to offset the base timestamp. Conflicts with other `offset_` arguments.
 - `offset_minutes` (Number) Number of minutes to offset the base timestamp. Conflicts with other `offset_` arguments.
@@ -71,11 +71,10 @@ resource "aws_instance" "server" {
 - `id` (String) The ID of this resource.
 - `minute` (Number) Number minute of offset timestamp.
 - `month` (Number) Number month of offset timestamp.
-- `rfc3339` (String) UTC RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
+- `rfc3339` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `second` (Number) Number second of offset timestamp.
 - `unix` (Number) Number of seconds since epoch time, e.g. `1581489373`.
 - `year` (Number) Number year of offset timestamp.
-~> **NOTE:** At least one of the `offset_` arguments must be configured.
 
 ## Import
 

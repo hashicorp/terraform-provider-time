@@ -198,9 +198,10 @@ func resourceTimeOffset() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"base_rfc3339": {
-				Description: "Configure the base timestamp with an " +
-					"UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`)." +
-					" Defaults to the current time.",
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -314,7 +315,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"rfc3339": {
-				Description: "UTC RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},

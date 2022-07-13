@@ -322,9 +322,10 @@ func resourceTimeRotating() *schema.Resource {
 				Computed:    true,
 			},
 			"rfc3339": {
-				Description: "Configure the base timestamp with an " +
-					"UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). " +
-					"Defaults to the current time.",
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
