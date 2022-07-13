@@ -265,7 +265,7 @@ func resourceTimeRotating() *schema.Resource {
 			},
 			"rotation_rfc3339": {
 				Description: "Configure the rotation timestamp with an " +
-					"UTC [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) (`YYYY-MM-DDTHH:MM:SSZ`). " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"Conflicts with other `rotation_` arguments.",
 				Type:     schema.TypeString,
