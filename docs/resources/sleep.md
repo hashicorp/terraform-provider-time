@@ -89,7 +89,7 @@ resource "aws_db_subnet_group" "example" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 
 ## Import
 
