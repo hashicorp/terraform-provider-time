@@ -202,7 +202,7 @@ func resourceTimeRotating() *schema.Resource {
 			"rotation_days": {
 				Description: "Number of days to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -218,7 +218,7 @@ func resourceTimeRotating() *schema.Resource {
 			"rotation_hours": {
 				Description: "Number of hours to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -234,7 +234,7 @@ func resourceTimeRotating() *schema.Resource {
 			"rotation_minutes": {
 				Description: "Number of minutes to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -250,7 +250,7 @@ func resourceTimeRotating() *schema.Resource {
 			"rotation_months": {
 				Description: "Number of months to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -267,7 +267,7 @@ func resourceTimeRotating() *schema.Resource {
 				Description: "Configure the rotation timestamp with an " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -284,7 +284,7 @@ func resourceTimeRotating() *schema.Resource {
 			"rotation_years": {
 				Description: "Number of years to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
-					"Conflicts with other `rotation_` arguments.",
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{

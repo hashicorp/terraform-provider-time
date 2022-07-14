@@ -56,12 +56,12 @@ resource "aws_instance" "server" {
 ### Optional
 
 - `base_rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
-- `offset_days` (Number) Number of days to offset the base timestamp. Conflicts with other `offset_` arguments.
-- `offset_hours` (Number) Number of hours to offset the base timestamp. Conflicts with other `offset_` arguments.
-- `offset_minutes` (Number) Number of minutes to offset the base timestamp. Conflicts with other `offset_` arguments.
-- `offset_months` (Number) Number of months to offset the base timestamp. Conflicts with other `offset_` arguments.
-- `offset_seconds` (Number) Number of seconds to offset the base timestamp. Conflicts with other `offset_` arguments.
-- `offset_years` (Number) Number of years to offset the base timestamp. Conflicts with other `offset_` arguments.
+- `offset_days` (Number) Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
+- `offset_hours` (Number) Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
+- `offset_minutes` (Number) Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
+- `offset_months` (Number) Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
+- `offset_seconds` (Number) Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
+- `offset_years` (Number) Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
 - `triggers` (Map of String) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.md) for more information.
 
 ### Read-Only

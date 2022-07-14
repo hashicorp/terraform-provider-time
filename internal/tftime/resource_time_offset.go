@@ -237,7 +237,7 @@ func resourceTimeOffset() *schema.Resource {
 				Computed:    true,
 			},
 			"offset_days": {
-				Description: "Number of days to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{
@@ -250,7 +250,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_hours": {
-				Description: " Number of hours to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{
@@ -263,7 +263,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_minutes": {
-				Description: "Number of minutes to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{
@@ -276,7 +276,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_months": {
-				Description: "Number of months to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{
@@ -289,7 +289,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_seconds": {
-				Description: "Number of seconds to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{
@@ -302,7 +302,7 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_years": {
-				Description: "Number of years to offset the base timestamp. Conflicts with other `offset_` arguments.",
+				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        schema.TypeInt,
 				Optional:    true,
 				AtLeastOneOf: []string{

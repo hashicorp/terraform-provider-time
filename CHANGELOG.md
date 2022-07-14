@@ -1,3 +1,9 @@
+## 0.7.3 (July 14, 2022)
+
+BUG FIXES:
+
+* documentation: Changed wording from "Conflicts with other `offset_`/`rotation_` arguments." to "At least one of the `offset_`/`rotation_` arguments must be configured." to correctly reflect the use of `AtLeastOneOf` 
+
 ## 0.7.2 (July 01, 2021)
 
 BUG FIXES:
