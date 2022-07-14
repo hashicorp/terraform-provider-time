@@ -2,7 +2,7 @@
 
 BUG FIXES:
 
-* documentation: Changed wording from "Conflicts with other `offset_`/`rotation_` arguments." to "At least one of the `offset_`/`rotation_` arguments must be configured." to correctly reflect the use of `AtLeastOneOf` 
+* documentation: Changed wording from "Conflicts with other `offset_`/`rotation_` arguments." to "At least one of the `offset_`/`rotation_` arguments must be configured." to correctly reflect the use of `AtLeastOneOf` ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105)) 
 
 ## 0.7.2 (July 01, 2021)
 
