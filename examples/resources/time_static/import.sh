@@ -1,0 +1,1 @@
+terraform import time_static.example 2020-02-12T06:36:13Z

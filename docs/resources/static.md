@@ -70,8 +70,8 @@ resource "aws_instance" "server" {
 
 This resource can be imported using the UTC RFC3339 value, e.g.
 
-```console
-$ terraform import time_static.example 2020-02-12T06:36:13Z
+```shell
+terraform import time_static.example 2020-02-12T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.

@@ -23,14 +23,10 @@ description: |-
 
 This resource can be imported using the base UTC RFC3339 value and rotation years, months, days, hours, and minutes, separated by commas (`,`), e.g. for 30 days
 
-```console
-$ terraform import time_rotation.example 2020-02-12T06:36:13Z,0,0,30,0,0
-```
+{{codefile "shell" "examples/resources/time_rotating/import_base_value.sh"}}
 
 Otherwise, to import with the rotation RFC3339 value, the base UTC RFC3339 value and rotation UTC RFC3339 value, separated by commas (`,`), e.g.
 
-```console
-$ terraform import time_rotation.example 2020-02-12T06:36:13Z,2020-02-13T06:36:13Z
-```
+{{codefile "shell" "examples/resources/time_rotating/import_rotation_value.sh"}}
 
 The `triggers` argument cannot be imported.

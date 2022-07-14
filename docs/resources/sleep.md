@@ -97,14 +97,14 @@ This resource can be imported with the `create_duration` and `destroy_duration`,
 
 e.g. For 30 seconds create duration with no destroy duration:
 
-```console
-$ terraform import time_sleep.example 30s,
+```shell
+terraform import time_sleep.example 30s,
 ```
 
 e.g. For 30 seconds destroy duration with no create duration:
 
-```console
-$ terraform import time_sleep.example ,30s
+```shell
+terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.

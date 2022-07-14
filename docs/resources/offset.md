@@ -80,8 +80,8 @@ resource "aws_instance" "server" {
 
 This resource can be imported using the base UTC RFC3339 timestamp and offset years, months, days, hours, minutes, and seconds, separated by commas (`,`), e.g.
 
-```console
-$ terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
+```shell
+terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
 ```
 
 The `triggers` argument cannot be imported.
