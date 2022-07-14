@@ -14,6 +14,9 @@ import (
 
 func resourceTimeSleep() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages a resource that delays creation and/or destruction, typically for further resources. " +
+			"This prevents cross-platform compatibility and destroy-time issues with using " +
+			"the [`local-exec` provisioner](https://www.terraform.io/docs/provisioners/local-exec.html).",
 		CreateWithoutTimeout: resourceTimeSleepCreate,
 		ReadWithoutTimeout:   schema.NoopContext,
 		UpdateWithoutTimeout: schema.NoopContext,
@@ -55,6 +58,8 @@ func resourceTimeSleep() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"create_duration": {
+				Description: "[Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource creation. " +
+					"For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay.",
 				Type:     schema.TypeString,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -64,6 +69,9 @@ func resourceTimeSleep() *schema.Resource {
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9]+(\.[0-9]+)?(ms|s|m|h)$`), "must be a number immediately followed by ms (milliseconds), s (seconds), m (minutes), or h (hours). For example, \"30s\" for 30 seconds."),
 			},
 			"destroy_duration": {
+				Description: "[Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource destroy. " +
+					"For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay. " +
+					"This value or any updates to it must be successfully applied into the Terraform state before destroying this resource to take effect.",
 				Type:     schema.TypeString,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -73,10 +81,17 @@ func resourceTimeSleep() *schema.Resource {
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9]+(\.[0-9]+)?(ms|s|m|h)$`), "must be a number immediately followed by ms (milliseconds), s (seconds), m (minutes), or h (hours). For example, \"30s\" for 30 seconds."),
 			},
 			"triggers": {
+				Description: "(Optional) Arbitrary map of values that, when changed, will run any creation or destroy delays again. " +
+					"See [the main provider documentation](../index.md) for more information.",
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"id": {
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 		},
 	}

@@ -1,0 +1,1 @@
+terraform import time_sleep.example ,30s

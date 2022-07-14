@@ -1,5 +1,4 @@
 ---
-layout: "time"
 page_title: "Provider: Time"
 description: |-
   The time provider is used to interact with time-based resources.
@@ -23,7 +22,7 @@ These resources provide an optional map argument called `triggers` that can be p
 
 For example:
 
-```hcl
+```terraform
 resource "time_static" "ami_update" {
   triggers = {
     # Save the time each switch of an AMI id
