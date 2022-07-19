@@ -1,0 +1,83 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'website/*'
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'website/*'
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    strategy:
+      matrix:
+        go-version: [ '1.18', '1.17' ]
+
+    steps:
+
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+
+    - name: Generate
+      run: make generate
+
+    - name: Confirm no diff
+      run: |
+        git diff --compact-summary --exit-code || \
+          (echo "*** Unexpected differences after code generation. Run 'make generate' and commit."; exit 1)
+
+    - name: Build
+      run: make build
+
+  test:
+    name: 'Acc. Tests (OS: ${{ matrix.os }} / TF: ${{ matrix.terraform }})'
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+        terraform:
+          - '1.0.*'
+          - '1.1.*'
+          - '1.2.*'
+
+    steps:
+
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Setup Terraform ${{ matrix.terraform }}
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ matrix.terraform }}
+        terraform_wrapper: false
+
+    - name: Run acceptance test
+      run: make testacc
