@@ -3,6 +3,7 @@ package tftime
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 	"time"
 
@@ -80,6 +81,12 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
+			// {
+			// 	ResourceName:      resourceName,
+			// 	ImportState:       true,
+			// 	ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
+			// 	ImportStateVerify: true,
+			// },
 			{
 				Config: testAccConfigTimeSleepCreateDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
@@ -107,6 +114,12 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
+			// {
+			// 	ResourceName:      resourceName,
+			// 	ImportState:       true,
+			// 	ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
+			// 	ImportStateVerify: true,
+			// },
 			{
 				Config: testAccConfigTimeSleepDestroyDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
@@ -135,6 +148,13 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
+			// {
+			// 	ResourceName:            resourceName,
+			// 	ImportState:             true,
+			// 	ImportStateIdFunc:       testAccTimeSleepImportStateIdFunc(resourceName),
+			// 	ImportStateVerify:       true,
+			// 	ImportStateVerifyIgnore: []string{"triggers"},
+			// },
 			{
 				Config: testAccConfigTimeSleepTriggers1("key1", "value1updated"),
 				Check: resource.ComposeTestCheckFunc(
@@ -146,6 +166,20 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccTimeSleepImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		createDuration := rs.Primary.Attributes["create_duration"]
+		destroyDuration := rs.Primary.Attributes["destroy_duration"]
+
+		return fmt.Sprintf("%s,%s", createDuration, destroyDuration), nil
+	}
 }
 
 func testAccConfigTimeSleepCreateDuration(createDuration string) string {
