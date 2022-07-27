@@ -81,12 +81,12 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
-			// 	ImportStateVerify: true,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccConfigTimeSleepCreateDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
@@ -114,12 +114,12 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
-			// {
-			// 	ResourceName:      resourceName,
-			// 	ImportState:       true,
-			// 	ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
-			// 	ImportStateVerify: true,
-			// },
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccTimeSleepImportStateIdFunc(resourceName),
+				ImportStateVerify: true,
+			},
 			{
 				Config: testAccConfigTimeSleepDestroyDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
@@ -148,13 +148,13 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
-			// {
-			// 	ResourceName:            resourceName,
-			// 	ImportState:             true,
-			// 	ImportStateIdFunc:       testAccTimeSleepImportStateIdFunc(resourceName),
-			// 	ImportStateVerify:       true,
-			// 	ImportStateVerifyIgnore: []string{"triggers"},
-			// },
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateIdFunc:       testAccTimeSleepImportStateIdFunc(resourceName),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"triggers"},
+			},
 			{
 				Config: testAccConfigTimeSleepTriggers1("key1", "value1updated"),
 				Check: resource.ComposeTestCheckFunc(
