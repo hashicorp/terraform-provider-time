@@ -42,19 +42,23 @@ func resourceTimeRotating() *schema.Resource {
 					var rotationTimestamp time.Time
 
 					if v, ok := diff.GetOk("rotation_days"); ok {
-						rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+						days := v.(int)
+						rotationTimestamp = timestamp.AddDate(0, 0, days)
 					}
 
 					if v, ok := diff.GetOk("rotation_hours"); ok {
-						rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+						hours := v.(int)
+						rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 					}
 
 					if v, ok := diff.GetOk("rotation_minutes"); ok {
-						rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+						minutes := v.(int)
+						rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 					}
 
 					if v, ok := diff.GetOk("rotation_months"); ok {
-						rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+						months := v.(int)
+						rotationTimestamp = timestamp.AddDate(0, months, 0)
 					}
 
 					if v, ok := diff.GetOk("rotation_rfc3339"); ok {
@@ -67,7 +71,8 @@ func resourceTimeRotating() *schema.Resource {
 					}
 
 					if v, ok := diff.GetOk("rotation_years"); ok {
-						rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+						years := v.(int)
+						rotationTimestamp = timestamp.AddDate(years, 0, 0)
 					}
 
 					if err := diff.SetNew("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -166,23 +171,28 @@ func resourceTimeRotating() *schema.Resource {
 				var rotationTimestamp time.Time
 
 				if v, ok := d.GetOk("rotation_days"); ok {
-					rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+					days := v.(int)
+					rotationTimestamp = timestamp.AddDate(0, 0, days)
 				}
 
 				if v, ok := d.GetOk("rotation_hours"); ok {
-					rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+					hours := v.(int)
+					rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 				}
 
 				if v, ok := d.GetOk("rotation_minutes"); ok {
-					rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+					minutes := v.(int)
+					rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 				}
 
 				if v, ok := d.GetOk("rotation_months"); ok {
-					rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+					months := v.(int)
+					rotationTimestamp = timestamp.AddDate(0, months, 0)
 				}
 
 				if v, ok := d.GetOk("rotation_years"); ok {
-					rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+					years := v.(int)
+					rotationTimestamp = timestamp.AddDate(years, 0, 0)
 				}
 
 				if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -373,19 +383,23 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 	var rotationTimestamp time.Time
 
 	if v, ok := d.GetOk("rotation_days"); ok {
-		rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		rotationTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("rotation_hours"); ok {
-		rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("rotation_minutes"); ok {
-		rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("rotation_months"); ok {
-		rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		rotationTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("rotation_rfc3339"); ok {
@@ -398,7 +412,8 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if v, ok := d.GetOk("rotation_years"); ok {
-		rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		rotationTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -476,23 +491,28 @@ func resourceTimeRotatingUpdate(d *schema.ResourceData, m interface{}) error {
 		var rotationTimestamp time.Time
 
 		if v, ok := d.GetOk("rotation_days"); ok {
-			rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+			days := v.(int)
+			rotationTimestamp = timestamp.AddDate(0, 0, days)
 		}
 
 		if v, ok := d.GetOk("rotation_hours"); ok {
-			rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+			hours := v.(int)
+			rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 		}
 
 		if v, ok := d.GetOk("rotation_minutes"); ok {
-			rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+			minutes := v.(int)
+			rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 		}
 
 		if v, ok := d.GetOk("rotation_months"); ok {
-			rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+			months := v.(int)
+			rotationTimestamp = timestamp.AddDate(0, months, 0)
 		}
 
 		if v, ok := d.GetOk("rotation_years"); ok {
-			rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+			years := v.(int)
+			rotationTimestamp = timestamp.AddDate(years, 0, 0)
 		}
 
 		if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
