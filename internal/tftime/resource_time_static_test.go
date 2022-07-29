@@ -14,8 +14,8 @@ func TestAccTimeStatic_basic(t *testing.T) {
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStatic(),
@@ -44,8 +44,8 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStaticTriggers1("key1", "value1"),
@@ -87,8 +87,8 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 	year := strconv.Itoa(timestamp.Year())
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStaticRfc3339(timestamp.Format(time.RFC3339)),

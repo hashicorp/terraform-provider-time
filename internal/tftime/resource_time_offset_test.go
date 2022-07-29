@@ -15,8 +15,8 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 	resourceName := "time_offset.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetTriggers1("key1", "value1"),
@@ -53,8 +53,8 @@ func TestAccTimeOffset_OffsetDays(t *testing.T) {
 	offsetTimestamp := timestamp.AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetDays(timestamp.Format(time.RFC3339), 7),
@@ -87,8 +87,8 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 	offsetTimestamp := timestamp.Add(1 * time.Hour)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetHours(timestamp.Format(time.RFC3339), 1),
@@ -121,8 +121,8 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 	offsetTimestamp := timestamp.Add(1 * time.Minute)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetMinutes(timestamp.Format(time.RFC3339), 1),
@@ -155,8 +155,8 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 	offsetTimestamp := timestamp.AddDate(0, 3, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetMonths(timestamp.Format(time.RFC3339), 3),
@@ -189,8 +189,8 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 	offsetTimestamp := timestamp.Add(1 * time.Second)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetSeconds(timestamp.Format(time.RFC3339), 1),
@@ -223,8 +223,8 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 	offsetTimestamp := timestamp.AddDate(3, 0, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),

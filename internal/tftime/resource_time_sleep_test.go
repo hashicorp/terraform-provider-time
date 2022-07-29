@@ -70,8 +70,8 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepCreateDuration("1ms"),
@@ -106,8 +106,8 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepDestroyDuration("1ms"),
@@ -142,8 +142,8 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      nil,
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepTriggers1("key1", "value1"),
