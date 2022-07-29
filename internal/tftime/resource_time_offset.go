@@ -17,10 +17,10 @@ func resourceTimeOffset() *schema.Resource {
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
 			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Create: resourceTimeOffsetCreate,
-		Read:   resourceTimeOffsetRead,
-		Update: resourceTimeOffsetUpdate,
-		Delete: schema.Noop,
+		CreateContext: resourceTimeOffsetCreate,
+		ReadContext:   resourceTimeOffsetRead,
+		UpdateContext: resourceTimeOffsetUpdate,
+		DeleteContext: schema.Noop,
 
 		CustomizeDiff: customdiff.Sequence(
 			customdiff.If(resourceTimeOffsetConditionExpirationChange,
@@ -343,7 +343,7 @@ func resourceTimeOffset() *schema.Resource {
 	}
 }
 
-func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetCreate(ctx context.Context, d *schema.ResourceData, m interface{}) error {
 	timestamp := time.Now().UTC()
 
 	if v, ok := d.GetOk("base_rfc3339"); ok {
@@ -391,10 +391,10 @@ func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("error setting rfc3339: %s", err)
 	}
 
-	return resourceTimeOffsetRead(d, m)
+	return resourceTimeOffsetRead(ctx, d, m)
 }
 
-func resourceTimeOffsetRead(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetRead(ctx context.Context, d *schema.ResourceData, m interface{}) error {
 	timestamp, err := time.Parse(time.RFC3339, d.Get("rfc3339").(string))
 
 	if err != nil {
@@ -436,7 +436,7 @@ func resourceTimeOffsetRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) error {
 	timestamp, err := time.Parse(time.RFC3339, d.Id())
 
 	if err != nil {
@@ -473,7 +473,7 @@ func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("error setting rfc3339: %s", err)
 	}
 
-	return resourceTimeOffsetRead(d, m)
+	return resourceTimeOffsetRead(ctx, d, m)
 }
 
 func resourceTimeOffsetConditionExpirationChange(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
