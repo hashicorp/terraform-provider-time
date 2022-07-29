@@ -15,6 +15,12 @@ import (
 
 func resourceTimeRotating() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
+			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
+			"This rotation only occurs when Terraform is executed, meaning there will be drift between the rotation " +
+			"timestamp and actual rotation. The new rotation timestamp offset includes this drift. " +
+			"This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html) " +
+			"by only forcing a new value on the set cadence.",
 		Create: resourceTimeRotatingCreate,
 		Read:   resourceTimeRotatingRead,
 		Update: resourceTimeRotatingUpdate,
@@ -36,19 +42,23 @@ func resourceTimeRotating() *schema.Resource {
 					var rotationTimestamp time.Time
 
 					if v, ok := diff.GetOk("rotation_days"); ok {
-						rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+						days := v.(int)
+						rotationTimestamp = timestamp.AddDate(0, 0, days)
 					}
 
 					if v, ok := diff.GetOk("rotation_hours"); ok {
-						rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+						hours := v.(int)
+						rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 					}
 
 					if v, ok := diff.GetOk("rotation_minutes"); ok {
-						rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+						minutes := v.(int)
+						rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 					}
 
 					if v, ok := diff.GetOk("rotation_months"); ok {
-						rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+						months := v.(int)
+						rotationTimestamp = timestamp.AddDate(0, months, 0)
 					}
 
 					if v, ok := diff.GetOk("rotation_rfc3339"); ok {
@@ -61,7 +71,8 @@ func resourceTimeRotating() *schema.Resource {
 					}
 
 					if v, ok := diff.GetOk("rotation_years"); ok {
-						rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+						years := v.(int)
+						rotationTimestamp = timestamp.AddDate(years, 0, 0)
 					}
 
 					if err := diff.SetNew("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -160,23 +171,28 @@ func resourceTimeRotating() *schema.Resource {
 				var rotationTimestamp time.Time
 
 				if v, ok := d.GetOk("rotation_days"); ok {
-					rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+					days := v.(int)
+					rotationTimestamp = timestamp.AddDate(0, 0, days)
 				}
 
 				if v, ok := d.GetOk("rotation_hours"); ok {
-					rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+					hours := v.(int)
+					rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 				}
 
 				if v, ok := d.GetOk("rotation_minutes"); ok {
-					rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+					minutes := v.(int)
+					rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 				}
 
 				if v, ok := d.GetOk("rotation_months"); ok {
-					rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+					months := v.(int)
+					rotationTimestamp = timestamp.AddDate(0, months, 0)
 				}
 
 				if v, ok := d.GetOk("rotation_years"); ok {
-					rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+					years := v.(int)
+					rotationTimestamp = timestamp.AddDate(years, 0, 0)
 				}
 
 				if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -189,10 +205,14 @@ func resourceTimeRotating() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"day": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number day of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"rotation_days": {
+				Description: "Number of days to add to the base timestamp to configure the rotation timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -206,6 +226,9 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_hours": {
+				Description: "Number of hours to add to the base timestamp to configure the rotation timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -219,6 +242,9 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_minutes": {
+				Description: "Number of minutes to add to the base timestamp to configure the rotation timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -232,6 +258,9 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_months": {
+				Description: "Number of months to add to the base timestamp to configure the rotation timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -245,6 +274,10 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_rfc3339": {
+				Description: "Configure the rotation timestamp with an " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -259,6 +292,9 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"rotation_years": {
+				Description: "Number of years to add to the base timestamp to configure the rotation timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
 				Type:     schema.TypeInt,
 				Optional: true,
 				AtLeastOneOf: []string{
@@ -272,24 +308,34 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"hour": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number hour of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"triggers": {
+				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved." +
+					" These conditions recreate the resource in addition to other rotation arguments. " +
+					"See [the main provider documentation](../index.md) for more information.",
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"minute": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number minute of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"month": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number month of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"rfc3339": {
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -297,16 +343,24 @@ func resourceTimeRotating() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"second": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number second of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"unix": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"year": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number year of timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
+			},
+			"id": {
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 		},
 	}
@@ -329,19 +383,23 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 	var rotationTimestamp time.Time
 
 	if v, ok := d.GetOk("rotation_days"); ok {
-		rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		rotationTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("rotation_hours"); ok {
-		rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("rotation_minutes"); ok {
-		rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("rotation_months"); ok {
-		rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		rotationTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("rotation_rfc3339"); ok {
@@ -354,7 +412,8 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if v, ok := d.GetOk("rotation_years"); ok {
-		rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		rotationTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
@@ -432,23 +491,28 @@ func resourceTimeRotatingUpdate(d *schema.ResourceData, m interface{}) error {
 		var rotationTimestamp time.Time
 
 		if v, ok := d.GetOk("rotation_days"); ok {
-			rotationTimestamp = timestamp.AddDate(0, 0, v.(int))
+			days := v.(int)
+			rotationTimestamp = timestamp.AddDate(0, 0, days)
 		}
 
 		if v, ok := d.GetOk("rotation_hours"); ok {
-			rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+			hours := v.(int)
+			rotationTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 		}
 
 		if v, ok := d.GetOk("rotation_minutes"); ok {
-			rotationTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+			minutes := v.(int)
+			rotationTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 		}
 
 		if v, ok := d.GetOk("rotation_months"); ok {
-			rotationTimestamp = timestamp.AddDate(0, v.(int), 0)
+			months := v.(int)
+			rotationTimestamp = timestamp.AddDate(0, months, 0)
 		}
 
 		if v, ok := d.GetOk("rotation_years"); ok {
-			rotationTimestamp = timestamp.AddDate(v.(int), 0, 0)
+			years := v.(int)
+			rotationTimestamp = timestamp.AddDate(years, 0, 0)
 		}
 
 		if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {

@@ -113,9 +113,9 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 }
 
 func testAccConfigTimeStatic() string {
-	return fmt.Sprintf(`
+	return `
 resource "time_static" "test" {}
-`)
+`
 }
 
 func testAccConfigTimeStaticTriggers1(keeperKey1 string, keeperKey2 string) string {

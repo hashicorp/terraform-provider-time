@@ -16,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6to5server"
 )
 
+// Generate the Terraform provider documentation using `tfplugindocs`:
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+
 func main() {
 	ctx := context.Background()
 	var debug bool

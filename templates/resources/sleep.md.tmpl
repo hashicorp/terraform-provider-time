@@ -1,0 +1,42 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+-> In many cases, this resource should be considered a workaround for issues that should be reported and handled in downstream Terraform Provider logic. Downstream resources can usually introduce or adjust retries in their code to handle time delay issues for all Terraform configurations or upstream resources can be improved to better wait for a resource to be fully ready and available.
+
+## Example Usage
+
+### Delay Create Usage
+
+{{ tffile "examples/resources/time_sleep/resource_delay_create.tf" }}
+
+### Delay Destroy Usage
+
+{{ tffile "examples/resources/time_sleep/resource_delay_destroy.tf" }}
+
+### Triggers Usage
+
+{{ tffile "examples/resources/time_sleep/resource_triggers.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+This resource can be imported with the `create_duration` and `destroy_duration`, separated by a comma (`,`).
+
+e.g. For 30 seconds create duration with no destroy duration:
+
+{{codefile "shell" "examples/resources/time_sleep/import_create.sh"}}
+
+e.g. For 30 seconds destroy duration with no create duration:
+
+{{codefile "shell" "examples/resources/time_sleep/import_destroy.sh"}}
+
+The `triggers` argument cannot be imported.

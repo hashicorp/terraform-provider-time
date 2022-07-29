@@ -14,6 +14,9 @@ import (
 
 func resourceTimeOffset() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
+			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
+			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
 		Create: resourceTimeOffsetCreate,
 		Read:   resourceTimeOffsetRead,
 		Update: resourceTimeOffsetUpdate,
@@ -33,23 +36,28 @@ func resourceTimeOffset() *schema.Resource {
 					}
 
 					if v, ok := diff.GetOk("offset_days"); ok {
-						timestamp = timestamp.AddDate(0, 0, v.(int))
+						days := v.(int)
+						timestamp = timestamp.AddDate(0, 0, days)
 					}
 
 					if v, ok := diff.GetOk("offset_hours"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+						hours := v.(int)
+						timestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 					}
 
 					if v, ok := diff.GetOk("offset_minutes"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+						minutes := v.(int)
+						timestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 					}
 
 					if v, ok := diff.GetOk("offset_months"); ok {
-						timestamp = timestamp.AddDate(0, v.(int), 0)
+						months := v.(int)
+						timestamp = timestamp.AddDate(0, months, 0)
 					}
 
 					if v, ok := diff.GetOk("offset_seconds"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+						seconds := v.(int)
+						timestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 					}
 
 					if v, ok := diff.GetOk("offset_years"); ok {
@@ -162,27 +170,33 @@ func resourceTimeOffset() *schema.Resource {
 				}
 
 				if v, ok := d.GetOk("offset_days"); ok {
-					timestamp = timestamp.AddDate(0, 0, v.(int))
+					days := v.(int)
+					timestamp = timestamp.AddDate(0, 0, days)
 				}
 
 				if v, ok := d.GetOk("offset_hours"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+					hours := v.(int)
+					timestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 				}
 
 				if v, ok := d.GetOk("offset_minutes"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+					minutes := v.(int)
+					timestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 				}
 
 				if v, ok := d.GetOk("offset_months"); ok {
-					timestamp = timestamp.AddDate(0, v.(int), 0)
+					months := v.(int)
+					timestamp = timestamp.AddDate(0, months, 0)
 				}
 
 				if v, ok := d.GetOk("offset_seconds"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+					seconds := v.(int)
+					timestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 				}
 
 				if v, ok := d.GetOk("offset_years"); ok {
-					timestamp = timestamp.AddDate(v.(int), 0, 0)
+					years := v.(int)
+					timestamp = timestamp.AddDate(years, 0, 0)
 				}
 
 				if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
@@ -195,6 +209,10 @@ func resourceTimeOffset() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"base_rfc3339": {
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -202,30 +220,37 @@ func resourceTimeOffset() *schema.Resource {
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 			"day": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number day of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"hour": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number hour of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"triggers": {
+				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value " +
+					"to be saved. See [the main provider documentation](../index.md) for more information.",
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"minute": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number minute of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"month": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number month of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"offset_days": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -236,8 +261,9 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_hours": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -248,8 +274,9 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -260,8 +287,9 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_months": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -272,8 +300,9 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_seconds": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -284,8 +313,9 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"offset_years": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        schema.TypeInt,
+				Optional:    true,
 				AtLeastOneOf: []string{
 					"offset_days",
 					"offset_hours",
@@ -296,20 +326,29 @@ func resourceTimeOffset() *schema.Resource {
 				},
 			},
 			"rfc3339": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 			"second": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number second of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"unix": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
+				Type:        schema.TypeInt,
+				Computed:    true,
 			},
 			"year": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Description: "Number year of offset timestamp.",
+				Type:        schema.TypeInt,
+				Computed:    true,
+			},
+			"id": {
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        schema.TypeString,
+				Computed:    true,
 			},
 		},
 	}
@@ -336,27 +375,33 @@ func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
 	var offsetTimestamp time.Time
 
 	if v, ok := d.GetOk("offset_days"); ok {
-		offsetTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("offset_hours"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("offset_minutes"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("offset_months"); ok {
-		offsetTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("offset_seconds"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+		seconds := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 	}
 
 	if v, ok := d.GetOk("offset_years"); ok {
-		offsetTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		offsetTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {
@@ -418,27 +463,33 @@ func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
 	var offsetTimestamp time.Time
 
 	if v, ok := d.GetOk("offset_days"); ok {
-		offsetTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("offset_hours"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("offset_minutes"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("offset_months"); ok {
-		offsetTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("offset_seconds"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+		seconds := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 	}
 
 	if v, ok := d.GetOk("offset_years"); ok {
-		offsetTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		offsetTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {
