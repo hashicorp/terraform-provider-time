@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccTimeOffset_Triggers(t *testing.T) {
-	var time1, time2 string
+	//var time1, time2 string
 	resourceName := "time_offset.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -23,7 +23,13 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time1),
+					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_seconds"),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
 					testSleep(1),
 				),
 			},
@@ -39,8 +45,14 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time2),
-					testCheckAttributeValuesDiffer(&time1, &time2),
+					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "1"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
+					resource.TestCheckNoResourceAttr(resourceName, "offset_seconds"),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
+					//testCheckAttributeValuesDiffer(&time1, &time2),
 				),
 			},
 		},
@@ -277,6 +289,7 @@ resource "time_offset" "test" {
     %[1]q = %[2]q
   }
   offset_days = 1
+  offset_years = 1
 }
 `, keeperKey1, keeperKey2)
 }
