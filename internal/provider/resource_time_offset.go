@@ -203,6 +203,29 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 	}
 
 	baseRfc3339 := idParts[0]
+
+	offsetYears := types.Int64{Null: true}
+	if idParts[1] != "" {
+		offset, err := strconv.ParseInt(idParts[1], 10, 64)
+		if err != nil {
+			// return diagnostic
+		}
+
+		offsetYears.Value = offset
+		offsetYears.Null = false
+	}
+
+	offsetMonths := types.Int64{Null: true}
+	if idParts[2] != "" {
+		offset, err := strconv.ParseInt(idParts[2], 10, 64)
+		if err != nil {
+			// return diagnostic
+		}
+
+		offsetMonths.Value = offset
+		offsetMonths.Null = false
+	}
+
 	offsetDays := types.Int64{Null: true}
 	if idParts[3] != "" {
 		offset, err := strconv.ParseInt(idParts[3], 10, 64)
@@ -212,6 +235,39 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 
 		offsetDays.Value = offset
 		offsetDays.Null = false
+	}
+
+	offsetHours := types.Int64{Null: true}
+	if idParts[4] != "" {
+		offset, err := strconv.ParseInt(idParts[4], 10, 64)
+		if err != nil {
+			// return diagnostic
+		}
+
+		offsetHours.Value = offset
+		offsetHours.Null = false
+	}
+
+	offsetMinutes := types.Int64{Null: true}
+	if idParts[5] != "" {
+		offset, err := strconv.ParseInt(idParts[5], 10, 64)
+		if err != nil {
+			// return diagnostic
+		}
+
+		offsetMinutes.Value = offset
+		offsetMinutes.Null = false
+	}
+
+	offsetSeconds := types.Int64{Null: true}
+	if idParts[6] != "" {
+		offset, err := strconv.ParseInt(idParts[6], 10, 64)
+		if err != nil {
+			// return diagnostic
+		}
+
+		offsetSeconds.Value = offset
+		offsetSeconds.Null = false
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
@@ -232,6 +288,29 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 		offsetTimestamp = timestamp.AddDate(0, 0, int(offsetDays.Value))
 	}
 
+	if !offsetHours.Null && offsetHours.Value != 0 {
+		hours := time.Duration(offsetHours.Value)
+		offsetTimestamp = timestamp.Add(hours * time.Hour)
+	}
+
+	if !offsetMinutes.Null && offsetMinutes.Value != 0 {
+		minutes := time.Duration(offsetMinutes.Value)
+		offsetTimestamp = timestamp.Add(minutes * time.Minute)
+	}
+
+	if !offsetMonths.Null && offsetMonths.Value != 0 {
+		offsetTimestamp = timestamp.AddDate(0, int(offsetMonths.Value), 0)
+	}
+
+	if !offsetSeconds.Null && offsetSeconds.Value != 0 {
+		seconds := time.Duration(offsetSeconds.Value)
+		offsetTimestamp = timestamp.Add(seconds * time.Second)
+	}
+
+	if !offsetYears.Null && offsetYears.Value != 0 {
+		offsetTimestamp = timestamp.AddDate(int(offsetYears.Value), 0, 0)
+	}
+
 	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
 
 	state := timeOffsetModelV0{
@@ -245,12 +324,12 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 		Second: types.Int64{Value: int64(offsetTimestamp.Second())},
 		// Need to handle instances where the ID string passed into the import function contains empty string
 		// for the offset (e.g., years). If so, we need to set Null on the type, as no value has been supplied.
-		OffsetYears:   types.Int64{Null: true},
-		OffsetMonths:  types.Int64{Null: true},
+		OffsetYears:   offsetYears,
+		OffsetMonths:  offsetMonths,
 		OffsetDays:    offsetDays,
-		OffsetHours:   types.Int64{Null: true},
-		OffsetMinutes: types.Int64{Null: true},
-		OffsetSeconds: types.Int64{Null: true},
+		OffsetHours:   offsetHours,
+		OffsetMinutes: offsetMinutes,
+		OffsetSeconds: offsetSeconds,
 		RFC3339:       types.String{Value: formattedOffsetTimestamp},
 		Unix:          types.Int64{Value: offsetTimestamp.Unix()},
 		ID:            types.String{Value: formattedTimestamp},
