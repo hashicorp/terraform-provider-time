@@ -22,7 +22,9 @@ func (p provider) Configure(ctx context.Context, request tfsdk.ConfigureProvider
 }
 
 func (p provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-	return map[string]tfsdk.ResourceType{}, nil
+	return map[string]tfsdk.ResourceType{
+		"time_offset": &timeOffsetResourceType{},
+	}, nil
 }
 
 func (p provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
