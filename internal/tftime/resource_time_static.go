@@ -1,7 +1,8 @@
 package tftime
 
 import (
-	"fmt"
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,12 +14,12 @@ func resourceTimeStatic() *schema.Resource {
 		Description: "Manages a static time resource, which keeps a locally sourced UTC timestamp stored in the Terraform state. " +
 			"This prevents perpetual differences caused by using " +
 			"the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Create: resourceTimeStaticCreate,
-		Read:   resourceTimeStaticRead,
-		Delete: schema.Noop,
+		CreateContext: resourceTimeStaticCreate,
+		ReadContext:   resourceTimeStaticRead,
+		DeleteContext: schema.NoopContext,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -85,7 +86,7 @@ func resourceTimeStatic() *schema.Resource {
 	}
 }
 
-func resourceTimeStaticCreate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeStaticCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp := time.Now().UTC()
 
 	if v, ok := d.GetOk("rfc3339"); ok {
@@ -93,52 +94,52 @@ func resourceTimeStaticCreate(d *schema.ResourceData, m interface{}) error {
 		timestamp, err = time.Parse(time.RFC3339, v.(string))
 
 		if err != nil {
-			return fmt.Errorf("error parsing rfc3339 (%s): %s", v.(string), err)
+			return diag.Errorf("error parsing rfc3339 (%s): %s", v.(string), err)
 		}
 	}
 
 	d.SetId(timestamp.Format(time.RFC3339))
 
-	return resourceTimeStaticRead(d, m)
+	return resourceTimeStaticRead(ctx, d, m)
 }
 
-func resourceTimeStaticRead(d *schema.ResourceData, m interface{}) error {
+func resourceTimeStaticRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp, err := time.Parse(time.RFC3339, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
+		return diag.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
 	}
 
 	if err := d.Set("day", timestamp.Day()); err != nil {
-		return fmt.Errorf("error setting day: %s", err)
+		return diag.Errorf("error setting day: %s", err)
 	}
 
 	if err := d.Set("hour", timestamp.Hour()); err != nil {
-		return fmt.Errorf("error setting hour: %s", err)
+		return diag.Errorf("error setting hour: %s", err)
 	}
 
 	if err := d.Set("minute", timestamp.Minute()); err != nil {
-		return fmt.Errorf("error setting minute: %s", err)
+		return diag.Errorf("error setting minute: %s", err)
 	}
 
 	if err := d.Set("month", int(timestamp.Month())); err != nil {
-		return fmt.Errorf("error setting month: %s", err)
+		return diag.Errorf("error setting month: %s", err)
 	}
 
 	if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rfc3339: %s", err)
+		return diag.Errorf("error setting rfc3339: %s", err)
 	}
 
 	if err := d.Set("second", timestamp.Second()); err != nil {
-		return fmt.Errorf("error setting second: %s", err)
+		return diag.Errorf("error setting second: %s", err)
 	}
 
 	if err := d.Set("unix", timestamp.Unix()); err != nil {
-		return fmt.Errorf("error setting unix: %s", err)
+		return diag.Errorf("error setting unix: %s", err)
 	}
 
 	if err := d.Set("year", timestamp.Year()); err != nil {
-		return fmt.Errorf("error setting year: %s", err)
+		return diag.Errorf("error setting year: %s", err)
 	}
 
 	return nil
