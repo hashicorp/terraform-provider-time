@@ -29,7 +29,7 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
-				ImportStateIdFunc:       testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc:       testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"triggers"},
 			},
@@ -64,7 +64,7 @@ func TestAccTimeRotating_RotationDays_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -109,7 +109,7 @@ func TestAccTimeRotating_RotationHours_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -154,7 +154,7 @@ func TestAccTimeRotating_RotationMinutes_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -199,7 +199,7 @@ func TestAccTimeRotating_RotationMonths_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -244,7 +244,7 @@ func TestAccTimeRotating_RotationRfc3339_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -289,7 +289,7 @@ func TestAccTimeRotating_RotationYears_basic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeRotatingImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -316,8 +316,9 @@ func TestAccTimeRotating_RotationYears_expired(t *testing.T) {
 	})
 }
 
-func testAccTimeRotatingImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccTimeRotatingImportStateIdFunc() resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
+		resourceName := "time_rotating.test"
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)

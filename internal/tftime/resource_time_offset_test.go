@@ -30,7 +30,7 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
-				ImportStateIdFunc:       testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc:       testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"triggers"},
 			},
@@ -74,7 +74,7 @@ func TestAccTimeOffset_OffsetDays(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -108,7 +108,7 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -142,7 +142,7 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -176,7 +176,7 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -210,7 +210,7 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
@@ -244,15 +244,16 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(resourceName),
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccTimeOffsetImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+func testAccTimeOffsetImportStateIdFunc() resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
+		resourceName := "time_offset.test"
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("Not found: %s", resourceName)

@@ -37,23 +37,28 @@ func resourceTimeOffset() *schema.Resource {
 					}
 
 					if v, ok := diff.GetOk("offset_days"); ok {
-						timestamp = timestamp.AddDate(0, 0, v.(int))
+						days := v.(int)
+						timestamp = timestamp.AddDate(0, 0, days)
 					}
 
 					if v, ok := diff.GetOk("offset_hours"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+						hours := v.(int)
+						timestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 					}
 
 					if v, ok := diff.GetOk("offset_minutes"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+						minutes := v.(int)
+						timestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 					}
 
 					if v, ok := diff.GetOk("offset_months"); ok {
-						timestamp = timestamp.AddDate(0, v.(int), 0)
+						months := v.(int)
+						timestamp = timestamp.AddDate(0, months, 0)
 					}
 
 					if v, ok := diff.GetOk("offset_seconds"); ok {
-						timestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+						seconds := v.(int)
+						timestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 					}
 
 					if v, ok := diff.GetOk("offset_years"); ok {
@@ -166,27 +171,33 @@ func resourceTimeOffset() *schema.Resource {
 				}
 
 				if v, ok := d.GetOk("offset_days"); ok {
-					timestamp = timestamp.AddDate(0, 0, v.(int))
+					days := v.(int)
+					timestamp = timestamp.AddDate(0, 0, days)
 				}
 
 				if v, ok := d.GetOk("offset_hours"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+					hours := v.(int)
+					timestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 				}
 
 				if v, ok := d.GetOk("offset_minutes"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+					minutes := v.(int)
+					timestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 				}
 
 				if v, ok := d.GetOk("offset_months"); ok {
-					timestamp = timestamp.AddDate(0, v.(int), 0)
+					months := v.(int)
+					timestamp = timestamp.AddDate(0, months, 0)
 				}
 
 				if v, ok := d.GetOk("offset_seconds"); ok {
-					timestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+					seconds := v.(int)
+					timestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 				}
 
 				if v, ok := d.GetOk("offset_years"); ok {
-					timestamp = timestamp.AddDate(v.(int), 0, 0)
+					years := v.(int)
+					timestamp = timestamp.AddDate(years, 0, 0)
 				}
 
 				if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
@@ -365,27 +376,33 @@ func resourceTimeOffsetCreate(ctx context.Context, d *schema.ResourceData, m int
 	var offsetTimestamp time.Time
 
 	if v, ok := d.GetOk("offset_days"); ok {
-		offsetTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("offset_hours"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("offset_minutes"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("offset_months"); ok {
-		offsetTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("offset_seconds"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+		seconds := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 	}
 
 	if v, ok := d.GetOk("offset_years"); ok {
-		offsetTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		offsetTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {
@@ -447,27 +464,33 @@ func resourceTimeOffsetUpdate(ctx context.Context, d *schema.ResourceData, m int
 	var offsetTimestamp time.Time
 
 	if v, ok := d.GetOk("offset_days"); ok {
-		offsetTimestamp = timestamp.AddDate(0, 0, v.(int))
+		days := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, 0, days)
 	}
 
 	if v, ok := d.GetOk("offset_hours"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Hour)
+		hours := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(hours) * time.Hour)
 	}
 
 	if v, ok := d.GetOk("offset_minutes"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Minute)
+		minutes := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(minutes) * time.Minute)
 	}
 
 	if v, ok := d.GetOk("offset_months"); ok {
-		offsetTimestamp = timestamp.AddDate(0, v.(int), 0)
+		months := v.(int)
+		offsetTimestamp = timestamp.AddDate(0, months, 0)
 	}
 
 	if v, ok := d.GetOk("offset_seconds"); ok {
-		offsetTimestamp = timestamp.Add(time.Duration(v.(int)) * time.Second)
+		seconds := v.(int)
+		offsetTimestamp = timestamp.Add(time.Duration(seconds) * time.Second)
 	}
 
 	if v, ok := d.GetOk("offset_years"); ok {
-		offsetTimestamp = timestamp.AddDate(v.(int), 0, 0)
+		years := v.(int)
+		offsetTimestamp = timestamp.AddDate(years, 0, 0)
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {

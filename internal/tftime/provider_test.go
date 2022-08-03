@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+//nolint:unparam
 var testAccProviderFactories = map[string]func() (*schema.Provider, error){
 	"time": func() (*schema.Provider, error) {
 		return Provider(), nil
