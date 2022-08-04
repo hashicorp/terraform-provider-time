@@ -11,7 +11,6 @@ import (
 )
 
 func TestAccTimeOffset_Triggers(t *testing.T) {
-	//var time1, time2 string
 	resourceName := "time_offset.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -52,7 +51,6 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_seconds"),
 					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-					//testCheckAttributeValuesDiffer(&time1, &time2),
 				),
 			},
 		},
