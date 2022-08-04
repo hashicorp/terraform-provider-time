@@ -35,7 +35,7 @@ Additional documentation, including available resources and their arguments/attr
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go 1.16 or later](http://www.golang.org) installed on your machine. This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH).
+If you wish to work on the provider, you'll first need [Go 1.17 or later](http://www.golang.org) installed on your machine. This project uses [Go Modules](https://blog.golang.org/using-go-modules) making it safe to work with it outside of your existing [GOPATH](http://golang.org/doc/code.html#GOPATH).
 
 ### Building the Provider
 
