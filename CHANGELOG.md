@@ -4,7 +4,7 @@ BUG FIXES:
 
 * documentation: Changed wording from "Conflicts with other `offset_`/`rotation_` arguments." to "At least one of the `offset_`/`rotation_` arguments must be configured." to correctly reflect the use of `AtLeastOneOf` ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105)) 
 
-ENHANCEMENTS:
+NOTES:
 
 * provider: Upgrade Go version to 1.18 ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
 * provider: Update Makefile to match other utility providers ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105))

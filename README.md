@@ -53,10 +53,10 @@ version it implements, and Terraform:
 
 | Time Provider |     Terraform Plugin Protocol      | Terraform |
 |:-------------:|:----------------------------------:|:---------:|
-|   `>= 7.x`    |                `5`                 | `>= 0.12` |
-|   `>= 6.x`    |                `5`                 | `>= 0.12` |
-|   `>= 5.x`    |            `4` and `5`             | `<= 0.12` |
-|   `>= 4.x`    |            `4` and `5`             | `<= 0.12` |
+|  `>= 0.7.x`   |                `5`                 | `>= 0.12` |
+|  `>= 0.6.x`   |                `5`                 | `>= 0.12` |
+|  `>= 0.5.x`   |            `4` and `5`             | `<= 0.12` |
+|  `>= 0.4.x`   |            `4` and `5`             | `<= 0.12` |
 
 Details can be found querying the [Registry API](https://www.terraform.io/internals/provider-registry-protocol#list-available-versions)
 that return all the details about which version are currently available for a particular provider.
