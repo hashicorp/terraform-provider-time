@@ -53,6 +53,7 @@ version it implements, and Terraform:
 
 | Time Provider |     Terraform Plugin Protocol      | Terraform |
 |:-------------:|:----------------------------------:|:---------:|
+|  `>= 0.8.x`   |                `5`                 | `>= 0.12` |
 |  `>= 0.7.x`   |                `5`                 | `>= 0.12` |
 |  `>= 0.6.x`   |                `5`                 | `>= 0.12` |
 |  `>= 0.5.x`   |            `4` and `5`             | `<= 0.12` |
