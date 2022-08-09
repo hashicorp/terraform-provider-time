@@ -214,70 +214,58 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 
 	baseRfc3339 := idParts[0]
 
-	offsetYears := types.Int64{Null: true}
-	if idParts[1] != "" {
-		offset, err := strconv.ParseInt(idParts[1], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetYears.Value = offset
-		offsetYears.Null = false
+	offsetYears, err := offsetToInt64(idParts[1])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_years parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
-	offsetMonths := types.Int64{Null: true}
-	if idParts[2] != "" {
-		offset, err := strconv.ParseInt(idParts[2], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetMonths.Value = offset
-		offsetMonths.Null = false
+	offsetMonths, err := offsetToInt64(idParts[2])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_months parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
-	offsetDays := types.Int64{Null: true}
-	if idParts[3] != "" {
-		offset, err := strconv.ParseInt(idParts[3], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetDays.Value = offset
-		offsetDays.Null = false
+	offsetDays, err := offsetToInt64(idParts[3])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_days parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
-	offsetHours := types.Int64{Null: true}
-	if idParts[4] != "" {
-		offset, err := strconv.ParseInt(idParts[4], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetHours.Value = offset
-		offsetHours.Null = false
+	offsetHours, err := offsetToInt64(idParts[4])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_hours parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
-	offsetMinutes := types.Int64{Null: true}
-	if idParts[5] != "" {
-		offset, err := strconv.ParseInt(idParts[5], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetMinutes.Value = offset
-		offsetMinutes.Null = false
+	offsetMinutes, err := offsetToInt64(idParts[5])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_minutes parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
-	offsetSeconds := types.Int64{Null: true}
-	if idParts[6] != "" {
-		offset, err := strconv.ParseInt(idParts[6], 10, 64)
-		if err != nil {
-			// return diagnostic
-		}
-
-		offsetSeconds.Value = offset
-		offsetSeconds.Null = false
+	offsetSeconds, err := offsetToInt64(idParts[6])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_seconds parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
@@ -535,4 +523,20 @@ func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResource
 
 func (t timeOffsetResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
 
+}
+
+func offsetToInt64(offsetStr string) (types.Int64, error) {
+	offset := types.Int64{Null: true}
+
+	if offsetStr != "" {
+		offsetInt, err := strconv.ParseInt(offsetStr, 10, 64)
+		if err != nil {
+			return offset, fmt.Errorf("could not parse offset (%q) as int: %w", offsetStr, err)
+		}
+
+		offset.Value = offsetInt
+		offset.Null = false
+	}
+
+	return offset, nil
 }
