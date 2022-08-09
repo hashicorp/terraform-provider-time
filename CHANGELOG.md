@@ -1,8 +1,13 @@
-## 0.7.3 (July 14, 2022)
+## 0.8.0 (August 10, 2022)
 
 BUG FIXES:
 
 * documentation: Changed wording from "Conflicts with other `offset_`/`rotation_` arguments." to "At least one of the `offset_`/`rotation_` arguments must be configured." to correctly reflect the use of `AtLeastOneOf` ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105)) 
+
+NOTES:
+
+* provider: Upgrade Go version to 1.18 ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
+* provider: Enable `golangci-lint` ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105))
 
 ## 0.7.2 (July 01, 2021)
 

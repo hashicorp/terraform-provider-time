@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,10 +22,10 @@ func resourceTimeRotating() *schema.Resource {
 			"timestamp and actual rotation. The new rotation timestamp offset includes this drift. " +
 			"This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html) " +
 			"by only forcing a new value on the set cadence.",
-		Create: resourceTimeRotatingCreate,
-		Read:   resourceTimeRotatingRead,
-		Update: resourceTimeRotatingUpdate,
-		Delete: schema.Noop,
+		CreateContext: resourceTimeRotatingCreate,
+		ReadContext:   resourceTimeRotatingRead,
+		UpdateContext: resourceTimeRotatingUpdate,
+		DeleteContext: schema.NoopContext,
 
 		CustomizeDiff: customdiff.Sequence(
 			customdiff.If(resourceTimeRotatingConditionExpirationChange,
@@ -95,7 +96,7 @@ func resourceTimeRotating() *schema.Resource {
 		),
 
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 
 				if len(idParts) != 2 && len(idParts) != 6 {
@@ -366,7 +367,7 @@ func resourceTimeRotating() *schema.Resource {
 	}
 }
 
-func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeRotatingCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp := time.Now().UTC()
 
 	if v, ok := d.GetOk("rfc3339"); ok {
@@ -374,7 +375,7 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 		timestamp, err = time.Parse(time.RFC3339, v.(string))
 
 		if err != nil {
-			return fmt.Errorf("error parsing rfc3339 (%s): %s", v.(string), err)
+			return diag.Errorf("error parsing rfc3339 (%s): %s", v.(string), err)
 		}
 	}
 
@@ -407,7 +408,7 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 		rotationTimestamp, err = time.Parse(time.RFC3339, v.(string))
 
 		if err != nil {
-			return fmt.Errorf("error parsing rotation_rfc3339 (%s): %s", v.(string), err)
+			return diag.Errorf("error parsing rotation_rfc3339 (%s): %s", v.(string), err)
 		}
 	}
 
@@ -417,17 +418,17 @@ func resourceTimeRotatingCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rotation_rfc3339: %s", err)
+		return diag.Errorf("error setting rotation_rfc3339: %s", err)
 	}
 
-	return resourceTimeRotatingRead(d, m)
+	return resourceTimeRotatingRead(ctx, d, m)
 }
 
-func resourceTimeRotatingRead(d *schema.ResourceData, m interface{}) error {
+func resourceTimeRotatingRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp, err := time.Parse(time.RFC3339, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
+		return diag.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
 	}
 
 	if v, ok := d.GetOk("rotation_rfc3339"); ok && !d.IsNewResource() {
@@ -435,7 +436,7 @@ func resourceTimeRotatingRead(d *schema.ResourceData, m interface{}) error {
 		rotationTimestamp, err := time.Parse(time.RFC3339, v.(string))
 
 		if err != nil {
-			return fmt.Errorf("error parsing rotation_rfc3339 (%s): %s", v.(string), err)
+			return diag.Errorf("error parsing rotation_rfc3339 (%s): %s", v.(string), err)
 		}
 
 		if now.After(rotationTimestamp) {
@@ -446,46 +447,46 @@ func resourceTimeRotatingRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if err := d.Set("day", timestamp.Day()); err != nil {
-		return fmt.Errorf("error setting day: %s", err)
+		return diag.Errorf("error setting day: %s", err)
 	}
 
 	if err := d.Set("hour", timestamp.Hour()); err != nil {
-		return fmt.Errorf("error setting hour: %s", err)
+		return diag.Errorf("error setting hour: %s", err)
 	}
 
 	if err := d.Set("minute", timestamp.Minute()); err != nil {
-		return fmt.Errorf("error setting minute: %s", err)
+		return diag.Errorf("error setting minute: %s", err)
 	}
 
 	if err := d.Set("month", int(timestamp.Month())); err != nil {
-		return fmt.Errorf("error setting month: %s", err)
+		return diag.Errorf("error setting month: %s", err)
 	}
 
 	if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rfc3339: %s", err)
+		return diag.Errorf("error setting rfc3339: %s", err)
 	}
 
 	if err := d.Set("second", timestamp.Second()); err != nil {
-		return fmt.Errorf("error setting second: %s", err)
+		return diag.Errorf("error setting second: %s", err)
 	}
 
 	if err := d.Set("unix", timestamp.Unix()); err != nil {
-		return fmt.Errorf("error setting unix: %s", err)
+		return diag.Errorf("error setting unix: %s", err)
 	}
 
 	if err := d.Set("year", timestamp.Year()); err != nil {
-		return fmt.Errorf("error setting year: %s", err)
+		return diag.Errorf("error setting year: %s", err)
 	}
 
 	return nil
 }
 
-func resourceTimeRotatingUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeRotatingUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	if d.HasChanges("rotation_days", "rotation_hours", "rotation_minutes", "rotation_months", "rotation_years") {
 		timestamp, err := time.Parse(time.RFC3339, d.Id())
 
 		if err != nil {
-			return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
+			return diag.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
 		}
 
 		var rotationTimestamp time.Time
@@ -516,11 +517,11 @@ func resourceTimeRotatingUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 
 		if err := d.Set("rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)); err != nil {
-			return fmt.Errorf("error setting rotation_rfc3339: %s", err)
+			return diag.Errorf("error setting rotation_rfc3339: %s", err)
 		}
 	}
 
-	return resourceTimeRotatingRead(d, m)
+	return resourceTimeRotatingRead(ctx, d, m)
 }
 
 func resourceTimeRotatingConditionExpirationChange(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {

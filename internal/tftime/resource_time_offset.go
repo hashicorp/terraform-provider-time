@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -17,10 +18,10 @@ func resourceTimeOffset() *schema.Resource {
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
 			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Create: resourceTimeOffsetCreate,
-		Read:   resourceTimeOffsetRead,
-		Update: resourceTimeOffsetUpdate,
-		Delete: schema.Noop,
+		CreateContext: resourceTimeOffsetCreate,
+		ReadContext:   resourceTimeOffsetRead,
+		UpdateContext: resourceTimeOffsetUpdate,
+		DeleteContext: schema.NoopContext,
 
 		CustomizeDiff: customdiff.Sequence(
 			customdiff.If(resourceTimeOffsetConditionExpirationChange,
@@ -102,7 +103,7 @@ func resourceTimeOffset() *schema.Resource {
 		),
 
 		Importer: &schema.ResourceImporter{
-			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				idParts := strings.Split(d.Id(), ",")
 
 				if len(idParts) != 7 {
@@ -354,7 +355,7 @@ func resourceTimeOffset() *schema.Resource {
 	}
 }
 
-func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp := time.Now().UTC()
 
 	if v, ok := d.GetOk("base_rfc3339"); ok {
@@ -362,14 +363,14 @@ func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
 		timestamp, err = time.Parse(time.RFC3339, v.(string))
 
 		if err != nil {
-			return fmt.Errorf("error parsing base_rfc3339 (%s): %s", v.(string), err)
+			return diag.Errorf("error parsing base_rfc3339 (%s): %s", v.(string), err)
 		}
 	}
 
 	d.SetId(timestamp.Format(time.RFC3339))
 
 	if err := d.Set("base_rfc3339", timestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting base_rfc3339: %s", err)
+		return diag.Errorf("error setting base_rfc3339: %s", err)
 	}
 
 	var offsetTimestamp time.Time
@@ -405,59 +406,59 @@ func resourceTimeOffsetCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rfc3339: %s", err)
+		return diag.Errorf("error setting rfc3339: %s", err)
 	}
 
-	return resourceTimeOffsetRead(d, m)
+	return resourceTimeOffsetRead(ctx, d, m)
 }
 
-func resourceTimeOffsetRead(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp, err := time.Parse(time.RFC3339, d.Get("rfc3339").(string))
 
 	if err != nil {
-		return fmt.Errorf("error parsing offset timestamp (%s): %s", d.Get("rfc3339").(string), err)
+		return diag.Errorf("error parsing offset timestamp (%s): %s", d.Get("rfc3339").(string), err)
 	}
 
 	if err := d.Set("day", timestamp.Day()); err != nil {
-		return fmt.Errorf("error setting day: %s", err)
+		return diag.Errorf("error setting day: %s", err)
 	}
 
 	if err := d.Set("hour", timestamp.Hour()); err != nil {
-		return fmt.Errorf("error setting hour: %s", err)
+		return diag.Errorf("error setting hour: %s", err)
 	}
 
 	if err := d.Set("minute", timestamp.Minute()); err != nil {
-		return fmt.Errorf("error setting minute: %s", err)
+		return diag.Errorf("error setting minute: %s", err)
 	}
 
 	if err := d.Set("month", int(timestamp.Month())); err != nil {
-		return fmt.Errorf("error setting month: %s", err)
+		return diag.Errorf("error setting month: %s", err)
 	}
 
 	if err := d.Set("rfc3339", timestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rfc3339: %s", err)
+		return diag.Errorf("error setting rfc3339: %s", err)
 	}
 
 	if err := d.Set("second", timestamp.Second()); err != nil {
-		return fmt.Errorf("error setting second: %s", err)
+		return diag.Errorf("error setting second: %s", err)
 	}
 
 	if err := d.Set("unix", timestamp.Unix()); err != nil {
-		return fmt.Errorf("error setting unix: %s", err)
+		return diag.Errorf("error setting unix: %s", err)
 	}
 
 	if err := d.Set("year", timestamp.Year()); err != nil {
-		return fmt.Errorf("error setting year: %s", err)
+		return diag.Errorf("error setting year: %s", err)
 	}
 
 	return nil
 }
 
-func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceTimeOffsetUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	timestamp, err := time.Parse(time.RFC3339, d.Id())
 
 	if err != nil {
-		return fmt.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
+		return diag.Errorf("error parsing timestamp (%s): %s", d.Id(), err)
 	}
 
 	var offsetTimestamp time.Time
@@ -493,10 +494,10 @@ func resourceTimeOffsetUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	if err := d.Set("rfc3339", offsetTimestamp.Format(time.RFC3339)); err != nil {
-		return fmt.Errorf("error setting rfc3339: %s", err)
+		return diag.Errorf("error setting rfc3339: %s", err)
 	}
 
-	return resourceTimeOffsetRead(d, m)
+	return resourceTimeOffsetRead(ctx, d, m)
 }
 
 func resourceTimeOffsetConditionExpirationChange(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) bool {
