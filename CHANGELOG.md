@@ -7,13 +7,7 @@ BUG FIXES:
 NOTES:
 
 * provider: Upgrade Go version to 1.18 ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
-* provider: Update Makefile to match other utility providers ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105))
 * provider: Enable `golangci-lint` ([#105](https://github.com/hashicorp/terraform-provider-time/pull/105))
-* resource/time_static: Remove deprecated `Create`, `Read`, and `Delete` fields and replace them with corresponding context fields ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
-* resource/time_rotating: Remove deprecated `Create`, `Read`, `Update`, `Delete` and `State` fields and replace them with corresponding context fields ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
-* resource/time_offset: Remove deprecated `Create`, `Read`, `Update`, `Delete` and `State` fields and replace them with corresponding context fields ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
-* documentation: Update CONTRIBUTING.md and README.md to add more/clearer documentation ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
-* documentation: Add SUPPORT.md ([#114](https://github.com/hashicorp/terraform-provider-time/pull/114))
 
 ## 0.7.2 (July 01, 2021)
 
