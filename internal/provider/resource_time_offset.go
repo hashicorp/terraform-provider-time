@@ -3,12 +3,15 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ tfsdk.ResourceType = (*timeOffsetResourceType)(nil)
@@ -66,6 +69,13 @@ func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_minutes"),
+						path.MatchRoot("offset_seconds")),
+				},
 				//AtLeastOneOf: []string{
 				//	"offset_days",
 				//	"offset_hours",
@@ -445,9 +455,82 @@ func (t timeOffsetResource) Read(ctx context.Context, request tfsdk.ReadResource
 
 }
 
-func (t timeOffsetResource) Update(ctx context.Context, request tfsdk.UpdateResourceRequest, response *tfsdk.UpdateResourceResponse) {
-	//TODO implement me
-	panic("implement me")
+func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	var plan timeOffsetModelV0
+
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.Value)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Create time offset error",
+			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	formattedTimestamp := plan.BaseRFC3339.Value
+
+	var offsetTimestamp time.Time
+
+	if plan.OffsetDays.Value != 0 {
+		offsetTimestamp = timestamp.AddDate(0, 0, int(plan.OffsetDays.Value))
+	}
+
+	if plan.OffsetHours.Value != 0 {
+		hours := time.Duration(plan.OffsetHours.Value)
+		offsetTimestamp = timestamp.Add(hours * time.Hour)
+	}
+
+	if plan.OffsetMinutes.Value != 0 {
+		minutes := time.Duration(plan.OffsetMinutes.Value)
+		offsetTimestamp = timestamp.Add(minutes * time.Minute)
+	}
+
+	if plan.OffsetMonths.Value != 0 {
+		offsetTimestamp = timestamp.AddDate(0, int(plan.OffsetMonths.Value), 0)
+	}
+
+	if plan.OffsetSeconds.Value != 0 {
+		seconds := time.Duration(plan.OffsetSeconds.Value)
+		offsetTimestamp = timestamp.Add(seconds * time.Second)
+	}
+
+	if plan.OffsetYears.Value != 0 {
+		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.Value), 0, 0)
+	}
+
+	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
+
+	state := timeOffsetModelV0{
+		BaseRFC3339:   types.String{Value: formattedTimestamp},
+		Triggers:      plan.Triggers,
+		Year:          types.Int64{Value: int64(offsetTimestamp.Year())},
+		Month:         types.Int64{Value: int64(offsetTimestamp.Month())},
+		Day:           types.Int64{Value: int64(offsetTimestamp.Day())},
+		Hour:          types.Int64{Value: int64(offsetTimestamp.Hour())},
+		Minute:        types.Int64{Value: int64(offsetTimestamp.Minute())},
+		Second:        types.Int64{Value: int64(offsetTimestamp.Second())},
+		OffsetYears:   plan.OffsetYears,
+		OffsetMonths:  plan.OffsetMonths,
+		OffsetDays:    plan.OffsetDays,
+		OffsetHours:   plan.OffsetHours,
+		OffsetMinutes: plan.OffsetMinutes,
+		OffsetSeconds: plan.OffsetSeconds,
+		RFC3339:       types.String{Value: formattedOffsetTimestamp},
+		Unix:          types.Int64{Value: offsetTimestamp.Unix()},
+		ID:            types.String{Value: formattedTimestamp},
+	}
+
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+
 }
 
 func (t timeOffsetResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
