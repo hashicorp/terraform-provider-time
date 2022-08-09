@@ -287,13 +287,13 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 	}
 
 	if !offsetHours.Null && offsetHours.Value != 0 {
-		hours := time.Duration(offsetHours.Value)
-		offsetTimestamp = timestamp.Add(hours * time.Hour)
+		hours := time.Duration(offsetHours.Value) * time.Hour
+		offsetTimestamp = timestamp.Add(hours)
 	}
 
 	if !offsetMinutes.Null && offsetMinutes.Value != 0 {
-		minutes := time.Duration(offsetMinutes.Value)
-		offsetTimestamp = timestamp.Add(minutes * time.Minute)
+		minutes := time.Duration(offsetMinutes.Value) * time.Minute
+		offsetTimestamp = timestamp.Add(minutes)
 	}
 
 	if !offsetMonths.Null && offsetMonths.Value != 0 {
@@ -301,8 +301,8 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 	}
 
 	if !offsetSeconds.Null && offsetSeconds.Value != 0 {
-		seconds := time.Duration(offsetSeconds.Value)
-		offsetTimestamp = timestamp.Add(seconds * time.Second)
+		seconds := time.Duration(offsetSeconds.Value) * time.Second
+		offsetTimestamp = timestamp.Add(seconds)
 	}
 
 	if !offsetYears.Null && offsetYears.Value != 0 {
@@ -391,13 +391,13 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 	}
 
 	if plan.OffsetHours.Value != 0 {
-		hours := time.Duration(plan.OffsetHours.Value)
-		offsetTimestamp = timestamp.Add(hours * time.Hour)
+		hours := time.Duration(plan.OffsetHours.Value) * time.Hour
+		offsetTimestamp = timestamp.Add(hours)
 	}
 
 	if plan.OffsetMinutes.Value != 0 {
-		minutes := time.Duration(plan.OffsetMinutes.Value)
-		offsetTimestamp = timestamp.Add(minutes * time.Minute)
+		minutes := time.Duration(plan.OffsetMinutes.Value) * time.Minute
+		offsetTimestamp = timestamp.Add(minutes)
 	}
 
 	if plan.OffsetMonths.Value != 0 {
@@ -405,8 +405,8 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 	}
 
 	if plan.OffsetSeconds.Value != 0 {
-		seconds := time.Duration(plan.OffsetSeconds.Value)
-		offsetTimestamp = timestamp.Add(seconds * time.Second)
+		seconds := time.Duration(plan.OffsetSeconds.Value) * time.Second
+		offsetTimestamp = timestamp.Add(seconds)
 	}
 
 	if plan.OffsetYears.Value != 0 {
@@ -472,13 +472,13 @@ func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResource
 	}
 
 	if plan.OffsetHours.Value != 0 {
-		hours := time.Duration(plan.OffsetHours.Value)
-		offsetTimestamp = timestamp.Add(hours * time.Hour)
+		hours := time.Duration(plan.OffsetHours.Value) * time.Hour
+		offsetTimestamp = timestamp.Add(hours)
 	}
 
 	if plan.OffsetMinutes.Value != 0 {
-		minutes := time.Duration(plan.OffsetMinutes.Value)
-		offsetTimestamp = timestamp.Add(minutes * time.Minute)
+		minutes := time.Duration(plan.OffsetMinutes.Value) * time.Minute
+		offsetTimestamp = timestamp.Add(minutes)
 	}
 
 	if plan.OffsetMonths.Value != 0 {
@@ -486,8 +486,8 @@ func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResource
 	}
 
 	if plan.OffsetSeconds.Value != 0 {
-		seconds := time.Duration(plan.OffsetSeconds.Value)
-		offsetTimestamp = timestamp.Add(seconds * time.Second)
+		seconds := time.Duration(plan.OffsetSeconds.Value) * time.Second
+		offsetTimestamp = timestamp.Add(seconds)
 	}
 
 	if plan.OffsetYears.Value != 0 {
