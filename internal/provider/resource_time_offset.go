@@ -369,6 +369,47 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 			return
 		}
 	}
+
+	state := setOffsetValues(&plan, timestamp)
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t timeOffsetResource) Read(ctx context.Context, request tfsdk.ReadResourceRequest, response *tfsdk.ReadResourceResponse) {
+
+}
+
+func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	var plan timeOffsetModelV0
+
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.Value)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Create time offset error",
+			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	state := setOffsetValues(&plan, timestamp)
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+
+}
+
+func (t timeOffsetResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
+
+}
+
+func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) timeOffsetModelV0 {
 	formattedTimestamp := timestamp.Format(time.RFC3339)
 
 	var offsetTimestamp time.Time
@@ -402,7 +443,7 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 
 	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
 
-	state := timeOffsetModelV0{
+	return timeOffsetModelV0{
 		BaseRFC3339:   types.String{Value: formattedTimestamp},
 		Triggers:      plan.Triggers,
 		Year:          types.Int64{Value: int64(offsetTimestamp.Year())},
@@ -421,94 +462,6 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 		Unix:          types.Int64{Value: offsetTimestamp.Unix()},
 		ID:            types.String{Value: formattedTimestamp},
 	}
-
-	diags = resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(diags...)
-}
-
-func (t timeOffsetResource) Read(ctx context.Context, request tfsdk.ReadResourceRequest, response *tfsdk.ReadResourceResponse) {
-
-}
-
-func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
-	var plan timeOffsetModelV0
-
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.Value)
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time offset error",
-			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	formattedTimestamp := plan.BaseRFC3339.Value
-
-	var offsetTimestamp time.Time
-
-	if plan.OffsetDays.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(0, 0, int(plan.OffsetDays.Value))
-	}
-
-	if plan.OffsetHours.Value != 0 {
-		hours := time.Duration(plan.OffsetHours.Value) * time.Hour
-		offsetTimestamp = timestamp.Add(hours)
-	}
-
-	if plan.OffsetMinutes.Value != 0 {
-		minutes := time.Duration(plan.OffsetMinutes.Value) * time.Minute
-		offsetTimestamp = timestamp.Add(minutes)
-	}
-
-	if plan.OffsetMonths.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(0, int(plan.OffsetMonths.Value), 0)
-	}
-
-	if plan.OffsetSeconds.Value != 0 {
-		seconds := time.Duration(plan.OffsetSeconds.Value) * time.Second
-		offsetTimestamp = timestamp.Add(seconds)
-	}
-
-	if plan.OffsetYears.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.Value), 0, 0)
-	}
-
-	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
-
-	state := timeOffsetModelV0{
-		BaseRFC3339:   types.String{Value: formattedTimestamp},
-		Triggers:      plan.Triggers,
-		Year:          types.Int64{Value: int64(offsetTimestamp.Year())},
-		Month:         types.Int64{Value: int64(offsetTimestamp.Month())},
-		Day:           types.Int64{Value: int64(offsetTimestamp.Day())},
-		Hour:          types.Int64{Value: int64(offsetTimestamp.Hour())},
-		Minute:        types.Int64{Value: int64(offsetTimestamp.Minute())},
-		Second:        types.Int64{Value: int64(offsetTimestamp.Second())},
-		OffsetYears:   plan.OffsetYears,
-		OffsetMonths:  plan.OffsetMonths,
-		OffsetDays:    plan.OffsetDays,
-		OffsetHours:   plan.OffsetHours,
-		OffsetMinutes: plan.OffsetMinutes,
-		OffsetSeconds: plan.OffsetSeconds,
-		RFC3339:       types.String{Value: formattedOffsetTimestamp},
-		Unix:          types.Int64{Value: offsetTimestamp.Unix()},
-		ID:            types.String{Value: formattedTimestamp},
-	}
-
-	diags = resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(diags...)
-
-}
-
-func (t timeOffsetResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
 
 }
 
