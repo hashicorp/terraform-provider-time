@@ -112,6 +112,7 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.Add(1 * time.Hour)
+	offsetTimestampUpdated := timestamp.Add(2 * time.Hour)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: testAccProviderFactories,
@@ -138,6 +139,21 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccConfigTimeOffsetOffsetHours(timestamp.Format(time.RFC3339), 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_hours", "2"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
+			},
 		},
 	})
 }
@@ -146,6 +162,7 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.Add(1 * time.Minute)
+	offsetTimestampUpdated := timestamp.Add(2 * time.Minute)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: testAccProviderFactories,
@@ -172,6 +189,21 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccConfigTimeOffsetOffsetMinutes(timestamp.Format(time.RFC3339), 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_minutes", "2"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
+			},
 		},
 	})
 }
@@ -180,6 +212,7 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.AddDate(0, 3, 0)
+	offsetTimestampUpdated := timestamp.AddDate(0, 4, 0)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: testAccProviderFactories,
@@ -206,6 +239,21 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccConfigTimeOffsetOffsetMonths(timestamp.Format(time.RFC3339), 4),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_months", "4"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
+			},
 		},
 	})
 }
@@ -214,6 +262,7 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.Add(1 * time.Second)
+	offsetTimestampUpdated := timestamp.Add(2 * time.Second)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: testAccProviderFactories,
@@ -240,6 +289,21 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccConfigTimeOffsetOffsetSeconds(timestamp.Format(time.RFC3339), 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_seconds", "2"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
+			},
 		},
 	})
 }
@@ -248,6 +312,7 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.AddDate(3, 0, 0)
+	offsetTimestampUpdated := timestamp.AddDate(4, 0, 0)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: testAccProviderFactories,
@@ -273,6 +338,21 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 				ImportState:       true,
 				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
 				ImportStateVerify: true,
+			},
+			{
+				Config: testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 4),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "4"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
 			},
 		},
 	})
