@@ -24,7 +24,8 @@ func (p *provider) Configure(ctx context.Context, request tfsdk.ConfigureProvide
 
 func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
 	return map[string]tfsdk.ResourceType{
-		"time_offset": &timeOffsetResourceType{},
+		"time_offset":   &timeOffsetResourceType{},
+		"time_rotating": &timeRotatingResourceType{},
 	}, nil
 }
 

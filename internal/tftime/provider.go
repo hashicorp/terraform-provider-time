@@ -8,9 +8,9 @@ func Provider() *schema.Provider {
 	return &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
 			//"time_offset":   resourceTimeOffset(),
-			"time_rotating": resourceTimeRotating(),
-			"time_sleep":    resourceTimeSleep(),
-			"time_static":   resourceTimeStatic(),
+			//"time_rotating": resourceTimeRotating(),
+			"time_sleep":  resourceTimeSleep(),
+			"time_static": resourceTimeStatic(),
 		},
 	}
 }
