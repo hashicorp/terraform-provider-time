@@ -307,6 +307,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_years parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	offsetMonths, err := offsetToInt64(idParts[2])
@@ -316,6 +317,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_months parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	offsetDays, err := offsetToInt64(idParts[3])
@@ -325,6 +327,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_days parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	offsetHours, err := offsetToInt64(idParts[4])
@@ -334,6 +337,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_hours parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	offsetMinutes, err := offsetToInt64(idParts[5])
@@ -343,6 +347,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_minutes parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	offsetSeconds, err := offsetToInt64(idParts[6])
@@ -352,6 +357,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 			"The offset_seconds parameter that was supplied could not be parsed as Int64.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
+		return
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
