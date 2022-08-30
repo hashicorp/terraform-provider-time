@@ -378,26 +378,26 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 		offsetTimestamp = timestamp.AddDate(0, 0, int(offsetDays.Value))
 	}
 
-	if !offsetHours.Null && offsetHours.Value != 0 {
+	if !offsetHours.Null && offsetHours.Value > 0 {
 		hours := time.Duration(offsetHours.Value) * time.Hour
 		offsetTimestamp = timestamp.Add(hours)
 	}
 
-	if !offsetMinutes.Null && offsetMinutes.Value != 0 {
+	if !offsetMinutes.Null && offsetMinutes.Value > 0 {
 		minutes := time.Duration(offsetMinutes.Value) * time.Minute
 		offsetTimestamp = timestamp.Add(minutes)
 	}
 
-	if !offsetMonths.Null && offsetMonths.Value != 0 {
+	if !offsetMonths.Null && offsetMonths.Value > 0 {
 		offsetTimestamp = timestamp.AddDate(0, int(offsetMonths.Value), 0)
 	}
 
-	if !offsetSeconds.Null && offsetSeconds.Value != 0 {
+	if !offsetSeconds.Null && offsetSeconds.Value > 0 {
 		seconds := time.Duration(offsetSeconds.Value) * time.Second
 		offsetTimestamp = timestamp.Add(seconds)
 	}
 
-	if !offsetYears.Null && offsetYears.Value != 0 {
+	if !offsetYears.Null && offsetYears.Value > 0 {
 		offsetTimestamp = timestamp.AddDate(int(offsetYears.Value), 0, 0)
 	}
 
