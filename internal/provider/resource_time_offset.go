@@ -20,6 +20,9 @@ type timeOffsetResourceType struct{}
 
 func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
+			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
+			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
 		Attributes: map[string]tfsdk.Attribute{
 			"base_rfc3339": {
 				Description: "Base timestamp in " +

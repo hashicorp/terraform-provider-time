@@ -21,6 +21,12 @@ type timeRotatingResourceType struct{}
 
 func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
+			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
+			"This rotation only occurs when Terraform is executed, meaning there will be drift between the rotation " +
+			"timestamp and actual rotation. The new rotation timestamp offset includes this drift. " +
+			"This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html) " +
+			"by only forcing a new value on the set cadence.",
 		Attributes: map[string]tfsdk.Attribute{
 			"day": {
 				Description: "Number day of timestamp.",
