@@ -189,9 +189,32 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyReso
 		return
 	}
 
+	var state, plan timeOffsetModelV0
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if state.OffsetYears == plan.OffsetYears &&
+		state.OffsetMonths == plan.OffsetMonths &&
+		state.OffsetDays == plan.OffsetDays &&
+		state.OffsetHours == plan.OffsetHours &&
+		state.OffsetMinutes == plan.OffsetMinutes &&
+		state.OffsetSeconds == plan.OffsetSeconds {
+		return
+	}
+
 	var baseRFC3339 types.String
 
-	diags := req.Plan.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
+	diags = req.Plan.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
 
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
 	if resp.Diagnostics.HasError() {
@@ -212,14 +235,6 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyReso
 			"The base_rfc3339 timestamp could not be parsed as RFC3339.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
-		return
-	}
-
-	var plan timeOffsetModelV0
-
-	diags = req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
