@@ -358,6 +358,64 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 	})
 }
 
+func TestAccTimeOffset_Upgrade(t *testing.T) {
+	resourceName := "time_offset.test"
+	timestamp := time.Now().UTC()
+	offsetTimestamp := timestamp.AddDate(3, 0, 0)
+
+	resource.UnitTest(t, resource.TestCase{
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: providerVersion080(),
+				Config:            testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
+				),
+			},
+			{
+				ProtoV5ProviderFactories: testAccProviderFactories,
+				Config:                   testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
+				PlanOnly:                 true,
+			},
+			{
+				ProtoV5ProviderFactories: testAccProviderFactories,
+				Config:                   testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
+				),
+			},
+		},
+	})
+}
+
+func providerVersion080() map[string]resource.ExternalProvider {
+	return map[string]resource.ExternalProvider{
+		"time": {
+			VersionConstraint: "0.8.0",
+			Source:            "hashicorp/time",
+		},
+	}
+}
+
 func testAccTimeOffsetImportStateIdFunc() resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		resourceName := "time_offset.test"
