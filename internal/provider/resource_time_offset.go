@@ -515,7 +515,7 @@ func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResource
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Create time offset error",
+			"Update time offset error",
 			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
