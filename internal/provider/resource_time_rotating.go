@@ -259,9 +259,85 @@ var (
 type timeRotatingResource struct {
 }
 
-func (t timeRotatingResource) ModifyPlan(ctx context.Context, request tfsdk.ModifyResourcePlanRequest, response *tfsdk.ModifyResourcePlanResponse) {
-	//TODO implement me
-	panic("implement me")
+func (t timeRotatingResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+	// Plan only needs modifying if the resource already exists as the purpose of
+	// the plan modifier is to show updated attribute values on CLI.
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var state, plan timeRotatingModelV0
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if state.RotationYears == plan.RotationYears &&
+		state.RotationMonths == plan.RotationMonths &&
+		state.RotationDays == plan.RotationDays &&
+		state.RotationHours == plan.RotationHours &&
+		state.RotationMinutes == plan.RotationMinutes &&
+		state.RotationRFC3339 == plan.RotationRFC3339 {
+		return
+	}
+
+	var RFC3339, rotationRFC3339 types.String
+
+	diags = req.Plan.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	diags = req.Plan.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// RFC3339 and rotationRFC3339 could be unknown if there is no value set in the config as the attribute is
+	// optional and computed. If base_rfc3339 is not set in config then the previous value from
+	// state is used and propagated to the update function.
+	if RFC3339.Unknown {
+		diags = req.State.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
+	}
+
+	if rotationRFC3339.Unknown {
+		diags = req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, RFC3339.Value)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Update time rotating error",
+			"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	updatedPlan, err := setRotationValues(&plan, timestamp)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Update time rotating error",
+			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	//TODO: Implement equivalent of customdiff.ForceNewIf on rotation_rfc3339 resource
+
+	updatedPlan.Triggers = plan.Triggers
+
+	diags = resp.Plan.Set(ctx, updatedPlan)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (t timeRotatingResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
@@ -358,7 +434,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req tfsdk.CreateResour
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create time rotating error",
-			"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
 		return
@@ -438,7 +514,7 @@ func (t timeRotatingResource) Update(ctx context.Context, req tfsdk.UpdateResour
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update time rotating error",
-			"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
 				fmt.Sprintf("Original Error: %s", err),
 		)
 		return
