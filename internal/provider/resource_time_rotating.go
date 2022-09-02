@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -252,9 +253,15 @@ func (t timeRotatingResourceType) NewResource(ctx context.Context, p tfsdk.Provi
 var (
 	_ tfsdk.Resource                = (*timeRotatingResource)(nil)
 	_ tfsdk.ResourceWithImportState = (*timeRotatingResource)(nil)
+	_ tfsdk.ResourceWithModifyPlan  = (*timeRotatingResource)(nil)
 )
 
 type timeRotatingResource struct {
+}
+
+func (t timeRotatingResource) ModifyPlan(ctx context.Context, request tfsdk.ModifyResourcePlanRequest, response *tfsdk.ModifyResourcePlanResponse) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (t timeRotatingResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
@@ -361,13 +368,84 @@ func (t timeRotatingResource) Create(ctx context.Context, req tfsdk.CreateResour
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Read(ctx context.Context, request tfsdk.ReadResourceRequest, response *tfsdk.ReadResourceResponse) {
+func (t timeRotatingResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+	var state timeRotatingModelV0
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.Value != "" {
+		now := time.Now().UTC()
+		rotationTimestamp, err := time.Parse(time.RFC3339, state.RotationRFC3339.Value)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Read time rotating error",
+				"The rotation_rfc3339 that was supplied could not be parsed as RFC3339.\n\n+"+
+					fmt.Sprintf("Original Error: %s", err),
+			)
+			return
+		}
+
+		if now.After(rotationTimestamp) {
+			log.Printf("[INFO] Expiration timestamp (%s) is after current timestamp (%s), removing from state", state.RotationRFC3339.Value, now.Format(time.RFC3339))
+			//TODO: Implement setting ID attribute
+			//req.State.SetAttribute(ctx, path.MatchRoot(""), state)
+			return
+		}
+	}
 
 }
 
-func (t timeRotatingResource) Update(ctx context.Context, request tfsdk.UpdateResourceRequest, response *tfsdk.UpdateResourceResponse) {
-	//TODO implement me
-	panic("implement me")
+func (t timeRotatingResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	var plan, state timeRotatingModelV0
+
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = req.Plan.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if state.RotationYears == plan.RotationYears &&
+		state.RotationMonths == plan.RotationMonths &&
+		state.RotationDays == plan.RotationDays &&
+		state.RotationHours == plan.RotationHours &&
+		state.RotationMinutes == plan.RotationMinutes &&
+		state.RotationRFC3339 == plan.RotationRFC3339 {
+		return
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, plan.ID.Value)
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Update time rotating error",
+			"The ID that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	state, err = setRotationValues(&plan, timestamp)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Update time rotating error",
+			"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+	diags = resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+
 }
 
 func (t timeRotatingResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
