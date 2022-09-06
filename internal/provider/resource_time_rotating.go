@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
 var _ tfsdk.ResourceType = (*timeRotatingResourceType)(nil)
@@ -48,15 +50,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_hours": {
 				Description: "Number of hours to add to the base timestamp to configure the rotation timestamp. " +
@@ -72,15 +65,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_minutes": {
 				Description: "Number of minutes to add to the base timestamp to configure the rotation timestamp. " +
@@ -96,15 +80,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_months": {
 				Description: "Number of months to add to the base timestamp to configure the rotation timestamp. " +
@@ -120,15 +95,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IntAtLeast(1),
 			},
 			"rotation_rfc3339": {
 				Description: "Configure the rotation timestamp with an " +
@@ -144,16 +110,8 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_minutes"),
 						path.MatchRoot("rotation_months"),
 						path.MatchRoot("rotation_years")),
+					timevalidator.IsRFC3339Time(),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IsRFC3339Time,
 			},
 			"rotation_years": {
 				Description: "Number of years to add to the base timestamp to configure the rotation timestamp. " +
@@ -169,15 +127,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						path.MatchRoot("rotation_rfc3339")),
 					int64validator.AtLeast(1),
 				},
-				//AtLeastOneOf: []string{
-				//	"rotation_days",
-				//	"rotation_hours",
-				//	"rotation_minutes",
-				//	"rotation_months",
-				//	"rotation_rfc3339",
-				//	"rotation_years",
-				//},
-				//ValidateFunc: validation.IntAtLeast(1),
 			},
 			"hour": {
 				Description: "Number hour of timestamp.",
@@ -195,8 +144,6 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				},
-				//ForceNew: true,
-				//Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"minute": {
 				Description: "Number minute of timestamp.",
@@ -219,8 +166,9 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				PlanModifiers: []tfsdk.AttributePlanModifier{
 					tfsdk.RequiresReplace(),
 				},
-				//ForceNew:     true,
-				//ValidateFunc: validation.IsRFC3339Time,
+				Validators: []tfsdk.AttributeValidator{
+					timevalidator.IsRFC3339Time(),
+				},
 			},
 			"second": {
 				Description: "Number second of timestamp.",
@@ -724,7 +672,6 @@ func parseMultiplePartId(idParts []string, resp *tfsdk.ImportResourceStateRespon
 	formattedRotationTimestamp := rotationTimestamp.Format(time.RFC3339)
 
 	state := timeRotatingModelV0{
-		//Triggers:      plan. Triggers,
 		Year:            types.Int64{Value: int64(rotationTimestamp.Year())},
 		Month:           types.Int64{Value: int64(rotationTimestamp.Month())},
 		Day:             types.Int64{Value: int64(rotationTimestamp.Day())},
