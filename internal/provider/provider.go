@@ -26,6 +26,7 @@ func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceT
 	return map[string]tfsdk.ResourceType{
 		"time_offset":   &timeOffsetResourceType{},
 		"time_rotating": &timeRotatingResourceType{},
+		"time_sleep":    &timeSleepResourceType{},
 	}, nil
 }
 
