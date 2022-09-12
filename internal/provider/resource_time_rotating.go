@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
@@ -104,6 +105,9 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					timemodifier.ReplaceIfOutdated(),
+				},
 				Validators: []tfsdk.AttributeValidator{
 					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
 						path.MatchRoot("rotation_hours"),
@@ -279,8 +283,6 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyRe
 		)
 		return
 	}
-
-	//TODO: Implement equivalent of customdiff.ForceNewIf on rotation_rfc3339 resource
 
 	updatedPlan.Triggers = plan.Triggers
 
