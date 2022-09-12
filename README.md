@@ -36,7 +36,7 @@ terraform {
 
 ## Documentation, questions and discussions
 Official documentation on how to use this provider can be found on the
-[Terraform Registry](https://registry.terraform.io/providers/hashicorp/tls/latest/docs).
+[Terraform Registry](https://registry.terraform.io/providers/hashicorp/time/latest/docs).
 In case of specific questions or discussions, please use the
 HashiCorp [Terraform Providers Discuss forums](https://discuss.hashicorp.com/c/terraform-providers/31),
 in accordance with HashiCorp [Community Guidelines](https://www.hashicorp.com/community-guidelines).
