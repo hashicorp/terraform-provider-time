@@ -417,8 +417,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req tfsdk.ReadResourceRe
 
 		if now.After(rotationTimestamp) {
 			log.Printf("[INFO] Expiration timestamp (%s) is after current timestamp (%s), removing from state", state.RotationRFC3339.Value, now.Format(time.RFC3339))
-			//TODO: Implement setting ID attribute
-			//req.State.SetAttribute(ctx, path.MatchRoot(""), state)
+			req.State.SetAttribute(ctx, path.Root("id"), "")
 			return
 		}
 	}
