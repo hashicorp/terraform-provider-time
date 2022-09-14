@@ -10,7 +10,7 @@ func Provider() *schema.Provider {
 			//"time_offset":   resourceTimeOffset(),
 			//"time_rotating": resourceTimeRotating(),
 			//"time_sleep":  resourceTimeSleep(),
-			"time_static": resourceTimeStatic(),
+			//"time_static": resourceTimeStatic(),
 		},
 	}
 }
