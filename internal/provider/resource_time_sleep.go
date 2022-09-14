@@ -61,6 +61,9 @@ func (t timeSleepResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Type:        types.StringType,
 				Computed:    true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					tfsdk.UseStateForUnknown(),
+				},
 			},
 		},
 	}, nil
@@ -184,7 +187,13 @@ func (t timeSleepResource) Read(ctx context.Context, req tfsdk.ReadResourceReque
 }
 
 func (t timeSleepResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+	var data timeSleepModelV0
 
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (t timeSleepResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
