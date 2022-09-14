@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
@@ -93,10 +94,15 @@ func (t timeStaticResourceType) NewResource(ctx context.Context, p tfsdk.Provide
 }
 
 var (
-	_ tfsdk.Resource = (*timeStaticResource)(nil)
+	_ tfsdk.Resource                = (*timeStaticResource)(nil)
+	_ tfsdk.ResourceWithImportState = (*timeStaticResource)(nil)
 )
 
 type timeStaticResource struct {
+}
+
+func (t timeStaticResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+	tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func (t timeStaticResource) Create(ctx context.Context, request tfsdk.CreateResourceRequest, response *tfsdk.CreateResourceResponse) {
