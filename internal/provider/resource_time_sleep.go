@@ -183,7 +183,7 @@ func (t timeSleepResource) Read(ctx context.Context, req tfsdk.ReadResourceReque
 
 }
 
-func (t timeSleepResource) Update(ctx context.Context, request tfsdk.UpdateResourceRequest, response *tfsdk.UpdateResourceResponse) {
+func (t timeSleepResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
 
 }
 
@@ -217,13 +217,4 @@ func (t timeSleepResource) Delete(ctx context.Context, req tfsdk.DeleteResourceR
 		case <-time.After(duration):
 		}
 	}
-
-	state = timeSleepModelV0{
-		CreateDuration:  types.String{Null: true},
-		DestroyDuration: types.String{Null: true},
-		ID:              types.String{Null: true},
-	}
-	state.Triggers.ElemType = types.StringType
-	diags = resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(diags...)
 }
