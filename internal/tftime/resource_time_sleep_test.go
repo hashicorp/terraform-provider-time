@@ -3,6 +3,7 @@ package tftime
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -66,7 +67,6 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 }
 
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -77,7 +77,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				Config: testAccConfigTimeSleepCreateDuration("1ms"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
-					testExtractResourceAttr(resourceName, "id", &time1),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -93,8 +93,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				Config: testAccConfigTimeSleepCreateDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "2ms"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesSame(&time1, &time2),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 		},
@@ -102,7 +101,6 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 }
 
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -113,7 +111,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				Config: testAccConfigTimeSleepDestroyDuration("1ms"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "1ms"),
-					testExtractResourceAttr(resourceName, "id", &time1),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -129,8 +127,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				Config: testAccConfigTimeSleepDestroyDuration("2ms"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "2ms"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesSame(&time1, &time2),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 		},
@@ -138,7 +135,6 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 }
 
 func TestAccTimeSleep_Triggers(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -150,7 +146,8 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					testExtractResourceAttr(resourceName, "id", &time1),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -168,9 +165,62 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesDiffer(&time1, &time2),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccTimeSleep_Upgrade(t *testing.T) {
+	resourceName := "time_sleep.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: providerVersion080(),
+				Config:            testAccConfigTimeSleepCreateDuration("1ms"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				ProtoV5ProviderFactories: testAccProviderFactories,
+				Config:                   testAccConfigTimeSleepCreateDuration("1ms"),
+				PlanOnly:                 true,
+			},
+			{
+				ProtoV5ProviderFactories: testAccProviderFactories,
+				Config:                   testAccConfigTimeSleepCreateDuration("1ms"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccTimeSleep_Validators(t *testing.T) {
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "time_sleep" "test" {
+                     triggers = {
+						%[1]q = %[2]q
+					  }
+                  }`, "key1", "value1"),
+				ExpectError: regexp.MustCompile(`.*Error: Invalid Attribute Combination`),
+			},
+			{
+				Config:      testAccConfigTimeSleepCreateDuration("1"),
+				ExpectError: regexp.MustCompile(`.*Error: Invalid Attribute Value Match`),
 			},
 		},
 	})
