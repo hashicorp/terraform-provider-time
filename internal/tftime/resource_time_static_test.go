@@ -40,7 +40,6 @@ func TestAccTimeStatic_basic(t *testing.T) {
 }
 
 func TestAccTimeStatic_Triggers(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -52,7 +51,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time1),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
 					testSleep(1),
 				),
 			},
@@ -67,8 +66,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time2),
-					testCheckAttributeValuesDiffer(&time1, &time2),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
 				),
 			},
 		},
@@ -107,6 +105,64 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccTimeStatic_Upgrade(t *testing.T) {
+	resourceName := "time_static.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: providerVersion080(),
+				Config:            testAccConfigTimeStatic(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(resourceName, "day", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "hour", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "minute", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "month", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "rfc3339", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
+					resource.TestMatchResourceAttr(resourceName, "second", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "unix", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "year", regexp.MustCompile(`^\d{4}$`)),
+				),
+			},
+			{
+				ProtoV5ProviderFactories: testAccProviderFactories,
+				Config:                   testAccConfigTimeStatic(),
+				PlanOnly:                 true,
+			},
+			{
+				ExternalProviders: providerVersion080(),
+				Config:            testAccConfigTimeStatic(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(resourceName, "day", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "hour", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "minute", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "month", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "rfc3339", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
+					resource.TestMatchResourceAttr(resourceName, "second", regexp.MustCompile(`^\d{1,2}$`)),
+					resource.TestMatchResourceAttr(resourceName, "unix", regexp.MustCompile(`^\d+$`)),
+					resource.TestMatchResourceAttr(resourceName, "year", regexp.MustCompile(`^\d{4}$`)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccTimeStatic_Validators(t *testing.T) {
+	timestamp := time.Now().UTC()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: testAccProviderFactories,
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccConfigTimeStaticRfc3339(timestamp.Format(time.RFC850)),
+				ExpectError: regexp.MustCompile(`.*Value must be a string in RFC3339 format`),
 			},
 		},
 	})
