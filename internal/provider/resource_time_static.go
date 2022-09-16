@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
-	"time"
 )
 
 var _ tfsdk.ResourceType = (*timeStaticResourceType)(nil)
@@ -104,7 +105,33 @@ type timeStaticResource struct {
 }
 
 func (t timeStaticResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	timestamp, err := time.Parse(time.RFC3339, req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time static error",
+			"The id that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	formattedTimestamp := timestamp.Format(time.RFC3339)
+
+	state := timeStaticModelV0{
+		Year:    types.Int64{Value: int64(timestamp.Year())},
+		Month:   types.Int64{Value: int64(timestamp.Month())},
+		Day:     types.Int64{Value: int64(timestamp.Day())},
+		Hour:    types.Int64{Value: int64(timestamp.Hour())},
+		Minute:  types.Int64{Value: int64(timestamp.Minute())},
+		Second:  types.Int64{Value: int64(timestamp.Second())},
+		RFC3339: types.String{Value: formattedTimestamp},
+		Unix:    types.Int64{Value: timestamp.Unix()},
+		ID:      types.String{Value: formattedTimestamp},
+	}
+	state.Triggers.ElemType = types.StringType
+
+	diags := resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
 }
 
 type timeStaticModelV0 struct {
@@ -136,7 +163,7 @@ func (t timeStaticResource) Create(ctx context.Context, req tfsdk.CreateResource
 
 		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.Value); err != nil {
 			resp.Diagnostics.AddError(
-				"Create time rotating error",
+				"Create time static error",
 				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
 					fmt.Sprintf("Original Error: %s", err),
 			)
