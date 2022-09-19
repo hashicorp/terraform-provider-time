@@ -1,13 +1,14 @@
-package tftime
+package provider
 
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"regexp"
 	"testing"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // Since the acceptance testing framework can introduce uncontrollable time delays,
@@ -20,16 +21,67 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	d := resourceTimeSleep().Data(nil)
-	d.SetType("time_sleep")
-	d.SetId("test")
-	err = d.Set("create_duration", durationStr)
-	if err != nil {
-		t.Fatalf("unable set create_duration to %s with error: %s", durationStr, err)
+	p := New()
+	rt := timeSleepResourceType{}
+
+	m := map[string]tftypes.Value{
+		"create_duration":  tftypes.NewValue(tftypes.String, durationStr),
+		"destroy_duration": tftypes.NewValue(tftypes.String, nil),
+		"id":               tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"triggers":         tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+	}
+	config := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"create_duration":  tftypes.String,
+			"destroy_duration": tftypes.String,
+			"id":               tftypes.String,
+			"triggers":         tftypes.Map{ElementType: tftypes.String},
+		},
+		OptionalAttributes: map[string]struct{}{
+			"create_duration":  {},
+			"destroy_duration": {},
+			"triggers":         {},
+		},
+	}, m)
+	plan := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"create_duration":  tftypes.String,
+			"destroy_duration": tftypes.String,
+			"id":               tftypes.String,
+			"triggers":         tftypes.Map{ElementType: tftypes.String},
+		},
+		OptionalAttributes: map[string]struct{}{
+			"create_duration":  {},
+			"destroy_duration": {},
+			"triggers":         {},
+		},
+	}, m)
+
+	schema, _ := rt.GetSchema(context.Background())
+	req := tfsdk.CreateResourceRequest{
+		Config: tfsdk.Config{
+			Raw:    config,
+			Schema: schema,
+		},
+		Plan: tfsdk.Plan{
+			Raw:    plan,
+			Schema: schema,
+		},
+		ProviderMeta: tfsdk.Config{},
+	}
+
+	resp := tfsdk.CreateResourceResponse{
+		State:       tfsdk.State{},
+		Diagnostics: nil,
+	}
+
+	r, diag := rt.NewResource(context.Background(), p)
+	if diag.HasError() {
+		t.Fatalf("unable set create_duration to %s with error: %s", durationStr, diag.Errors())
 	}
 
 	start := time.Now()
-	resourceTimeSleepCreate(context.Background(), d, nil)
+	r.Create(context.Background(), req, &resp)
 	end := time.Now()
 	elapsed := end.Sub(start)
 
@@ -48,16 +100,51 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	d := resourceTimeSleep().Data(nil)
-	d.SetType("time_sleep")
-	d.SetId("test")
-	err = d.Set("destroy_duration", durationStr)
-	if err != nil {
-		t.Fatalf("unable set destroy_duration to %s with error: %s", durationStr, err)
+	p := New()
+	rt := timeSleepResourceType{}
+
+	m := map[string]tftypes.Value{
+		"create_duration":  tftypes.NewValue(tftypes.String, nil),
+		"destroy_duration": tftypes.NewValue(tftypes.String, durationStr),
+		"id":               tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"triggers":         tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+	}
+
+	config := tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"create_duration":  tftypes.String,
+			"destroy_duration": tftypes.String,
+			"id":               tftypes.String,
+			"triggers":         tftypes.Map{ElementType: tftypes.String},
+		},
+		OptionalAttributes: map[string]struct{}{
+			"create_duration":  {},
+			"destroy_duration": {},
+			"triggers":         {},
+		},
+	}, m)
+
+	schema, _ := rt.GetSchema(context.Background())
+	req := tfsdk.DeleteResourceRequest{
+		State: tfsdk.State{
+			Raw:    config,
+			Schema: schema,
+		},
+		ProviderMeta: tfsdk.Config{},
+	}
+
+	resp := tfsdk.DeleteResourceResponse{
+		State:       tfsdk.State{},
+		Diagnostics: nil,
+	}
+
+	r, diag := rt.NewResource(context.Background(), p)
+	if diag.HasError() {
+		t.Fatalf("unable set destroy_duration to %s with error: %s", durationStr, diag.Errors())
 	}
 
 	start := time.Now()
-	resourceTimeSleepDelete(context.Background(), d, nil)
+	r.Delete(context.Background(), req, &resp)
 	end := time.Now()
 	elapsed := end.Sub(start)
 
@@ -70,7 +157,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -104,7 +191,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -138,7 +225,7 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -188,12 +275,12 @@ func TestAccTimeSleep_Upgrade(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeSleepCreateDuration("1ms"),
 				PlanOnly:                 true,
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeSleepCreateDuration("1ms"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
@@ -207,7 +294,7 @@ func TestAccTimeSleep_Upgrade(t *testing.T) {
 func TestAccTimeSleep_Validators(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{

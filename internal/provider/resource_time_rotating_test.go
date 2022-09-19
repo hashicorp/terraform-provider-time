@@ -1,4 +1,4 @@
-package tftime
+package provider
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +62,7 @@ func TestAccTimeRotating_RotationDays_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +92,7 @@ func TestAccTimeRotating_RotationDays_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(0, 0, -2)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -117,7 +117,7 @@ func TestAccTimeRotating_RotationHours_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -147,7 +147,7 @@ func TestAccTimeRotating_RotationHours_expired(t *testing.T) {
 	timestamp := time.Now().UTC().Add(-2 * time.Hour)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -172,7 +172,7 @@ func TestAccTimeRotating_RotationMinutes_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -202,7 +202,7 @@ func TestAccTimeRotating_RotationMinutes_expired(t *testing.T) {
 	timestamp := time.Now().UTC().Add(-2 * time.Minute)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -227,7 +227,7 @@ func TestAccTimeRotating_RotationMonths_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -257,7 +257,7 @@ func TestAccTimeRotating_RotationMonths_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(0, -2, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -283,7 +283,7 @@ func TestAccTimeRotating_RotationRfc3339_basic(t *testing.T) {
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -314,7 +314,7 @@ func TestAccTimeRotating_RotationRfc3339_expired(t *testing.T) {
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, -1)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -339,7 +339,7 @@ func TestAccTimeRotating_RotationYears_basic(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -369,7 +369,7 @@ func TestAccTimeRotating_RotationYears_expired(t *testing.T) {
 	timestamp := time.Now().UTC().AddDate(-2, 0, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -411,12 +411,12 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
 				PlanOnly:                 true,
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "rotation_years", "3"),
@@ -429,7 +429,7 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeRotatingRotationYears(expiredTimestamp.Format(time.RFC3339), 3),
 				PlanOnly:                 true,
 				ExpectNonEmptyPlan:       true,
@@ -442,7 +442,7 @@ func TestAccTimeRotating_Validators(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{

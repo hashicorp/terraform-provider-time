@@ -1,4 +1,4 @@
-package tftime
+package provider
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 	resourceName := "time_offset.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +65,7 @@ func TestAccTimeOffset_OffsetDays(t *testing.T) {
 	offsetTimestampUpdated := timestamp.AddDate(0, 0, 8)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +115,7 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 	offsetTimestampUpdated := timestamp.Add(2 * time.Hour)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -165,7 +165,7 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 	offsetTimestampUpdated := timestamp.Add(2 * time.Minute)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -215,7 +215,7 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 	offsetTimestampUpdated := timestamp.AddDate(0, 4, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -265,7 +265,7 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 	offsetTimestampUpdated := timestamp.Add(2 * time.Second)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -315,7 +315,7 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 	offsetTimestampUpdated := timestamp.AddDate(4, 0, 0)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -383,12 +383,12 @@ func TestAccTimeOffset_Upgrade(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
 				PlanOnly:                 true,
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
@@ -402,6 +402,23 @@ func TestAccTimeOffset_Upgrade(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
 					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
 				),
+			},
+		},
+	})
+}
+
+func TestAccTimeOffset_Validators(t *testing.T) {
+	timestamp := time.Now().UTC()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "time_offset" "test" {
+                     base_rfc3339 = %q
+                  }`, timestamp.Format(time.RFC3339)),
+				ExpectError: regexp.MustCompile(`.*At least one attribute out of\n\[offset_years,offset_months,offset_hours,offset_minutes,offset_seconds\] must\nbe specified`),
 			},
 		},
 	})
@@ -499,21 +516,4 @@ resource "time_offset" "test" {
   offset_years = %[2]d
 }
 `, baseRfc3339, offsetYears)
-}
-
-func TestAccTimeOffset_Validators(t *testing.T) {
-	timestamp := time.Now().UTC()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
-		CheckDestroy:             nil,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(`resource "time_offset" "test" {
-                     base_rfc3339 = %q
-                  }`, timestamp.Format(time.RFC3339)),
-				ExpectError: regexp.MustCompile(`.*At least one attribute out of\n\[offset_years,offset_months,offset_hours,offset_minutes,offset_seconds\] must\nbe specified`),
-			},
-		},
-	})
 }

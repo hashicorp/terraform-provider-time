@@ -1,4 +1,4 @@
-package tftime
+package provider
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ func TestAccTimeStatic_basic(t *testing.T) {
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +43,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -85,7 +85,7 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 	year := strconv.Itoa(timestamp.Year())
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
@@ -131,7 +131,7 @@ func TestAccTimeStatic_Upgrade(t *testing.T) {
 				),
 			},
 			{
-				ProtoV5ProviderFactories: testAccProviderFactories,
+				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeStatic(),
 				PlanOnly:                 true,
 			},
@@ -157,7 +157,7 @@ func TestAccTimeStatic_Validators(t *testing.T) {
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV5ProviderFactories: testAccProviderFactories,
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{

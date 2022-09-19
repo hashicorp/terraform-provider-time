@@ -1,12 +1,9 @@
-package tftime
+package provider
 
 import (
-	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
-	"github.com/hashicorp/terraform-provider-time/internal/provider"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -14,24 +11,9 @@ import (
 )
 
 //nolint:unparam
-var testAccProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){}
-
-func init() {
-	testAccProviderFactories["time"] = func() (tfprotov5.ProviderServer, error) {
-		ctx := context.Background()
-
-		// SDKv2 provider
-		sdkv2 := Provider().GRPCProvider
-
-		// Framework provider
-		framework := providerserver.NewProtocol5(provider.New())
-
-		muxServer, err := tf5muxserver.NewMuxServer(ctx, sdkv2, framework)
-		if err != nil {
-			return nil, err
-		}
-
-		return muxServer.ProviderServer(), nil
+func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
+	return map[string]func() (tfprotov5.ProviderServer, error){
+		"time": providerserver.NewProtocol5WithError(New()),
 	}
 }
 
