@@ -2,7 +2,6 @@ package timevalidator
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
@@ -17,7 +16,7 @@ type isRFC3339TimeValidator struct {
 }
 
 func (validator isRFC3339TimeValidator) Description(ctx context.Context) string {
-	return fmt.Sprintf("value must be a string in RFC3339 format")
+	return "value must be a string in RFC3339 format"
 }
 
 func (validator isRFC3339TimeValidator) MarkdownDescription(ctx context.Context) string {
@@ -44,7 +43,7 @@ func (validator isRFC3339TimeValidator) Validate(ctx context.Context, request tf
 		response.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
 			request.AttributePath,
 			validator.MarkdownDescription(ctx),
-			fmt.Sprintf("%s", s.Value),
+			s.Value,
 		))
 		return
 	}
@@ -53,8 +52,8 @@ func (validator isRFC3339TimeValidator) Validate(ctx context.Context, request tf
 // IsRFC3339Time returns an AttributeValidator which ensures that any configured
 // attribute value:
 //
-//     - Is a String.
-//     - Is in RFC3339 Format.
+//   - Is a String.
+//   - Is in RFC3339 Format.
 //
 // Null (unconfigured) and unknown (known after apply) values are skipped.
 func IsRFC3339Time() tfsdk.AttributeValidator {

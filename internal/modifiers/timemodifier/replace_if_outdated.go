@@ -19,7 +19,7 @@ func ReplaceIfOutdated() tfsdk.AttributePlanModifier {
 type RequiresReplaceModifier struct{}
 
 func (r RequiresReplaceModifier) Description(ctx context.Context) string {
-	return fmt.Sprintf("value must be a string in RFC3339 format")
+	return "value must be a string in RFC3339 format"
 }
 
 func (r RequiresReplaceModifier) MarkdownDescription(ctx context.Context) string {
