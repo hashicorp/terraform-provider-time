@@ -26,7 +26,10 @@ func NewTimeSleepResource() resource.Resource {
 	return &timeSleepResource{}
 }
 
-type timeSleepResource struct {
+type timeSleepResource struct{}
+
+func (t timeSleepResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_sleep"
 }
 
 func (t timeSleepResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -129,10 +132,6 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	state.Triggers.ElemType = types.StringType
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
-}
-
-func (t timeSleepResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_sleep"
 }
 
 func (t timeSleepResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

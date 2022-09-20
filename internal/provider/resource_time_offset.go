@@ -27,6 +27,157 @@ func NewTimeOffsetResource() resource.Resource {
 
 type timeOffsetResource struct{}
 
+func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_offset"
+}
+
+func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	return tfsdk.Schema{
+		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
+			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
+			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
+		Attributes: map[string]tfsdk.Attribute{
+			"base_rfc3339": {
+				Description: "Base timestamp in " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
+					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
+					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
+				Type:     types.StringType,
+				Optional: true,
+				Computed: true,
+			},
+			"day": {
+				Description: "Number day of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"hour": {
+				Description: "Number hour of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"triggers": {
+				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value " +
+					"to be saved. See [the main provider documentation](../index.md) for more information.",
+				Type: types.MapType{
+					ElemType: types.StringType,
+				},
+				Optional: true,
+				PlanModifiers: []tfsdk.AttributePlanModifier{
+					resource.RequiresReplace(),
+				},
+			},
+			"minute": {
+				Description: "Number minute of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"month": {
+				Description: "Number month of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"offset_days": {
+				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_minutes"),
+						path.MatchRoot("offset_seconds")),
+				},
+			},
+			"offset_hours": {
+				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_days"),
+						path.MatchRoot("offset_minutes"),
+						path.MatchRoot("offset_seconds")),
+				},
+			},
+			"offset_minutes": {
+				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_days"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_seconds")),
+				},
+			},
+			"offset_months": {
+				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_days"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_minutes"),
+						path.MatchRoot("offset_seconds")),
+				},
+			},
+			"offset_seconds": {
+				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
+						path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_days"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_minutes")),
+				},
+			},
+			"offset_years": {
+				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
+				Type:        types.Int64Type,
+				Optional:    true,
+				Validators: []tfsdk.AttributeValidator{
+					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_months"),
+						path.MatchRoot("offset_days"),
+						path.MatchRoot("offset_hours"),
+						path.MatchRoot("offset_minutes"),
+						path.MatchRoot("offset_seconds")),
+				},
+			},
+			"rfc3339": {
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        types.StringType,
+				Computed:    true,
+			},
+			"second": {
+				Description: "Number second of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"unix": {
+				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"year": {
+				Description: "Number year of offset timestamp.",
+				Type:        types.Int64Type,
+				Computed:    true,
+			},
+			"id": {
+				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Type:        types.StringType,
+				Computed:    true,
+			},
+		},
+	}, nil
+}
+
 func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Plan only needs modifying if the resource already exists as the purpose of
 	// the plan modifier is to show updated attribute values on CLI.
@@ -190,157 +341,6 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req resource.Import
 
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
-}
-
-func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_offset"
-}
-
-func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
-			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
-			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"base_rfc3339": {
-				Description: "Base timestamp in " +
-					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
-					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
-					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
-			},
-			"day": {
-				Description: "Number day of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"hour": {
-				Description: "Number hour of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"triggers": {
-				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value " +
-					"to be saved. See [the main provider documentation](../index.md) for more information.",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
-				},
-			},
-			"minute": {
-				Description: "Number minute of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"month": {
-				Description: "Number month of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"offset_days": {
-				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
-			},
-			"offset_hours": {
-				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
-			},
-			"offset_minutes": {
-				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_seconds")),
-				},
-			},
-			"offset_months": {
-				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
-			},
-			"offset_seconds": {
-				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes")),
-				},
-			},
-			"offset_years": {
-				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
-				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
-			},
-			"rfc3339": {
-				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
-				Computed:    true,
-			},
-			"second": {
-				Description: "Number second of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"unix": {
-				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"year": {
-				Description: "Number year of offset timestamp.",
-				Type:        types.Int64Type,
-				Computed:    true,
-			},
-			"id": {
-				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
-				Computed:    true,
-			},
-		},
-	}, nil
 }
 
 func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

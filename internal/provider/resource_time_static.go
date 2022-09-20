@@ -22,7 +22,10 @@ func NewTimeStaticResource() resource.Resource {
 	return &timeStaticResource{}
 }
 
-type timeStaticResource struct {
+type timeStaticResource struct{}
+
+func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_static"
 }
 
 func (t timeStaticResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -132,10 +135,6 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
-}
-
-func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_static"
 }
 
 func (t timeStaticResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
