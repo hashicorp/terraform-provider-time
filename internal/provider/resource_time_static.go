@@ -27,6 +27,9 @@ type timeStaticResource struct {
 
 func (t timeStaticResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
+		Description: "Manages a static time resource, which keeps a locally sourced UTC timestamp stored in the Terraform state. " +
+			"This prevents perpetual differences caused by using " +
+			"the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
 		Attributes: map[string]tfsdk.Attribute{
 			"day": {
 				Description: "Number day of timestamp.",
