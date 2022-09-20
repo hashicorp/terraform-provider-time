@@ -3,34 +3,45 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	p "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-func New() tfsdk.Provider {
+func New() p.Provider {
 	return &provider{}
 }
 
-var _ tfsdk.Provider = (*provider)(nil)
+var (
+	_ p.Provider             = (*provider)(nil)
+	_ p.ProviderWithMetadata = (*provider)(nil)
+)
 
 type provider struct{}
 
+func (p *provider) Metadata(ctx context.Context, req p.MetadataRequest, resp *p.MetadataResponse) {
+	resp.TypeName = "time"
+}
+
+func (p *provider) Configure(ctx context.Context, req p.ConfigureRequest, resp *p.ConfigureResponse) {
+
+}
+
+func (p *provider) DataSources(ctx context.Context) []func() datasource.DataSource {
+	return nil
+}
+
+func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		NewTimeOffsetResource,
+		NewTimeRotatingResource,
+		NewTimeSleepResource,
+		NewTimeStaticResource,
+	}
+}
+
 func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{}, nil
-}
-
-func (p *provider) Configure(ctx context.Context, request tfsdk.ConfigureProviderRequest, response *tfsdk.ConfigureProviderResponse) {
-}
-
-func (p *provider) GetResources(ctx context.Context) (map[string]tfsdk.ResourceType, diag.Diagnostics) {
-	return map[string]tfsdk.ResourceType{
-		"time_offset":   &timeOffsetResourceType{},
-		"time_rotating": &timeRotatingResourceType{},
-		"time_sleep":    &timeSleepResourceType{},
-		"time_static":   &timeStaticResourceType{},
-	}, nil
-}
-
-func (p *provider) GetDataSources(ctx context.Context) (map[string]tfsdk.DataSourceType, diag.Diagnostics) {
-	return map[string]tfsdk.DataSourceType{}, nil
 }

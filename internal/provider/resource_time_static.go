@@ -6,17 +6,26 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
-var _ tfsdk.ResourceType = (*timeStaticResourceType)(nil)
+var (
+	_ resource.Resource                = (*timeStaticResource)(nil)
+	_ resource.ResourceWithImportState = (*timeStaticResource)(nil)
+)
 
-type timeStaticResourceType struct{}
+func NewTimeStaticResource() resource.Resource {
+	return &timeStaticResource{}
+}
 
-func (t timeStaticResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+type timeStaticResource struct {
+}
+
+func (t timeStaticResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"day": {
@@ -37,7 +46,7 @@ func (t timeStaticResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				},
 				Optional: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				},
 			},
 			"minute": {
@@ -59,7 +68,7 @@ func (t timeStaticResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				},
 				Validators: []tfsdk.AttributeValidator{
 					timevalidator.IsRFC3339Time(),
@@ -85,26 +94,14 @@ func (t timeStaticResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				Type:        types.StringType,
 				Computed:    true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.UseStateForUnknown(),
+					resource.UseStateForUnknown(),
 				},
 			},
 		},
 	}, nil
 }
 
-func (t timeStaticResourceType) NewResource(ctx context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
-	return &timeStaticResource{}, nil
-}
-
-var (
-	_ tfsdk.Resource                = (*timeStaticResource)(nil)
-	_ tfsdk.ResourceWithImportState = (*timeStaticResource)(nil)
-)
-
-type timeStaticResource struct {
-}
-
-func (t timeStaticResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+func (t timeStaticResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	timestamp, err := time.Parse(time.RFC3339, req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -134,20 +131,11 @@ func (t timeStaticResource) ImportState(ctx context.Context, req tfsdk.ImportRes
 	resp.Diagnostics.Append(diags...)
 }
 
-type timeStaticModelV0 struct {
-	Day      types.Int64  `tfsdk:"day"`
-	Hour     types.Int64  `tfsdk:"hour"`
-	Triggers types.Map    `tfsdk:"triggers"`
-	Minute   types.Int64  `tfsdk:"minute"`
-	Month    types.Int64  `tfsdk:"month"`
-	RFC3339  types.String `tfsdk:"rfc3339"`
-	Second   types.Int64  `tfsdk:"second"`
-	Unix     types.Int64  `tfsdk:"unix"`
-	Year     types.Int64  `tfsdk:"year"`
-	ID       types.String `tfsdk:"id"`
+func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_static"
 }
 
-func (t timeStaticResource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+func (t timeStaticResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeStaticModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -190,11 +178,11 @@ func (t timeStaticResource) Create(ctx context.Context, req tfsdk.CreateResource
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeStaticResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+func (t timeStaticResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 }
 
-func (t timeStaticResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+func (t timeStaticResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data timeStaticModelV0
 
 	// Read Terraform plan data into the model
@@ -204,6 +192,19 @@ func (t timeStaticResource) Update(ctx context.Context, req tfsdk.UpdateResource
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (t timeStaticResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+func (t timeStaticResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
+}
+
+type timeStaticModelV0 struct {
+	Day      types.Int64  `tfsdk:"day"`
+	Hour     types.Int64  `tfsdk:"hour"`
+	Triggers types.Map    `tfsdk:"triggers"`
+	Minute   types.Int64  `tfsdk:"minute"`
+	Month    types.Int64  `tfsdk:"month"`
+	RFC3339  types.String `tfsdk:"rfc3339"`
+	Second   types.Int64  `tfsdk:"second"`
+	Unix     types.Int64  `tfsdk:"unix"`
+	Year     types.Int64  `tfsdk:"year"`
+	ID       types.String `tfsdk:"id"`
 }

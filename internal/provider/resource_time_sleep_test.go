@@ -3,12 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"regexp"
 	"testing"
 	"time"
+
+	r "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // Since the acceptance testing framework can introduce uncontrollable time delays,
@@ -21,8 +23,7 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	p := New()
-	rt := timeSleepResourceType{}
+	sleepResource := NewTimeSleepResource()
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, durationStr),
@@ -57,8 +58,8 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		},
 	}, m)
 
-	schema, _ := rt.GetSchema(context.Background())
-	req := tfsdk.CreateResourceRequest{
+	schema, _ := sleepResource.GetSchema(context.Background())
+	req := r.CreateRequest{
 		Config: tfsdk.Config{
 			Raw:    config,
 			Schema: schema,
@@ -70,18 +71,13 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		ProviderMeta: tfsdk.Config{},
 	}
 
-	resp := tfsdk.CreateResourceResponse{
+	resp := r.CreateResponse{
 		State:       tfsdk.State{},
 		Diagnostics: nil,
 	}
 
-	r, diag := rt.NewResource(context.Background(), p)
-	if diag.HasError() {
-		t.Fatalf("unable set create_duration to %s with error: %s", durationStr, diag.Errors())
-	}
-
 	start := time.Now()
-	r.Create(context.Background(), req, &resp)
+	sleepResource.Create(context.Background(), req, &resp)
 	end := time.Now()
 	elapsed := end.Sub(start)
 
@@ -100,8 +96,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	p := New()
-	rt := timeSleepResourceType{}
+	sleepResource := NewTimeSleepResource()
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, nil),
@@ -124,8 +119,8 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		},
 	}, m)
 
-	schema, _ := rt.GetSchema(context.Background())
-	req := tfsdk.DeleteResourceRequest{
+	schema, _ := sleepResource.GetSchema(context.Background())
+	req := r.DeleteRequest{
 		State: tfsdk.State{
 			Raw:    config,
 			Schema: schema,
@@ -133,18 +128,13 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		ProviderMeta: tfsdk.Config{},
 	}
 
-	resp := tfsdk.DeleteResourceResponse{
+	resp := r.DeleteResponse{
 		State:       tfsdk.State{},
 		Diagnostics: nil,
 	}
 
-	r, diag := rt.NewResource(context.Background(), p)
-	if diag.HasError() {
-		t.Fatalf("unable set destroy_duration to %s with error: %s", durationStr, diag.Errors())
-	}
-
 	start := time.Now()
-	r.Delete(context.Background(), req, &resp)
+	sleepResource.Delete(context.Background(), req, &resp)
 	end := time.Now()
 	elapsed := end.Sub(start)
 

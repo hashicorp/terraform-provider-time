@@ -177,9 +177,9 @@ resource "time_static" "test" {}
 func testAccConfigTimeStaticTriggers1(keeperKey1 string, keeperKey2 string) string {
 	return fmt.Sprintf(`
 resource "time_static" "test" {
-  triggers = {
-    %[1]q = %[2]q
-  }
+ triggers = {
+   %[1]q = %[2]q
+ }
 }
 `, keeperKey1, keeperKey2)
 }
@@ -187,7 +187,7 @@ resource "time_static" "test" {
 func testAccConfigTimeStaticRfc3339(rfc3339 string) string {
 	return fmt.Sprintf(`
 resource "time_static" "test" {
-  rfc3339 = %[1]q
+ rfc3339 = %[1]q
 }
 `, rfc3339)
 }

@@ -10,15 +10,193 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var _ tfsdk.ResourceType = (*timeOffsetResourceType)(nil)
+var (
+	_ resource.Resource                = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithImportState = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*timeOffsetResource)(nil)
+)
 
-type timeOffsetResourceType struct{}
+func NewTimeOffsetResource() resource.Resource {
+	return &timeOffsetResource{}
+}
 
-func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+type timeOffsetResource struct{}
+
+func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Plan only needs modifying if the resource already exists as the purpose of
+	// the plan modifier is to show updated attribute values on CLI.
+	if req.State.Raw.IsNull() {
+		return
+	}
+
+	var state, plan timeOffsetModelV0
+
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if state.OffsetYears == plan.OffsetYears &&
+		state.OffsetMonths == plan.OffsetMonths &&
+		state.OffsetDays == plan.OffsetDays &&
+		state.OffsetHours == plan.OffsetHours &&
+		state.OffsetMinutes == plan.OffsetMinutes &&
+		state.OffsetSeconds == plan.OffsetSeconds {
+		return
+	}
+
+	var baseRFC3339 types.String
+
+	diags = req.Plan.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
+
+	resp.Diagnostics = append(resp.Diagnostics, diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// baseRFC3339 could be unknown if there is no value set in the config as the attribute is
+	// optional and computed. If base_rfc3339 is not set in config then the previous value from
+	// state is used and propagated to the update function.
+	if baseRFC3339.Unknown {
+		diags = req.State.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.Value)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Create time offset error",
+			"The base_rfc3339 timestamp could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+	updatedPlan := setOffsetValues(&plan, timestamp)
+	updatedPlan.Triggers = plan.Triggers
+
+	diags = resp.Plan.Set(ctx, updatedPlan)
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t timeOffsetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	var importedState timeOffsetModelV0
+	var err error
+
+	id := req.ID
+
+	idParts := strings.Split(id, ",")
+
+	if len(idParts) != 7 {
+		resp.Diagnostics.AddError(
+			"Unexpected Format of ID",
+			fmt.Sprintf("Unexpected format of ID (%q), expected BASETIMESTAMP,YEARS,MONTHS,DAYS,HOURS,MINUTES,SECONDS", id))
+
+		return
+	}
+
+	if idParts[0] == "" || (idParts[1] == "" && idParts[2] == "" && idParts[3] == "" && idParts[4] == "" && idParts[5] == "" && idParts[6] == "") {
+		resp.Diagnostics.AddError(
+			"Unexpected Format of ID",
+			fmt.Sprintf("Unexpected format of ID (%q), expected BASETIMESTAMP,YEARS,MONTHS,DAYS,HOURS,MINUTES,SECONDS where at least one offset value is non-empty", id))
+
+		return
+	}
+
+	baseRfc3339 := idParts[0]
+
+	importedState.OffsetYears, err = offsetToInt64(idParts[1])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_years parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	importedState.OffsetMonths, err = offsetToInt64(idParts[2])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_months parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	importedState.OffsetDays, err = offsetToInt64(idParts[3])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_days parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	importedState.OffsetHours, err = offsetToInt64(idParts[4])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_hours parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	importedState.OffsetMinutes, err = offsetToInt64(idParts[5])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_minutes parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	importedState.OffsetSeconds, err = offsetToInt64(idParts[6])
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Import time offset error",
+			"The offset_seconds parameter that was supplied could not be parsed as Int64.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Create time offset error",
+			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+				fmt.Sprintf("Original Error: %s", err),
+		)
+		return
+	}
+
+	state := setOffsetValues(&importedState, timestamp)
+	state.Triggers.ElemType = types.StringType
+
+	diags := resp.State.Set(ctx, state)
+	resp.Diagnostics.Append(diags...)
+}
+
+func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_offset"
+}
+
+func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
@@ -32,8 +210,6 @@ func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
-				//ForceNew:     true,
-				//ValidateFunc: validation.IsRFC3339Time,
 			},
 			"day": {
 				Description: "Number day of offset timestamp.",
@@ -53,10 +229,8 @@ func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 				},
 				Optional: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				},
-				//ForceNew: true,
-				//Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"minute": {
 				Description: "Number minute of offset timestamp.",
@@ -169,205 +343,7 @@ func (t timeOffsetResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, di
 	}, nil
 }
 
-func (t timeOffsetResourceType) NewResource(ctx context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
-	return &timeOffsetResource{}, nil
-}
-
-var (
-	_ tfsdk.Resource                = (*timeOffsetResource)(nil)
-	_ tfsdk.ResourceWithImportState = (*timeOffsetResource)(nil)
-	_ tfsdk.ResourceWithModifyPlan  = (*timeOffsetResource)(nil)
-)
-
-type timeOffsetResource struct {
-}
-
-func (t timeOffsetResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
-	// Plan only needs modifying if the resource already exists as the purpose of
-	// the plan modifier is to show updated attribute values on CLI.
-	if req.State.Raw.IsNull() {
-		return
-	}
-
-	var state, plan timeOffsetModelV0
-
-	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	diags = req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if state.OffsetYears == plan.OffsetYears &&
-		state.OffsetMonths == plan.OffsetMonths &&
-		state.OffsetDays == plan.OffsetDays &&
-		state.OffsetHours == plan.OffsetHours &&
-		state.OffsetMinutes == plan.OffsetMinutes &&
-		state.OffsetSeconds == plan.OffsetSeconds {
-		return
-	}
-
-	var baseRFC3339 types.String
-
-	diags = req.Plan.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
-
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// baseRFC3339 could be unknown if there is no value set in the config as the attribute is
-	// optional and computed. If base_rfc3339 is not set in config then the previous value from
-	// state is used and propagated to the update function.
-	if baseRFC3339.Unknown {
-		diags = req.State.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
-	}
-
-	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.Value)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time offset error",
-			"The base_rfc3339 timestamp could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-	updatedPlan := setOffsetValues(&plan, timestamp)
-	updatedPlan.Triggers = plan.Triggers
-
-	diags = resp.Plan.Set(ctx, updatedPlan)
-	resp.Diagnostics.Append(diags...)
-}
-
-func (t timeOffsetResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	var importedState timeOffsetModelV0
-	var err error
-
-	id := req.ID
-
-	idParts := strings.Split(id, ",")
-
-	if len(idParts) != 7 {
-		resp.Diagnostics.AddError(
-			"Unexpected Format of ID",
-			fmt.Sprintf("Unexpected format of ID (%q), expected BASETIMESTAMP,YEARS,MONTHS,DAYS,HOURS,MINUTES,SECONDS", id))
-
-		return
-	}
-
-	if idParts[0] == "" || (idParts[1] == "" && idParts[2] == "" && idParts[3] == "" && idParts[4] == "" && idParts[5] == "" && idParts[6] == "") {
-		resp.Diagnostics.AddError(
-			"Unexpected Format of ID",
-			fmt.Sprintf("Unexpected format of ID (%q), expected BASETIMESTAMP,YEARS,MONTHS,DAYS,HOURS,MINUTES,SECONDS where at least one offset value is non-empty", id))
-
-		return
-	}
-
-	baseRfc3339 := idParts[0]
-
-	importedState.OffsetYears, err = offsetToInt64(idParts[1])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_years parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	importedState.OffsetMonths, err = offsetToInt64(idParts[2])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_months parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	importedState.OffsetDays, err = offsetToInt64(idParts[3])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_days parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	importedState.OffsetHours, err = offsetToInt64(idParts[4])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_hours parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	importedState.OffsetMinutes, err = offsetToInt64(idParts[5])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_minutes parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	importedState.OffsetSeconds, err = offsetToInt64(idParts[6])
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time offset error",
-			"The offset_seconds parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time offset error",
-			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	state := setOffsetValues(&importedState, timestamp)
-	state.Triggers.ElemType = types.StringType
-
-	diags := resp.State.Set(ctx, state)
-	resp.Diagnostics.Append(diags...)
-}
-
-type timeOffsetModelV0 struct {
-	BaseRFC3339   types.String `tfsdk:"base_rfc3339"`
-	Triggers      types.Map    `tfsdk:"triggers"`
-	Year          types.Int64  `tfsdk:"year"`
-	Month         types.Int64  `tfsdk:"month"`
-	Day           types.Int64  `tfsdk:"day"`
-	Hour          types.Int64  `tfsdk:"hour"`
-	Minute        types.Int64  `tfsdk:"minute"`
-	Second        types.Int64  `tfsdk:"second"`
-	OffsetYears   types.Int64  `tfsdk:"offset_years"`
-	OffsetMonths  types.Int64  `tfsdk:"offset_months"`
-	OffsetDays    types.Int64  `tfsdk:"offset_days"`
-	OffsetHours   types.Int64  `tfsdk:"offset_hours"`
-	OffsetMinutes types.Int64  `tfsdk:"offset_minutes"`
-	OffsetSeconds types.Int64  `tfsdk:"offset_seconds"`
-	RFC3339       types.String `tfsdk:"rfc3339"`
-	Unix          types.Int64  `tfsdk:"unix"`
-	ID            types.String `tfsdk:"id"`
-}
-
-func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeOffsetModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -397,11 +373,11 @@ func (t timeOffsetResource) Create(ctx context.Context, req tfsdk.CreateResource
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeOffsetResource) Read(ctx context.Context, request tfsdk.ReadResourceRequest, response *tfsdk.ReadResourceResponse) {
+func (t timeOffsetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 }
 
-func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan timeOffsetModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -425,11 +401,30 @@ func (t timeOffsetResource) Update(ctx context.Context, req tfsdk.UpdateResource
 	state.Triggers = plan.Triggers
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
+}
+
+func (t timeOffsetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 }
 
-func (t timeOffsetResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
-
+type timeOffsetModelV0 struct {
+	BaseRFC3339   types.String `tfsdk:"base_rfc3339"`
+	Triggers      types.Map    `tfsdk:"triggers"`
+	Year          types.Int64  `tfsdk:"year"`
+	Month         types.Int64  `tfsdk:"month"`
+	Day           types.Int64  `tfsdk:"day"`
+	Hour          types.Int64  `tfsdk:"hour"`
+	Minute        types.Int64  `tfsdk:"minute"`
+	Second        types.Int64  `tfsdk:"second"`
+	OffsetYears   types.Int64  `tfsdk:"offset_years"`
+	OffsetMonths  types.Int64  `tfsdk:"offset_months"`
+	OffsetDays    types.Int64  `tfsdk:"offset_days"`
+	OffsetHours   types.Int64  `tfsdk:"offset_hours"`
+	OffsetMinutes types.Int64  `tfsdk:"offset_minutes"`
+	OffsetSeconds types.Int64  `tfsdk:"offset_seconds"`
+	RFC3339       types.String `tfsdk:"rfc3339"`
+	Unix          types.Int64  `tfsdk:"unix"`
+	ID            types.String `tfsdk:"id"`
 }
 
 func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) timeOffsetModelV0 {

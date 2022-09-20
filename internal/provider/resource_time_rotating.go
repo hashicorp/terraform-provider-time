@@ -8,22 +8,37 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
 
 	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
-var _ tfsdk.ResourceType = (*timeRotatingResourceType)(nil)
+var (
+	_ resource.Resource                = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithImportState = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*timeRotatingResource)(nil)
+)
 
-type timeRotatingResourceType struct{}
+func NewTimeRotatingResource() resource.Resource {
+	return &timeRotatingResource{}
+}
 
-func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+type timeRotatingResource struct {
+}
+
+func (t timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_rotating"
+}
+
+func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
 			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
@@ -146,7 +161,7 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				},
 				Optional: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				},
 			},
 			"minute": {
@@ -168,7 +183,7 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
-					tfsdk.RequiresReplace(),
+					resource.RequiresReplace(),
 				},
 				Validators: []tfsdk.AttributeValidator{
 					timevalidator.IsRFC3339Time(),
@@ -198,20 +213,7 @@ func (t timeRotatingResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, 
 	}, nil
 }
 
-func (t timeRotatingResourceType) NewResource(ctx context.Context, p tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
-	return &timeRotatingResource{}, nil
-}
-
-var (
-	_ tfsdk.Resource                = (*timeRotatingResource)(nil)
-	_ tfsdk.ResourceWithImportState = (*timeRotatingResource)(nil)
-	_ tfsdk.ResourceWithModifyPlan  = (*timeRotatingResource)(nil)
-)
-
-type timeRotatingResource struct {
-}
-
-func (t timeRotatingResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyResourcePlanRequest, resp *tfsdk.ModifyResourcePlanResponse) {
+func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Plan only needs modifying if the resource already exists as the purpose of
 	// the plan modifier is to show updated attribute values on CLI.
 	if req.State.Raw.IsNull() {
@@ -290,7 +292,7 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req tfsdk.ModifyRe
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
+func (t timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := req.ID
 	state := timeRotatingModelV0{}
 
@@ -337,26 +339,7 @@ func (t timeRotatingResource) ImportState(ctx context.Context, req tfsdk.ImportR
 	resp.Diagnostics.Append(diags...)
 }
 
-type timeRotatingModelV0 struct {
-	Day             types.Int64  `tfsdk:"day"`
-	RotationDays    types.Int64  `tfsdk:"rotation_days"`
-	RotationHours   types.Int64  `tfsdk:"rotation_hours"`
-	RotationMinutes types.Int64  `tfsdk:"rotation_minutes"`
-	RotationMonths  types.Int64  `tfsdk:"rotation_months"`
-	RotationRFC3339 types.String `tfsdk:"rotation_rfc3339"`
-	RotationYears   types.Int64  `tfsdk:"rotation_years"`
-	Hour            types.Int64  `tfsdk:"hour"`
-	Triggers        types.Map    `tfsdk:"triggers"`
-	Minute          types.Int64  `tfsdk:"minute"`
-	Month           types.Int64  `tfsdk:"month"`
-	RFC3339         types.String `tfsdk:"rfc3339"`
-	Second          types.Int64  `tfsdk:"second"`
-	Unix            types.Int64  `tfsdk:"unix"`
-	Year            types.Int64  `tfsdk:"year"`
-	ID              types.String `tfsdk:"id"`
-}
-
-func (t timeRotatingResource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeRotatingModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -394,7 +377,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req tfsdk.CreateResour
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state timeRotatingModelV0
 
 	diags := req.State.Get(ctx, &state)
@@ -424,7 +407,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req tfsdk.ReadResourceRe
 
 }
 
-func (t timeRotatingResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state timeRotatingModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -470,11 +453,29 @@ func (t timeRotatingResource) Update(ctx context.Context, req tfsdk.UpdateResour
 	}
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
+}
+
+func (t timeRotatingResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
 
 }
 
-func (t timeRotatingResource) Delete(ctx context.Context, request tfsdk.DeleteResourceRequest, response *tfsdk.DeleteResourceResponse) {
-
+type timeRotatingModelV0 struct {
+	Day             types.Int64  `tfsdk:"day"`
+	RotationDays    types.Int64  `tfsdk:"rotation_days"`
+	RotationHours   types.Int64  `tfsdk:"rotation_hours"`
+	RotationMinutes types.Int64  `tfsdk:"rotation_minutes"`
+	RotationMonths  types.Int64  `tfsdk:"rotation_months"`
+	RotationRFC3339 types.String `tfsdk:"rotation_rfc3339"`
+	RotationYears   types.Int64  `tfsdk:"rotation_years"`
+	Hour            types.Int64  `tfsdk:"hour"`
+	Triggers        types.Map    `tfsdk:"triggers"`
+	Minute          types.Int64  `tfsdk:"minute"`
+	Month           types.Int64  `tfsdk:"month"`
+	RFC3339         types.String `tfsdk:"rfc3339"`
+	Second          types.Int64  `tfsdk:"second"`
+	Unix            types.Int64  `tfsdk:"unix"`
+	Year            types.Int64  `tfsdk:"year"`
+	ID              types.String `tfsdk:"id"`
 }
 
 func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) (timeRotatingModelV0, error) {
@@ -535,7 +536,7 @@ func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) (timeRota
 
 }
 
-func parseTwoPartId(idParts []string, resp *tfsdk.ImportResourceStateResponse) timeRotatingModelV0 {
+func parseTwoPartId(idParts []string, resp *resource.ImportStateResponse) timeRotatingModelV0 {
 
 	baseRfc3339 := idParts[0]
 	rotationRfc3339 := idParts[1]
@@ -581,7 +582,7 @@ func parseTwoPartId(idParts []string, resp *tfsdk.ImportResourceStateResponse) t
 	}
 }
 
-func parseMultiplePartId(idParts []string, resp *tfsdk.ImportResourceStateResponse) timeRotatingModelV0 {
+func parseMultiplePartId(idParts []string, resp *resource.ImportStateResponse) timeRotatingModelV0 {
 	baseRfc3339 := idParts[0]
 
 	rotationYears, err := rotationToInt64(idParts[1])
