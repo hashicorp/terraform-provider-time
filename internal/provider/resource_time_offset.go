@@ -70,7 +70,7 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 	// optional and computed. If base_rfc3339 is not set in config then the previous value from
 	// state is used and propagated to the update function.
 	if baseRFC3339.Unknown {
-		diags = req.State.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
+		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)...)
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.Value)

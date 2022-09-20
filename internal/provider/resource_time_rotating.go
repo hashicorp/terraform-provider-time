@@ -259,11 +259,11 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 	// optional and computed. If base_rfc3339 is not set in config then the previous value from
 	// state is used and propagated to the update function.
 	if RFC3339.Unknown {
-		diags = req.State.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
+		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)...)
 	}
 
 	if rotationRFC3339.Unknown {
-		diags = req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
+		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)...)
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, RFC3339.Value)
