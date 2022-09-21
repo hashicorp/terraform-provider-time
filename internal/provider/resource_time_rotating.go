@@ -281,7 +281,7 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	updatedPlan, err := setRotationValues(&plan, timestamp)
+	err = setRotationValues(&plan, timestamp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update time rotating error",
@@ -291,15 +291,14 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	updatedPlan.Triggers = plan.Triggers
-
-	diags = resp.Plan.Set(ctx, updatedPlan)
+	diags = resp.Plan.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
 func (t timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := req.ID
-	state := timeRotatingModelV0{}
+	var state timeRotatingModelV0
+	var err error
 
 	idParts := strings.Split(id, ",")
 
@@ -319,7 +318,15 @@ func (t timeRotatingResource) ImportState(ctx context.Context, req resource.Impo
 			return
 		}
 
-		state = parseTwoPartId(idParts, resp)
+		state, err = parseTwoPartId(idParts)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Import time rotating error",
+				"The timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
+					fmt.Sprintf("Original Error: %s", err),
+			)
+			return
+		}
 
 	} else {
 		if idParts[0] == "" || (idParts[1] == "" && idParts[2] == "" && idParts[3] == "" && idParts[4] == "" && idParts[5] == "") {
@@ -329,13 +336,15 @@ func (t timeRotatingResource) ImportState(ctx context.Context, req resource.Impo
 
 			return
 		}
-		state = parseMultiplePartId(idParts, resp)
-
-	}
-
-	if state.ID.IsNull() {
-		//If the ID of the state is not set, then something went wrong with parsing the import id
-		return
+		state, err = parseMultiplePartId(idParts)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Import time rotating error",
+				"The parameter that was supplied could not be parsed.\n\n+"+
+					fmt.Sprintf("Original Error: %s", err),
+			)
+			return
+		}
 	}
 
 	state.Triggers.ElemType = types.StringType
@@ -368,7 +377,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 		}
 	}
 
-	state, err := setRotationValues(&plan, timestamp)
+	err := setRotationValues(&plan, timestamp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create time rotating error",
@@ -378,7 +387,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	diags = resp.State.Set(ctx, state)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -447,7 +456,7 @@ func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	state, err = setRotationValues(&plan, timestamp)
+	err = setRotationValues(&plan, timestamp)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update time rotating error",
@@ -456,7 +465,7 @@ func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateReq
 		)
 		return
 	}
-	diags = resp.State.Set(ctx, state)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -483,7 +492,7 @@ type timeRotatingModelV0 struct {
 	ID              types.String `tfsdk:"id"`
 }
 
-func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) (timeRotatingModelV0, error) {
+func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) error {
 	formattedTimestamp := timestamp.Format(time.RFC3339)
 
 	var rotationTimestamp time.Time
@@ -510,7 +519,7 @@ func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) (timeRota
 		var err error
 
 		if rotationTimestamp, err = time.Parse(time.RFC3339, plan.RotationRFC3339.Value); err != nil {
-			return timeRotatingModelV0{}, err
+			return err
 		}
 	}
 
@@ -520,50 +529,33 @@ func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) (timeRota
 
 	formattedRotationTimestamp := rotationTimestamp.Format(time.RFC3339)
 
-	return timeRotatingModelV0{
-		RotationRFC3339: types.String{Value: formattedRotationTimestamp},
-		Triggers:        plan.Triggers,
-		Year:            types.Int64{Value: int64(rotationTimestamp.Year())},
-		Month:           types.Int64{Value: int64(rotationTimestamp.Month())},
-		Day:             types.Int64{Value: int64(rotationTimestamp.Day())},
-		Hour:            types.Int64{Value: int64(rotationTimestamp.Hour())},
-		Minute:          types.Int64{Value: int64(rotationTimestamp.Minute())},
-		Second:          types.Int64{Value: int64(rotationTimestamp.Second())},
-		RotationYears:   plan.RotationYears,
-		RotationMonths:  plan.RotationMonths,
-		RotationDays:    plan.RotationDays,
-		RotationHours:   plan.RotationHours,
-		RotationMinutes: plan.RotationMinutes,
-		RFC3339:         types.String{Value: formattedTimestamp},
-		Unix:            types.Int64{Value: rotationTimestamp.Unix()},
-		ID:              types.String{Value: formattedTimestamp},
-	}, nil
+	plan.RotationRFC3339 = types.String{Value: formattedRotationTimestamp}
+	plan.Year = types.Int64{Value: int64(rotationTimestamp.Year())}
+	plan.Month = types.Int64{Value: int64(rotationTimestamp.Month())}
+	plan.Day = types.Int64{Value: int64(rotationTimestamp.Day())}
+	plan.Hour = types.Int64{Value: int64(rotationTimestamp.Hour())}
+	plan.Minute = types.Int64{Value: int64(rotationTimestamp.Minute())}
+	plan.Second = types.Int64{Value: int64(rotationTimestamp.Second())}
+	plan.RFC3339 = types.String{Value: formattedTimestamp}
+	plan.Unix = types.Int64{Value: rotationTimestamp.Unix()}
+	plan.ID = types.String{Value: formattedTimestamp}
 
+	return nil
 }
 
-func parseTwoPartId(idParts []string, resp *resource.ImportStateResponse) timeRotatingModelV0 {
+func parseTwoPartId(idParts []string) (timeRotatingModelV0, error) {
 
 	baseRfc3339 := idParts[0]
 	rotationRfc3339 := idParts[1]
 
 	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import Timestamp Error",
-			"The baseRfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	rotationTimestamp, err := time.Parse(time.RFC3339, rotationRfc3339)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import Timestamp Error",
-			"The rotationRfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	formattedTimestamp := timestamp.Format(time.RFC3339)
@@ -584,70 +576,40 @@ func parseTwoPartId(idParts []string, resp *resource.ImportStateResponse) timeRo
 		RFC3339:         types.String{Value: formattedTimestamp},
 		Unix:            types.Int64{Value: rotationTimestamp.Unix()},
 		ID:              types.String{Value: formattedTimestamp},
-	}
+	}, nil
 }
 
-func parseMultiplePartId(idParts []string, resp *resource.ImportStateResponse) timeRotatingModelV0 {
+func parseMultiplePartId(idParts []string) (timeRotatingModelV0, error) {
 	baseRfc3339 := idParts[0]
 
 	rotationYears, err := rotationToInt64(idParts[1])
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time rotation error",
-			"The rotation_years parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	rotationMonths, err := rotationToInt64(idParts[2])
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time rotation error",
-			"The rotation_months parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	rotationDays, err := rotationToInt64(idParts[3])
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time rotation error",
-			"The rotation_days parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	rotationHours, err := rotationToInt64(idParts[4])
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time rotation error",
-			"The rotation_hours parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	rotationMinutes, err := rotationToInt64(idParts[5])
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Import time rotation error",
-			"The rotation_minutes parameter that was supplied could not be parsed as Int64.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, baseRfc3339)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time rotation error",
-			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return timeRotatingModelV0{}
+		return timeRotatingModelV0{}, err
 	}
 
 	formattedTimestamp := timestamp.Format(time.RFC3339)
@@ -696,7 +658,7 @@ func parseMultiplePartId(idParts []string, resp *resource.ImportStateResponse) t
 		ID:              types.String{Value: baseRfc3339},
 	}
 
-	return state
+	return state, nil
 }
 
 func rotationToInt64(rotationStr string) (types.Int64, error) {
