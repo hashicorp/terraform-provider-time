@@ -25,7 +25,7 @@ func (validator isRFC3339TimeValidator) MarkdownDescription(ctx context.Context)
 
 func (validator isRFC3339TimeValidator) Validate(ctx context.Context, request tfsdk.ValidateAttributeRequest, response *tfsdk.ValidateAttributeResponse) {
 	t := request.AttributeConfig.Type(ctx)
-	if t != types.StringType {
+	if !t.Equal(types.StringType) {
 		response.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
 			request.AttributePath,
 			"Expected value of type string",
