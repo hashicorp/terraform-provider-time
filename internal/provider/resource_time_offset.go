@@ -236,10 +236,9 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 		)
 		return
 	}
-	updatedPlan := setOffsetValues(&plan, timestamp)
-	updatedPlan.Triggers = plan.Triggers
+	setOffsetValues(&plan, timestamp)
 
-	diags = resp.Plan.Set(ctx, updatedPlan)
+	diags = resp.Plan.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -339,10 +338,10 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 
-	state := setOffsetValues(&importedState, timestamp)
-	state.Triggers.ElemType = types.StringType
+	setOffsetValues(&importedState, timestamp)
+	importedState.Triggers.ElemType = types.StringType
 
-	diags := resp.State.Set(ctx, state)
+	diags := resp.State.Set(ctx, importedState)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -370,9 +369,8 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	state := setOffsetValues(&plan, timestamp)
-	state.Triggers = plan.Triggers
-	diags = resp.State.Set(ctx, state)
+	setOffsetValues(&plan, timestamp)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -400,9 +398,8 @@ func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	state := setOffsetValues(&plan, timestamp)
-	state.Triggers = plan.Triggers
-	diags = resp.State.Set(ctx, state)
+	setOffsetValues(&plan, timestamp)
+	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
@@ -430,7 +427,7 @@ type timeOffsetModelV0 struct {
 	ID            types.String `tfsdk:"id"`
 }
 
-func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) timeOffsetModelV0 {
+func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
 	formattedTimestamp := timestamp.Format(time.RFC3339)
 
 	var offsetTimestamp time.Time
@@ -464,25 +461,16 @@ func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) timeOffsetMod
 
 	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
 
-	return timeOffsetModelV0{
-		BaseRFC3339:   types.String{Value: formattedTimestamp},
-		Year:          types.Int64{Value: int64(offsetTimestamp.Year())},
-		Month:         types.Int64{Value: int64(offsetTimestamp.Month())},
-		Day:           types.Int64{Value: int64(offsetTimestamp.Day())},
-		Hour:          types.Int64{Value: int64(offsetTimestamp.Hour())},
-		Minute:        types.Int64{Value: int64(offsetTimestamp.Minute())},
-		Second:        types.Int64{Value: int64(offsetTimestamp.Second())},
-		OffsetYears:   plan.OffsetYears,
-		OffsetMonths:  plan.OffsetMonths,
-		OffsetDays:    plan.OffsetDays,
-		OffsetHours:   plan.OffsetHours,
-		OffsetMinutes: plan.OffsetMinutes,
-		OffsetSeconds: plan.OffsetSeconds,
-		RFC3339:       types.String{Value: formattedOffsetTimestamp},
-		Unix:          types.Int64{Value: offsetTimestamp.Unix()},
-		ID:            types.String{Value: formattedTimestamp},
-	}
-
+	plan.BaseRFC3339 = types.String{Value: formattedTimestamp}
+	plan.Year = types.Int64{Value: int64(offsetTimestamp.Year())}
+	plan.Month = types.Int64{Value: int64(offsetTimestamp.Month())}
+	plan.Day = types.Int64{Value: int64(offsetTimestamp.Day())}
+	plan.Hour = types.Int64{Value: int64(offsetTimestamp.Hour())}
+	plan.Minute = types.Int64{Value: int64(offsetTimestamp.Minute())}
+	plan.Second = types.Int64{Value: int64(offsetTimestamp.Second())}
+	plan.RFC3339 = types.String{Value: formattedOffsetTimestamp}
+	plan.Unix = types.Int64{Value: offsetTimestamp.Unix()}
+	plan.ID = types.String{Value: formattedTimestamp}
 }
 
 func offsetToInt64(offsetStr string) (types.Int64, error) {
