@@ -259,10 +259,16 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 	// state is used and propagated to the update function.
 	if RFC3339.Unknown {
 		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	if rotationRFC3339.Unknown {
 		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	timestamp, err := time.Parse(time.RFC3339, RFC3339.Value)
