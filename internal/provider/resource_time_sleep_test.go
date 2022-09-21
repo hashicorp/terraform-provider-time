@@ -144,6 +144,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 }
 
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
+	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -155,6 +156,8 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -171,6 +174,8 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "2ms"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					testExtractResourceAttr(resourceName, "id", &time2),
+					testCheckAttributeValuesSame(&time1, &time2),
 				),
 			},
 		},
@@ -178,6 +183,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 }
 
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
+	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -189,6 +195,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "1ms"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -205,6 +212,8 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "2ms"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					testExtractResourceAttr(resourceName, "id", &time2),
+					testCheckAttributeValuesSame(&time1, &time2),
 				),
 			},
 		},
@@ -212,6 +221,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 }
 
 func TestAccTimeSleep_Triggers(t *testing.T) {
+	var time1, time2 string
 	resourceName := "time_sleep.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -225,6 +235,7 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
+					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -244,6 +255,8 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
+					testExtractResourceAttr(resourceName, "id", &time2),
+					testCheckAttributeValuesDiffer(&time1, &time2),
 				),
 			},
 		},
