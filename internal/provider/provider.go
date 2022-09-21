@@ -5,35 +5,35 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	p "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-func New() p.Provider {
-	return &provider{}
+func New() provider.Provider {
+	return &timeProvider{}
 }
 
 var (
-	_ p.Provider             = (*provider)(nil)
-	_ p.ProviderWithMetadata = (*provider)(nil)
+	_ provider.Provider             = (*timeProvider)(nil)
+	_ provider.ProviderWithMetadata = (*timeProvider)(nil)
 )
 
-type provider struct{}
+type timeProvider struct{}
 
-func (p *provider) Metadata(ctx context.Context, req p.MetadataRequest, resp *p.MetadataResponse) {
+func (p *timeProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "time"
 }
 
-func (p *provider) Configure(ctx context.Context, req p.ConfigureRequest, resp *p.ConfigureResponse) {
+func (p *timeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 
 }
 
-func (p *provider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *timeProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return nil
 }
 
-func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *timeProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewTimeOffsetResource,
 		NewTimeRotatingResource,
@@ -42,6 +42,6 @@ func (p *provider) Resources(ctx context.Context) []func() resource.Resource {
 	}
 }
 
-func (p *provider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (p *timeProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{}, nil
 }
