@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -44,13 +43,13 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	rotationRFC3339 := types.String{}
-	now := time.Now().UTC()
-	diags := req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	var rotationRFC3339 types.String
+	diags := tfsdk.ValueAs(ctx, req.AttributeState, &rotationRFC3339)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
 		return
 	}
+
 	rotationTimestamp, err := time.Parse(time.RFC3339, rotationRFC3339.Value)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -60,6 +59,8 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		)
 		return
 	}
+
+	now := time.Now().UTC()
 
 	resp.RequiresReplace = now.After(rotationTimestamp)
 }
