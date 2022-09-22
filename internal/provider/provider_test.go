@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-//nolint:unparam
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){
 		"time": providerserver.NewProtocol5WithError(New()),
@@ -39,6 +38,7 @@ func testCheckAttributeValuesSame(i *string, j *string) resource.TestCheckFunc {
 	}
 }
 
+//nolint:unparam
 func testExtractResourceAttr(resourceName string, attributeName string, attributeValue *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
