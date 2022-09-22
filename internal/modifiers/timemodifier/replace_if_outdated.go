@@ -2,11 +2,10 @@ package timemodifier
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	"github.com/bflad/terraform-plugin-framework-type-rfc3339/rfc3339type"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func ReplaceIfOutdated() tfsdk.AttributePlanModifier {
@@ -43,24 +42,14 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	var rotationRFC3339 types.String
+	var rotationRFC3339 rfc3339type.Value
 	diags := tfsdk.ValueAs(ctx, req.AttributeState, &rotationRFC3339)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	rotationTimestamp, err := time.Parse(time.RFC3339, rotationRFC3339.Value)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"replaceIfOutdated plan modifier error",
-			"The rotation rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
 	now := time.Now().UTC()
 
-	resp.RequiresReplace = now.After(rotationTimestamp)
+	resp.RequiresReplace = now.After(rotationRFC3339.Time())
 }

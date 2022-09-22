@@ -3,6 +3,7 @@ module github.com/hashicorp/terraform-provider-time
 go 1.18
 
 require (
+	github.com/bflad/terraform-plugin-framework-type-rfc3339 v0.1.0
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v0.13.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.4.0
