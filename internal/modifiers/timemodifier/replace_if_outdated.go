@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/bflad/terraform-plugin-framework-type-rfc3339/rfc3339type"
+	"github.com/bflad/terraform-plugin-framework-type-time/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -42,7 +42,7 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	var rotationRFC3339 rfc3339type.Value
+	var rotationRFC3339 timetypes.RFC3339
 	diags := tfsdk.ValueAs(ctx, req.AttributeState, &rotationRFC3339)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)

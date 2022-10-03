@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bflad/terraform-plugin-framework-type-rfc3339/rfc3339type"
+	"github.com/bflad/terraform-plugin-framework-type-time/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -69,7 +69,7 @@ func (t timeStaticResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     rfc3339type.Type{},
+				Type:     timetypes.RFC3339Type{},
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -121,7 +121,7 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 		Hour:    types.Int64{Value: int64(timestamp.Hour())},
 		Minute:  types.Int64{Value: int64(timestamp.Minute())},
 		Second:  types.Int64{Value: int64(timestamp.Second())},
-		RFC3339: rfc3339type.TimeValue(timestamp),
+		RFC3339: timetypes.RFC3339Time(timestamp),
 		Unix:    types.Int64{Value: timestamp.Unix()},
 		ID:      types.String{Value: timestamp.Format(time.RFC3339)},
 	}
@@ -154,7 +154,7 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 		Hour:     types.Int64{Value: int64(timestamp.Hour())},
 		Minute:   types.Int64{Value: int64(timestamp.Minute())},
 		Second:   types.Int64{Value: int64(timestamp.Second())},
-		RFC3339:  rfc3339type.TimeValue(timestamp),
+		RFC3339:  timetypes.RFC3339Time(timestamp),
 		Unix:     types.Int64{Value: timestamp.Unix()},
 		ID:       types.String{Value: timestamp.Format(time.RFC3339)},
 	}
@@ -187,7 +187,7 @@ type timeStaticModelV0 struct {
 	Triggers types.Map         `tfsdk:"triggers"`
 	Minute   types.Int64       `tfsdk:"minute"`
 	Month    types.Int64       `tfsdk:"month"`
-	RFC3339  rfc3339type.Value `tfsdk:"rfc3339"`
+	RFC3339  timetypes.RFC3339 `tfsdk:"rfc3339"`
 	Second   types.Int64       `tfsdk:"second"`
 	Unix     types.Int64       `tfsdk:"unix"`
 	Year     types.Int64       `tfsdk:"year"`

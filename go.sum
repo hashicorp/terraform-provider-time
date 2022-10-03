@@ -31,6 +31,8 @@ github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgI
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/bflad/terraform-plugin-framework-type-rfc3339 v0.1.0 h1:KrhUTl1YOZBzBocja/46tyq5UVeKlr8reilgHfGMPc0=
 github.com/bflad/terraform-plugin-framework-type-rfc3339 v0.1.0/go.mod h1:/Qt6B7ZNFS43z4GfN3ZFFs2h2VC/qwR4Z0XdyMcVRwo=
+github.com/bflad/terraform-plugin-framework-type-time v0.2.1 h1:n77oNH8r17e3vc/taYzOv2lWcoVx0mMEcEahbqvzJWo=
+github.com/bflad/terraform-plugin-framework-type-time v0.2.1/go.mod h1:xG2z/MOW5PcNPO24SGI4Y9wb3WyrIcryhd1m6N/moD8=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -143,6 +145,8 @@ github.com/hashicorp/terraform-plugin-docs v0.13.0 h1:6e+VIWsVGb6jYJewfzq2ok2smP
 github.com/hashicorp/terraform-plugin-docs v0.13.0/go.mod h1:W0oCmHAjIlTHBbvtppWHe8fLfZ2BznQbuv8+UD8OucQ=
 github.com/hashicorp/terraform-plugin-framework v0.13.0 h1:tGnqttzZwU3FKc+HasHr2Yi5L81FcQbdc8zQhbBD9jQ=
 github.com/hashicorp/terraform-plugin-framework v0.13.0/go.mod h1:wcZdk4+Uef6Ng+BiBJjGAcIPlIs5bhlEV/TA1k6Xkq8=
+github.com/hashicorp/terraform-plugin-framework v0.13.1-0.20221003132633-ef5183aa2ed5 h1:LCN1sgSgMU/tShUkVpHpiIsEzHdC0WbKhel6ffpg5mc=
+github.com/hashicorp/terraform-plugin-framework v0.13.1-0.20221003132633-ef5183aa2ed5/go.mod h1:wcZdk4+Uef6Ng+BiBJjGAcIPlIs5bhlEV/TA1k6Xkq8=
 github.com/hashicorp/terraform-plugin-framework-validators v0.4.0 h1:GVX4gDFdtFZi/E4DjvPmRDf5zBLFAHi8M7Qzehgov+Q=
 github.com/hashicorp/terraform-plugin-framework-validators v0.4.0/go.mod h1:hkGjFzftzT/HRe1It0e8//tGZ3j18PedTq4hHS8NJ/Q=
 github.com/hashicorp/terraform-plugin-go v0.14.0 h1:ttnSlS8bz3ZPYbMb84DpcPhY4F5DsQtcAS7cHo8uvP4=

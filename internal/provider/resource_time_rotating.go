@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bflad/terraform-plugin-framework-type-rfc3339/rfc3339type"
+	"github.com/bflad/terraform-plugin-framework-type-time/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -116,7 +116,7 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     rfc3339type.Type{},
+				Type:     timetypes.RFC3339Type{},
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -177,7 +177,7 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     rfc3339type.Type{},
+				Type:     timetypes.RFC3339Type{},
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []tfsdk.AttributePlanModifier{
@@ -238,7 +238,7 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	var RFC3339, rotationRFC3339 rfc3339type.Value
+	var RFC3339, rotationRFC3339 timetypes.RFC3339
 
 	diags = req.Plan.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
 	resp.Diagnostics = append(resp.Diagnostics, diags...)
@@ -447,13 +447,13 @@ type timeRotatingModelV0 struct {
 	RotationHours   types.Int64       `tfsdk:"rotation_hours"`
 	RotationMinutes types.Int64       `tfsdk:"rotation_minutes"`
 	RotationMonths  types.Int64       `tfsdk:"rotation_months"`
-	RotationRFC3339 rfc3339type.Value `tfsdk:"rotation_rfc3339"`
+	RotationRFC3339 timetypes.RFC3339 `tfsdk:"rotation_rfc3339"`
 	RotationYears   types.Int64       `tfsdk:"rotation_years"`
 	Hour            types.Int64       `tfsdk:"hour"`
 	Triggers        types.Map         `tfsdk:"triggers"`
 	Minute          types.Int64       `tfsdk:"minute"`
 	Month           types.Int64       `tfsdk:"month"`
-	RFC3339         rfc3339type.Value `tfsdk:"rfc3339"`
+	RFC3339         timetypes.RFC3339 `tfsdk:"rfc3339"`
 	Second          types.Int64       `tfsdk:"second"`
 	Unix            types.Int64       `tfsdk:"unix"`
 	Year            types.Int64       `tfsdk:"year"`
@@ -489,14 +489,14 @@ func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) error {
 		rotationTimestamp = timestamp.AddDate(int(plan.RotationYears.Value), 0, 0)
 	}
 
-	plan.RotationRFC3339 = rfc3339type.TimeValue(rotationTimestamp)
+	plan.RotationRFC3339 = timetypes.RFC3339Time(rotationTimestamp)
 	plan.Year = types.Int64{Value: int64(rotationTimestamp.Year())}
 	plan.Month = types.Int64{Value: int64(rotationTimestamp.Month())}
 	plan.Day = types.Int64{Value: int64(rotationTimestamp.Day())}
 	plan.Hour = types.Int64{Value: int64(rotationTimestamp.Hour())}
 	plan.Minute = types.Int64{Value: int64(rotationTimestamp.Minute())}
 	plan.Second = types.Int64{Value: int64(rotationTimestamp.Second())}
-	plan.RFC3339 = rfc3339type.TimeValue(timestamp)
+	plan.RFC3339 = timetypes.RFC3339Time(timestamp)
 	plan.Unix = types.Int64{Value: rotationTimestamp.Unix()}
 	plan.ID = types.String{Value: timestamp.Format(time.RFC3339)}
 
@@ -525,13 +525,13 @@ func parseTwoPartId(idParts []string) (timeRotatingModelV0, error) {
 		Hour:            types.Int64{Value: int64(rotationTimestamp.Hour())},
 		Minute:          types.Int64{Value: int64(rotationTimestamp.Minute())},
 		Second:          types.Int64{Value: int64(rotationTimestamp.Second())},
-		RotationRFC3339: rfc3339type.TimeValue(rotationTimestamp),
+		RotationRFC3339: timetypes.RFC3339Time(rotationTimestamp),
 		RotationYears:   types.Int64{Null: true},
 		RotationMonths:  types.Int64{Null: true},
 		RotationDays:    types.Int64{Null: true},
 		RotationHours:   types.Int64{Null: true},
 		RotationMinutes: types.Int64{Null: true},
-		RFC3339:         rfc3339type.TimeValue(timestamp),
+		RFC3339:         timetypes.RFC3339Time(timestamp),
 		Unix:            types.Int64{Value: rotationTimestamp.Unix()},
 		ID:              types.String{Value: timestamp.Format(time.RFC3339)},
 	}, nil
@@ -601,13 +601,13 @@ func parseMultiplePartId(idParts []string) (timeRotatingModelV0, error) {
 		Hour:            types.Int64{Value: int64(rotationTimestamp.Hour())},
 		Minute:          types.Int64{Value: int64(rotationTimestamp.Minute())},
 		Second:          types.Int64{Value: int64(rotationTimestamp.Second())},
-		RotationRFC3339: rfc3339type.TimeValue(rotationTimestamp),
+		RotationRFC3339: timetypes.RFC3339Time(rotationTimestamp),
 		RotationYears:   rotationYears,
 		RotationMonths:  rotationMonths,
 		RotationDays:    rotationDays,
 		RotationHours:   rotationHours,
 		RotationMinutes: rotationMinutes,
-		RFC3339:         rfc3339type.TimeValue(timestamp),
+		RFC3339:         timetypes.RFC3339Time(timestamp),
 		Unix:            types.Int64{Value: rotationTimestamp.Unix()},
 		ID:              types.String{Value: baseRfc3339},
 	}
