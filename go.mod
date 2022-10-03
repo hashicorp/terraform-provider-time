@@ -3,7 +3,7 @@ module github.com/hashicorp/terraform-provider-time
 go 1.18
 
 require (
-	github.com/bflad/terraform-plugin-framework-type-rfc3339 v0.1.0
+	github.com/bflad/terraform-plugin-framework-type-time v0.2.1
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v0.13.1-0.20221003132633-ef5183aa2ed5
 	github.com/hashicorp/terraform-plugin-framework-validators v0.4.0
@@ -18,7 +18,6 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/bflad/terraform-plugin-framework-type-time v0.2.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
