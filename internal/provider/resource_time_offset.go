@@ -180,7 +180,7 @@ func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 
 func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Plan only needs modifying if the resource already exists as the purpose of
-	// the plan modifier is to show updated attribute values on CLI.
+	// the plan modifier is to show updated attribute values on CLI. This is run during the destroy process in terraform 1.3
 	if req.State.Raw.IsNull() {
 		return
 	}
