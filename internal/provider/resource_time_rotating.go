@@ -213,6 +213,11 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 }
 
 func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Plan does not need to be modified when the resource is being destroyed.
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
 	// Plan only needs modifying if the resource already exists as the purpose of
 	// the plan modifier is to show updated attribute values on CLI.
 	if req.State.Raw.IsNull() {
