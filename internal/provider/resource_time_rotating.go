@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -15,16 +16,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
 
 	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
 var (
-	_ resource.Resource                = (*timeRotatingResource)(nil)
-	_ resource.ResourceWithImportState = (*timeRotatingResource)(nil)
-	_ resource.ResourceWithModifyPlan  = (*timeRotatingResource)(nil)
+	_ resource.Resource                     = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithImportState      = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithModifyPlan       = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*timeRotatingResource)(nil)
 )
 
 func NewTimeRotatingResource() resource.Resource {
@@ -58,11 +59,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Type:     types.Int64Type,
 				Optional: true,
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_hours"),
-						path.MatchRoot("rotation_minutes"),
-						path.MatchRoot("rotation_months"),
-						path.MatchRoot("rotation_rfc3339"),
-						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
 			},
@@ -73,11 +69,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Type:     types.Int64Type,
 				Optional: true,
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
-						path.MatchRoot("rotation_minutes"),
-						path.MatchRoot("rotation_months"),
-						path.MatchRoot("rotation_rfc3339"),
-						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
 			},
@@ -88,11 +79,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Type:     types.Int64Type,
 				Optional: true,
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
-						path.MatchRoot("rotation_hours"),
-						path.MatchRoot("rotation_months"),
-						path.MatchRoot("rotation_rfc3339"),
-						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
 			},
@@ -103,11 +89,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Type:     types.Int64Type,
 				Optional: true,
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
-						path.MatchRoot("rotation_hours"),
-						path.MatchRoot("rotation_minutes"),
-						path.MatchRoot("rotation_rfc3339"),
-						path.MatchRoot("rotation_years")),
 					int64validator.AtLeast(1),
 				},
 			},
@@ -123,11 +104,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 					timemodifier.ReplaceIfOutdated(),
 				},
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
-						path.MatchRoot("rotation_hours"),
-						path.MatchRoot("rotation_minutes"),
-						path.MatchRoot("rotation_months"),
-						path.MatchRoot("rotation_years")),
 					timevalidator.IsRFC3339Time(),
 				},
 			},
@@ -138,11 +114,6 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 				Type:     types.Int64Type,
 				Optional: true,
 				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("rotation_days"),
-						path.MatchRoot("rotation_hours"),
-						path.MatchRoot("rotation_minutes"),
-						path.MatchRoot("rotation_months"),
-						path.MatchRoot("rotation_rfc3339")),
 					int64validator.AtLeast(1),
 				},
 			},
@@ -210,6 +181,19 @@ func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 			},
 		},
 	}, nil
+}
+
+func (t timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.AtLeastOneOf(
+			path.MatchRoot("rotation_minutes"),
+			path.MatchRoot("rotation_hours"),
+			path.MatchRoot("rotation_days"),
+			path.MatchRoot("rotation_months"),
+			path.MatchRoot("rotation_years"),
+			path.MatchRoot("rotation_rfc3339"),
+		),
+	}
 }
 
 func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {

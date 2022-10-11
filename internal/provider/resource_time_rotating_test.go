@@ -449,15 +449,15 @@ func TestAccTimeRotating_Validators(t *testing.T) {
 				Config: fmt.Sprintf(`resource "time_rotating" "test" {
                      rfc3339 = %q
                   }`, timestamp.Format(time.RFC3339)),
-				ExpectError: regexp.MustCompile(`.*Error: Invalid Attribute Combination`),
+				ExpectError: regexp.MustCompile(`.*Error: Missing Attribute Configuration`),
 			},
 			{
 				Config:      testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC822), 1),
-				ExpectError: regexp.MustCompile(`.*Value must be a string in RFC3339 format`),
+				ExpectError: regexp.MustCompile(`.*must be a string in RFC3339 format`),
 			},
 			{
 				Config:      testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 0),
-				ExpectError: regexp.MustCompile(`.*Value must be at least 1`),
+				ExpectError: regexp.MustCompile(`.*must be at least 1`),
 			},
 		},
 	})
