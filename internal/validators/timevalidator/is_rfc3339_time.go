@@ -23,25 +23,27 @@ func (validator isRFC3339TimeValidator) MarkdownDescription(ctx context.Context)
 	return validator.Description(ctx)
 }
 
-func (validator isRFC3339TimeValidator) Validate(ctx context.Context, request tfsdk.ValidateAttributeRequest, response *tfsdk.ValidateAttributeResponse) {
-	t := request.AttributeConfig.Type(ctx)
+func (validator isRFC3339TimeValidator) Validate(ctx context.Context, req tfsdk.ValidateAttributeRequest, resp *tfsdk.ValidateAttributeResponse) {
+	// Only validate the attribute configuration value if it is known.
+	if req.AttributeConfig.IsNull() || req.AttributeConfig.IsUnknown() {
+		return
+	}
+
+	t := req.AttributeConfig.Type(ctx)
 	if !t.Equal(types.StringType) {
-		response.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
-			request.AttributePath,
+		resp.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
+			req.AttributePath,
 			"Expected value of type string",
 			t.String(),
 		))
 		return
 	}
 
-	s := request.AttributeConfig.(types.String)
-	if s.Unknown || s.Null {
-		return
-	}
+	s := req.AttributeConfig.(types.String)
 
 	if _, err := time.Parse(time.RFC3339, s.Value); err != nil {
-		response.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
-			request.AttributePath,
+		resp.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
+			req.AttributePath,
 			validator.MarkdownDescription(ctx),
 			s.Value,
 		))
