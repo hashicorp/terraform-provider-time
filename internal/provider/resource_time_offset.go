@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/schemavalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -16,9 +16,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = (*timeOffsetResource)(nil)
-	_ resource.ResourceWithImportState = (*timeOffsetResource)(nil)
-	_ resource.ResourceWithModifyPlan  = (*timeOffsetResource)(nil)
+	_ resource.Resource                     = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithImportState      = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithModifyPlan       = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*timeOffsetResource)(nil)
 )
 
 func NewTimeOffsetResource() resource.Resource {
@@ -81,73 +82,31 @@ func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
 			},
 			"offset_hours": {
 				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
 			},
 			"offset_minutes": {
 				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_seconds")),
-				},
 			},
 			"offset_months": {
 				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
 			},
 			"offset_seconds": {
 				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_years"),
-						path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes")),
-				},
 			},
 			"offset_years": {
 				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
 				Type:        types.Int64Type,
 				Optional:    true,
-				Validators: []tfsdk.AttributeValidator{
-					schemavalidator.AtLeastOneOf(path.MatchRoot("offset_months"),
-						path.MatchRoot("offset_days"),
-						path.MatchRoot("offset_hours"),
-						path.MatchRoot("offset_minutes"),
-						path.MatchRoot("offset_seconds")),
-				},
 			},
 			"rfc3339": {
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
@@ -176,6 +135,19 @@ func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 			},
 		},
 	}, nil
+}
+
+func (t timeOffsetResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.AtLeastOneOf(
+			path.MatchRoot("offset_seconds"),
+			path.MatchRoot("offset_minutes"),
+			path.MatchRoot("offset_hours"),
+			path.MatchRoot("offset_days"),
+			path.MatchRoot("offset_months"),
+			path.MatchRoot("offset_years"),
+		),
+	}
 }
 
 func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {

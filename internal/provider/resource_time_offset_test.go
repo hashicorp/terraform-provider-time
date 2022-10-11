@@ -418,7 +418,7 @@ func TestAccTimeOffset_Validators(t *testing.T) {
 				Config: fmt.Sprintf(`resource "time_offset" "test" {
                      base_rfc3339 = %q
                   }`, timestamp.Format(time.RFC3339)),
-				ExpectError: regexp.MustCompile(`.*At least one attribute out of\n\[offset_years,offset_months,offset_hours,offset_minutes,offset_seconds\] must\nbe specified`),
+				ExpectError: regexp.MustCompile(`.*Error: Missing Attribute Configuration`),
 			},
 		},
 	})
