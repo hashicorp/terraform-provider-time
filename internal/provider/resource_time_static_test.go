@@ -166,7 +166,7 @@ func TestAccTimeStatic_Validators(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccConfigTimeStaticRfc3339(timestamp.Format(time.RFC850)),
-				ExpectError: regexp.MustCompile(`.*Value must be a string in RFC3339 format`),
+				ExpectError: regexp.MustCompile(`.*must be a string in RFC3339 format`),
 			},
 		},
 	})
