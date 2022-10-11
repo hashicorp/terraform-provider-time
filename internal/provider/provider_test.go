@@ -1,19 +1,30 @@
-package tftime
+package provider
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-//nolint:unparam
-var testAccProviderFactories = map[string]func() (*schema.Provider, error){
-	"time": func() (*schema.Provider, error) {
-		return Provider(), nil
-	},
+func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
+	return map[string]func() (tfprotov5.ProviderServer, error){
+		"time": providerserver.NewProtocol5WithError(New()),
+	}
+}
+
+func providerVersion080() map[string]resource.ExternalProvider {
+	return map[string]resource.ExternalProvider{
+		"time": {
+			VersionConstraint: "0.8.0",
+			Source:            "hashicorp/time",
+		},
+	}
 }
 
 func testCheckAttributeValuesDiffer(i *string, j *string) resource.TestCheckFunc {
@@ -36,6 +47,7 @@ func testCheckAttributeValuesSame(i *string, j *string) resource.TestCheckFunc {
 	}
 }
 
+//nolint:unparam
 func testExtractResourceAttr(resourceName string, attributeName string, attributeValue *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
