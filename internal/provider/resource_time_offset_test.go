@@ -24,7 +24,6 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "1"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
@@ -46,7 +45,6 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "1"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
 					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
@@ -459,7 +457,6 @@ resource "time_offset" "test" {
     %[1]q = %[2]q
   }
   offset_days = 1
-  offset_years = 1
 }
 `, keeperKey1, keeperKey2)
 }

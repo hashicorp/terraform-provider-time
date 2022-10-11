@@ -40,6 +40,7 @@ func TestAccTimeStatic_basic(t *testing.T) {
 }
 
 func TestAccTimeStatic_Triggers(t *testing.T) {
+	var time1, time2 string
 	resourceName := "time_static.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -52,6 +53,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
 					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time1),
 					testSleep(1),
 				),
 			},
@@ -67,6 +69,8 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
 					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
+					testExtractResourceAttr(resourceName, "rfc3339", &time2),
+					testCheckAttributeValuesDiffer(&time1, &time2),
 				),
 			},
 		},

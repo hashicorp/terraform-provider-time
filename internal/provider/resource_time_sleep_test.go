@@ -156,7 +156,6 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					testExtractResourceAttr(resourceName, "id", &time1),
 				),
 			},
