@@ -18,6 +18,15 @@ func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, err
 	}
 }
 
+func providerVersion080() map[string]resource.ExternalProvider {
+	return map[string]resource.ExternalProvider{
+		"time": {
+			VersionConstraint: "0.8.0",
+			Source:            "hashicorp/time",
+		},
+	}
+}
+
 func testCheckAttributeValuesDiffer(i *string, j *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if testStringValue(i) == testStringValue(j) {

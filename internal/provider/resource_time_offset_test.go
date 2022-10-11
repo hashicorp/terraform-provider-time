@@ -361,7 +361,7 @@ func TestAccTimeOffset_Upgrade(t *testing.T) {
 	timestamp := time.Now().UTC()
 	offsetTimestamp := timestamp.AddDate(3, 0, 0)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
@@ -420,15 +420,6 @@ func TestAccTimeOffset_Validators(t *testing.T) {
 			},
 		},
 	})
-}
-
-func providerVersion080() map[string]resource.ExternalProvider {
-	return map[string]resource.ExternalProvider{
-		"time": {
-			VersionConstraint: "0.8.0",
-			Source:            "hashicorp/time",
-		},
-	}
 }
 
 func testAccTimeOffsetImportStateIdFunc() resource.ImportStateIdFunc {

@@ -394,7 +394,7 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 	timestamp := time.Now().UTC()
 	expiredTimestamp := time.Now().UTC().AddDate(-2, 0, 0)
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{

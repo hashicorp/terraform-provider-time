@@ -265,7 +265,7 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 func TestAccTimeSleep_Upgrade(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{

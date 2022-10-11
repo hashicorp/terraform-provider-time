@@ -117,7 +117,7 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 func TestAccTimeStatic_Upgrade(t *testing.T) {
 	resourceName := "time_static.test"
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
