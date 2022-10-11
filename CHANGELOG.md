@@ -1,3 +1,9 @@
+## 0.9.0 (October 11, 2022)
+
+NOTES:
+
+* provider: Rewritten to use the new [`terraform-plugin-framework`](https://www.terraform.io/plugin/framework) ([#112](https://github.com/hashicorp/terraform-provider-time/pull/112))
+
 ## 0.8.0 (August 10, 2022)
 
 BUG FIXES:
