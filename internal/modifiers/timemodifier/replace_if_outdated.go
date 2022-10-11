@@ -14,7 +14,11 @@ func ReplaceIfOutdated() tfsdk.AttributePlanModifier {
 }
 
 // RequiresReplaceModifier is an AttributePlanModifier that sets RequiresReplace
-// on the attribute.
+// on the attribute if the current time is past the stored timestamp.
+//
+// This custom modifier is necessary because the resource.RequiresReplaceIf
+// function uses special logic for Computed attributes which is not applicable
+// this use case.
 type RequiresReplaceModifier struct{}
 
 func (r RequiresReplaceModifier) Description(ctx context.Context) string {
