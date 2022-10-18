@@ -419,7 +419,7 @@ func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	diags = req.Plan.Get(ctx, &state)
+	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
