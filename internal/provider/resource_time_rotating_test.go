@@ -389,6 +389,42 @@ func TestAccTimeRotating_RotationYears_expired(t *testing.T) {
 	})
 }
 
+func TestAccTimeRotating_RotationDays_ToRotationMonths(t *testing.T) {
+	resourceName := "time_rotating.test"
+	timestamp := time.Now().UTC()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 7),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "rotation_days", "7"),
+					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 0, 7).Format(time.RFC3339)),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
+				),
+			},
+			{
+				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "rotation_months", "3"),
+					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 3, 0).Format(time.RFC3339)),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
+					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
+					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTimeRotation_Upgrade(t *testing.T) {
 	resourceName := "time_rotating.test"
 	timestamp := time.Now().UTC()
