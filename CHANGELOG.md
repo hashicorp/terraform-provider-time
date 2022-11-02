@@ -1,3 +1,9 @@
+## 0.9.1 (November 2, 2022)
+
+BUG FIXES:
+
+* resource/time_rotating: Correctly retrieve the Terraform state during update ([#132](https://github.com/hashicorp/terraform-provider-time/pull/132))
+
 ## 0.9.0 (October 11, 2022)
 
 NOTES:
