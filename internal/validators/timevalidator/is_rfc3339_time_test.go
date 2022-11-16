@@ -20,23 +20,23 @@ func TestIsRFC3339TimeValidator(t *testing.T) {
 
 	tests := map[string]testCase{
 		"not a String": {
-			val:         types.Bool{Value: true},
+			val:         types.BoolValue(true),
 			expectError: true,
 		},
 		"String unknown": {
-			val:         types.String{Unknown: true},
+			val:         types.StringUnknown(),
 			expectError: false,
 		},
 		"String null": {
-			val:         types.String{Null: true},
+			val:         types.StringNull(),
 			expectError: false,
 		},
 		"not in RFC3339 format": {
-			val:         types.String{Value: "testString"},
+			val:         types.StringValue("testString"),
 			expectError: true,
 		},
 		"success scenario": {
-			val:         types.String{Value: "2022-09-06T17:47:31+00:00"},
+			val:         types.StringValue("2022-09-06T17:47:31+00:00"),
 			expectError: false,
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -121,17 +122,17 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 	formattedTimestamp := timestamp.Format(time.RFC3339)
 
 	state := timeStaticModelV0{
-		Year:    types.Int64{Value: int64(timestamp.Year())},
-		Month:   types.Int64{Value: int64(timestamp.Month())},
-		Day:     types.Int64{Value: int64(timestamp.Day())},
-		Hour:    types.Int64{Value: int64(timestamp.Hour())},
-		Minute:  types.Int64{Value: int64(timestamp.Minute())},
-		Second:  types.Int64{Value: int64(timestamp.Second())},
-		RFC3339: types.String{Value: formattedTimestamp},
-		Unix:    types.Int64{Value: timestamp.Unix()},
-		ID:      types.String{Value: formattedTimestamp},
+		Year:    types.Int64Value(int64(timestamp.Year())),
+		Month:   types.Int64Value(int64(timestamp.Month())),
+		Day:     types.Int64Value(int64(timestamp.Day())),
+		Hour:    types.Int64Value(int64(timestamp.Hour())),
+		Minute:  types.Int64Value(int64(timestamp.Minute())),
+		Second:  types.Int64Value(int64(timestamp.Second())),
+		RFC3339: types.StringValue(formattedTimestamp),
+		Unix:    types.Int64Value(timestamp.Unix()),
+		ID:      types.StringValue(formattedTimestamp),
 	}
-	state.Triggers.ElemType = types.StringType
+	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
 
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -148,10 +149,10 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	timestamp := time.Now().UTC()
 
-	if plan.RFC3339.Value != "" {
+	if plan.RFC3339.ValueString() != "" {
 		var err error
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.Value); err != nil {
+		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Create time static error",
 				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
@@ -165,15 +166,15 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	state := timeStaticModelV0{
 		Triggers: plan.Triggers,
-		Year:     types.Int64{Value: int64(timestamp.Year())},
-		Month:    types.Int64{Value: int64(timestamp.Month())},
-		Day:      types.Int64{Value: int64(timestamp.Day())},
-		Hour:     types.Int64{Value: int64(timestamp.Hour())},
-		Minute:   types.Int64{Value: int64(timestamp.Minute())},
-		Second:   types.Int64{Value: int64(timestamp.Second())},
-		RFC3339:  types.String{Value: formattedTimestamp},
-		Unix:     types.Int64{Value: timestamp.Unix()},
-		ID:       types.String{Value: formattedTimestamp},
+		Year:     types.Int64Value(int64(timestamp.Year())),
+		Month:    types.Int64Value(int64(timestamp.Month())),
+		Day:      types.Int64Value(int64(timestamp.Day())),
+		Hour:     types.Int64Value(int64(timestamp.Hour())),
+		Minute:   types.Int64Value(int64(timestamp.Minute())),
+		Second:   types.Int64Value(int64(timestamp.Second())),
+		RFC3339:  types.StringValue(formattedTimestamp),
+		Unix:     types.Int64Value(timestamp.Unix()),
+		ID:       types.StringValue(formattedTimestamp),
 	}
 
 	diags = resp.State.Set(ctx, state)

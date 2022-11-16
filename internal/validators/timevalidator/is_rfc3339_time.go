@@ -41,11 +41,11 @@ func (validator isRFC3339TimeValidator) Validate(ctx context.Context, req tfsdk.
 
 	s := req.AttributeConfig.(types.String)
 
-	if _, err := time.Parse(time.RFC3339, s.Value); err != nil {
+	if _, err := time.Parse(time.RFC3339, s.ValueString()); err != nil {
 		resp.Diagnostics.Append(validatordiag.InvalidAttributeTypeDiagnostic(
 			req.AttributePath,
 			validator.MarkdownDescription(ctx),
-			s.Value,
+			s.ValueString(),
 		))
 		return
 	}
