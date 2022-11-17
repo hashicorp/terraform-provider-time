@@ -54,7 +54,7 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 		return
 	}
 
-	rotationTimestamp, err := time.Parse(time.RFC3339, rotationRFC3339.Value)
+	rotationTimestamp, err := time.Parse(time.RFC3339, rotationRFC3339.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"replaceIfOutdated plan modifier error",

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -96,9 +97,9 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	}
 
 	state := timeSleepModelV0{
-		CreateDuration:  types.String{Null: true},
-		DestroyDuration: types.String{Null: true},
-		ID:              types.String{Value: time.Now().UTC().Format(time.RFC3339)},
+		CreateDuration:  types.StringNull(),
+		DestroyDuration: types.StringNull(),
+		ID:              types.StringValue(time.Now().UTC().Format(time.RFC3339)),
 	}
 
 	if idParts[0] != "" {
@@ -111,8 +112,7 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 			)
 			return
 		}
-		state.CreateDuration.Null = false
-		state.CreateDuration.Value = idParts[0]
+		state.CreateDuration = types.StringValue(idParts[0])
 	}
 
 	if idParts[1] != "" {
@@ -125,11 +125,11 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 			)
 			return
 		}
-		state.DestroyDuration.Null = false
-		state.DestroyDuration.Value = idParts[1]
+		state.DestroyDuration = types.StringValue(idParts[1])
 	}
 
-	state.Triggers.ElemType = types.StringType
+	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
+
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
 }
@@ -143,8 +143,8 @@ func (t timeSleepResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	if plan.CreateDuration.Value != "" {
-		duration, err := time.ParseDuration(plan.CreateDuration.Value)
+	if plan.CreateDuration.ValueString() != "" {
+		duration, err := time.ParseDuration(plan.CreateDuration.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Create time sleep error",
@@ -169,7 +169,7 @@ func (t timeSleepResource) Create(ctx context.Context, req resource.CreateReques
 		CreateDuration:  plan.CreateDuration,
 		DestroyDuration: plan.DestroyDuration,
 		Triggers:        plan.Triggers,
-		ID:              types.String{Value: time.Now().UTC().Format(time.RFC3339)},
+		ID:              types.StringValue(time.Now().UTC().Format(time.RFC3339)),
 	}
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -198,8 +198,8 @@ func (t timeSleepResource) Delete(ctx context.Context, req resource.DeleteReques
 		return
 	}
 
-	if state.DestroyDuration.Value != "" {
-		duration, err := time.ParseDuration(state.DestroyDuration.Value)
+	if state.DestroyDuration.ValueString() != "" {
+		duration, err := time.ParseDuration(state.DestroyDuration.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Delete time sleep error",
