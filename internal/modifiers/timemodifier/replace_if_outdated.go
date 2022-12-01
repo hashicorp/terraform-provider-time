@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ReplaceIfOutdated() tfsdk.AttributePlanModifier {
+func ReplaceIfOutdated() planmodifier.String {
 	return RequiresReplaceModifier{}
 }
 
@@ -29,8 +30,8 @@ func (r RequiresReplaceModifier) MarkdownDescription(ctx context.Context) string
 	return r.Description(ctx)
 }
 
-func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAttributePlanRequest, resp *tfsdk.ModifyAttributePlanResponse) {
-	if req.AttributeConfig == nil || req.AttributePlan == nil || req.AttributeState == nil {
+func (r RequiresReplaceModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.ConfigValue.IsNull() || req.PlanValue.IsNull() || req.StateValue.IsNull() {
 		// shouldn't happen, but let's not panic if it does
 		return
 	}
@@ -48,7 +49,7 @@ func (r RequiresReplaceModifier) Modify(ctx context.Context, req tfsdk.ModifyAtt
 	}
 
 	var rotationRFC3339 types.String
-	diags := tfsdk.ValueAs(ctx, req.AttributeState, &rotationRFC3339)
+	diags := tfsdk.ValueAs(ctx, req.StateValue, &rotationRFC3339)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

@@ -10,10 +10,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -39,149 +42,132 @@ func (t timeRotatingResource) Metadata(ctx context.Context, req resource.Metadat
 	resp.TypeName = req.ProviderTypeName + "_rotating"
 }
 
-func (t timeRotatingResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
 			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
 			"This rotation only occurs when Terraform is executed, meaning there will be drift between the rotation " +
 			"timestamp and actual rotation. The new rotation timestamp offset includes this drift. " +
 			"This prevents perpetual differences caused by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html) " +
 			"by only forcing a new value on the set cadence.",
-		Attributes: map[string]tfsdk.Attribute{
-			"day": {
+		Attributes: map[string]schema.Attribute{
+			"day": schema.Int64Attribute{
 				Description: "Number day of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"rotation_days": {
+			"rotation_days": schema.Int64Attribute{
 				Description: "Number of days to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.Int64Type,
 				Optional: true,
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			"rotation_hours": {
+			"rotation_hours": schema.Int64Attribute{
 				Description: "Number of hours to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.Int64Type,
 				Optional: true,
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			"rotation_minutes": {
+			"rotation_minutes": schema.Int64Attribute{
 				Description: "Number of minutes to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.Int64Type,
 				Optional: true,
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			"rotation_months": {
+			"rotation_months": schema.Int64Attribute{
 				Description: "Number of months to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.Int64Type,
 				Optional: true,
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			"rotation_rfc3339": {
+			"rotation_rfc3339": schema.StringAttribute{
 				Description: "Configure the rotation timestamp with an " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
+				PlanModifiers: []planmodifier.String{
 					timemodifier.ReplaceIfOutdated(),
 				},
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.String{
 					timevalidator.IsRFC3339Time(),
 				},
 			},
-			"rotation_years": {
+			"rotation_years": schema.Int64Attribute{
 				Description: "Number of years to add to the base timestamp to configure the rotation timestamp. " +
 					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
 					"At least one of the 'rotation_' arguments must be configured.",
-				Type:     types.Int64Type,
 				Optional: true,
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.Int64{
 					int64validator.AtLeast(1),
 				},
 			},
-			"hour": {
+			"hour": schema.Int64Attribute{
 				Description: "Number hour of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"triggers": {
+			"triggers": schema.MapAttribute{
 				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved." +
 					" These conditions recreate the resource in addition to other rotation arguments. " +
 					"See [the main provider documentation](../index.md) for more information.",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
 				},
 			},
-			"minute": {
+			"minute": schema.Int64Attribute{
 				Description: "Number minute of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"month": {
+			"month": schema.Int64Attribute{
 				Description: "Number month of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"rfc3339": {
+			"rfc3339": schema.StringAttribute{
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.String{
 					timevalidator.IsRFC3339Time(),
 				},
 			},
-			"second": {
+			"second": schema.Int64Attribute{
 				Description: "Number second of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"unix": {
+			"unix": schema.Int64Attribute{
 				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"year": {
+			"year": schema.Int64Attribute{
 				Description: "Number year of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (t timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
