@@ -101,8 +101,8 @@ func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaReq
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplaceIf(
 						timemodifier.ReplaceIfOutdated,
-						"value must be a string in RFC3339 format",
-						"value must be a string in RFC3339 format"),
+						"resource will be replaced if current time is past the saved time",
+						"resource will be replaced if current time is past the saved time"),
 				},
 				Validators: []validator.String{
 					timevalidator.IsRFC3339Time(),
