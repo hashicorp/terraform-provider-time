@@ -13,8 +13,7 @@ func New() provider.Provider {
 }
 
 var (
-	_ provider.Provider             = (*timeProvider)(nil)
-	_ provider.ProviderWithMetadata = (*timeProvider)(nil)
+	_ provider.Provider = (*timeProvider)(nil)
 )
 
 type timeProvider struct{}

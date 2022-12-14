@@ -59,7 +59,7 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 	}, m)
 
 	schemaResponse := r.SchemaResponse{}
-	sleepResource.(r.ResourceWithSchema).Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
+	sleepResource.Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
 
 	req := r.CreateRequest{
 		Config: tfsdk.Config{
@@ -124,7 +124,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 	}, m)
 
 	schemaResponse := r.SchemaResponse{}
-	sleepResource.(r.ResourceWithSchema).Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
+	sleepResource.Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
 
 	req := r.DeleteRequest{
 		State: tfsdk.State{
