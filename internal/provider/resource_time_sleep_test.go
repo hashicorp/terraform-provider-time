@@ -58,21 +58,25 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		},
 	}, m)
 
-	schema, _ := sleepResource.GetSchema(context.Background())
+	schemaResponse := r.SchemaResponse{}
+	sleepResource.(r.ResourceWithSchema).Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
+
 	req := r.CreateRequest{
 		Config: tfsdk.Config{
 			Raw:    config,
-			Schema: schema,
+			Schema: schemaResponse.Schema,
 		},
 		Plan: tfsdk.Plan{
 			Raw:    plan,
-			Schema: schema,
+			Schema: schemaResponse.Schema,
 		},
 		ProviderMeta: tfsdk.Config{},
 	}
 
 	resp := r.CreateResponse{
-		State:       tfsdk.State{},
+		State: tfsdk.State{
+			Schema: schemaResponse.Schema,
+		},
 		Diagnostics: nil,
 	}
 
@@ -119,17 +123,21 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		},
 	}, m)
 
-	schema, _ := sleepResource.GetSchema(context.Background())
+	schemaResponse := r.SchemaResponse{}
+	sleepResource.(r.ResourceWithSchema).Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
+
 	req := r.DeleteRequest{
 		State: tfsdk.State{
 			Raw:    config,
-			Schema: schema,
+			Schema: schemaResponse.Schema,
 		},
 		ProviderMeta: tfsdk.Config{},
 	}
 
 	resp := r.DeleteResponse{
-		State:       tfsdk.State{},
+		State: tfsdk.State{
+			Schema: schemaResponse.Schema,
+		},
 		Diagnostics: nil,
 	}
 

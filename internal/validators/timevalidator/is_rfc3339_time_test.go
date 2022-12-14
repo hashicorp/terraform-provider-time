@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -14,15 +13,11 @@ func TestIsRFC3339TimeValidator(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
-		val         attr.Value
+		val         types.String
 		expectError bool
 	}
 
 	tests := map[string]testCase{
-		"not a String": {
-			val:         types.BoolValue(true),
-			expectError: true,
-		},
 		"String unknown": {
 			val:         types.StringUnknown(),
 			expectError: false,
@@ -44,14 +39,14 @@ func TestIsRFC3339TimeValidator(t *testing.T) {
 	for name, test := range tests {
 		name, test := name, test
 		t.Run(name, func(t *testing.T) {
-			request := tfsdk.ValidateAttributeRequest{
-				AttributePath:           path.Root("test"),
-				AttributePathExpression: path.MatchRoot("test"),
-				AttributeConfig:         test.val,
+			request := validator.StringRequest{
+				Path:           path.Root("test"),
+				PathExpression: path.MatchRoot("test"),
+				ConfigValue:    test.val,
 			}
 
-			response := tfsdk.ValidateAttributeResponse{}
-			IsRFC3339Time().Validate(context.TODO(), request, &response)
+			response := validator.StringResponse{}
+			IsRFC3339Time().ValidateString(context.TODO(), request, &response)
 
 			if !response.Diagnostics.HasError() && test.expectError {
 				t.Fatal("expected error, got no error")

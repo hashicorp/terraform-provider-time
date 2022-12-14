@@ -9,10 +9,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -33,109 +34,91 @@ func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataR
 	resp.TypeName = req.ProviderTypeName + "_offset"
 }
 
-func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
 			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"base_rfc3339": {
+		Attributes: map[string]schema.Attribute{
+			"base_rfc3339": schema.StringAttribute{
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
 			},
-			"day": {
+			"day": schema.Int64Attribute{
 				Description: "Number day of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"hour": {
+			"hour": schema.Int64Attribute{
 				Description: "Number hour of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"triggers": {
+			"triggers": schema.MapAttribute{
 				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value " +
 					"to be saved. See [the main provider documentation](../index.md) for more information.",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
 				},
 			},
-			"minute": {
+			"minute": schema.Int64Attribute{
 				Description: "Number minute of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"month": {
+			"month": schema.Int64Attribute{
 				Description: "Number month of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"offset_days": {
+			"offset_days": schema.Int64Attribute{
 				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_hours": {
+			"offset_hours": schema.Int64Attribute{
 				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_minutes": {
+			"offset_minutes": schema.Int64Attribute{
 				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_months": {
+			"offset_months": schema.Int64Attribute{
 				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_seconds": {
+			"offset_seconds": schema.Int64Attribute{
 				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_years": {
+			"offset_years": schema.Int64Attribute{
 				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"rfc3339": {
+			"rfc3339": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
 			},
-			"second": {
+			"second": schema.Int64Attribute{
 				Description: "Number second of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"unix": {
+			"unix": schema.Int64Attribute{
 				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"year": {
+			"year": schema.Int64Attribute{
 				Description: "Number year of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (t timeOffsetResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
