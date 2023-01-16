@@ -114,7 +114,7 @@ func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:    true,
 			},
 			"id": schema.StringAttribute{
-				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
+				Description: "RFC3339 format of the timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 			},
 		},
