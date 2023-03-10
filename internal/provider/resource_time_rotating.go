@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -166,8 +165,16 @@ func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaReq
 				Computed:    true,
 			},
 			"id": schema.StringAttribute{
-				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Computed:    true,
+				Description: "RFC3339 format of the rotation timestamp, e.g. `2020-02-12T06:36:13Z`. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"After each recreation, this value will set to the current time plus any configured `rotation_` attributes.",
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplaceIf(
+						timemodifier.ReplaceIfOutdated,
+						"resource will be replaced if current time is past the saved time",
+						"resource will be replaced if current time is past the saved time"),
+				},
 			},
 		},
 	}
@@ -205,11 +212,29 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	diags = req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if !state.ID.IsNull() && state.ID.ValueString() != "" {
+		now := time.Now().UTC()
+		rotationTimestamp, err := time.Parse(time.RFC3339, state.ID.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Read time rotating error",
+				"The rotation_rfc3339 that was supplied could not be parsed as RFC3339.\n\n+"+
+					fmt.Sprintf("Original Error: %s", err),
+			)
+			return
+		}
+
+		if now.After(rotationTimestamp) {
+			resp.RequiresReplace = path.Paths{path.Root("id")}
+			resp.Plan.SetAttribute(ctx, path.Root("id"), types.StringValue(now.Format(time.RFC3339)))
+
+		}
 	}
 
 	if state.RotationYears == plan.RotationYears &&
@@ -222,16 +247,8 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 	}
 
 	var RFC3339, rotationRFC3339 types.String
-
-	diags = req.Plan.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-
-	diags = req.Plan.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	RFC3339 = plan.RFC3339
+	rotationRFC3339 = plan.RotationRFC3339
 
 	// RFC3339 and rotationRFC3339 could be unknown if there is no value set in the config as the attribute is
 	// optional and computed. If base_rfc3339 is not set in config then the previous value from
@@ -344,9 +361,10 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 	timestamp := time.Now().UTC()
 
 	if plan.RFC3339.ValueString() != "" {
+		var baseRfc3339 time.Time
 		var err error
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
+		if baseRfc3339, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Create time rotating error",
 				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
@@ -354,6 +372,12 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 			)
 			return
 		}
+
+		//Check if configuration RFC3339 is before the current time
+		if !timestamp.After(baseRfc3339) {
+			timestamp = baseRfc3339
+		}
+
 	}
 
 	err := setRotationValues(&plan, timestamp)
@@ -377,25 +401,6 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.ValueString() != "" {
-		now := time.Now().UTC()
-		rotationTimestamp, err := time.Parse(time.RFC3339, state.RotationRFC3339.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Read time rotating error",
-				"The rotation_rfc3339 that was supplied could not be parsed as RFC3339.\n\n+"+
-					fmt.Sprintf("Original Error: %s", err),
-			)
-			return
-		}
-
-		if now.After(rotationTimestamp) {
-			log.Printf("[INFO] Expiration timestamp (%s) is after current timestamp (%s), removing from state", state.RotationRFC3339.ValueString(), now.Format(time.RFC3339))
-			resp.State.RemoveResource(ctx)
-			return
-		}
 	}
 
 }
@@ -515,9 +520,12 @@ func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) error {
 	plan.Hour = types.Int64Value(int64(rotationTimestamp.Hour()))
 	plan.Minute = types.Int64Value(int64(rotationTimestamp.Minute()))
 	plan.Second = types.Int64Value(int64(rotationTimestamp.Second()))
-	plan.RFC3339 = types.StringValue(formattedTimestamp)
 	plan.Unix = types.Int64Value(rotationTimestamp.Unix())
-	plan.ID = types.StringValue(formattedTimestamp)
+	plan.ID = types.StringValue(formattedRotationTimestamp)
+
+	if plan.RFC3339.ValueString() == "" {
+		plan.RFC3339 = types.StringValue(formattedTimestamp)
+	}
 
 	return nil
 }
