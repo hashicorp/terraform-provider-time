@@ -13,7 +13,7 @@ jobs:
     steps:
 
     - name: Login
-      uses: atlassian/gajira-login@45fd029b9f1d6d8926c6f04175aa80c0e42c9026 # v3.0.1
+      uses: atlassian/gajira-login@ca13f8850ea309cf44a6e4e0c49d9aa48ac3ca4c # v3
       if: contains(github.event.pull_request.labels.*.name, 'tf-devex-triage') || contains(github.event.issue.labels.*.name, 'tf-devex-triage')
       env:
         JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
