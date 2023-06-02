@@ -51,13 +51,13 @@ resource "time_rotating" "example" {
 This resource can be imported using the base UTC RFC3339 value and rotation years, months, days, hours, and minutes, separated by commas (`,`), e.g. for 30 days
 
 ```shell
-terraform import time_rotation.example 2020-02-12T06:36:13Z,0,0,30,0,0
+terraform import time_rotating.example 2020-02-12T06:36:13Z,0,0,30,0,0
 ```
 
 Otherwise, to import with the rotation RFC3339 value, the base UTC RFC3339 value and rotation UTC RFC3339 value, separated by commas (`,`), e.g.
 
 ```shell
-terraform import time_rotation.example 2020-02-12T06:36:13Z,2020-02-13T06:36:13Z
+terraform import time_rotating.example 2020-02-12T06:36:13Z,2020-02-13T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.

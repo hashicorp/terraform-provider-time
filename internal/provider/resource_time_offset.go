@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -32,109 +34,91 @@ func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataR
 	resp.TypeName = req.ProviderTypeName + "_offset"
 }
 
-func (t timeOffsetResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
 			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"base_rfc3339": {
+		Attributes: map[string]schema.Attribute{
+			"base_rfc3339": schema.StringAttribute{
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
 			},
-			"day": {
+			"day": schema.Int64Attribute{
 				Description: "Number day of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"hour": {
+			"hour": schema.Int64Attribute{
 				Description: "Number hour of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"triggers": {
+			"triggers": schema.MapAttribute{
 				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value " +
 					"to be saved. See [the main provider documentation](../index.md) for more information.",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
 				},
 			},
-			"minute": {
+			"minute": schema.Int64Attribute{
 				Description: "Number minute of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"month": {
+			"month": schema.Int64Attribute{
 				Description: "Number month of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"offset_days": {
+			"offset_days": schema.Int64Attribute{
 				Description: "Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_hours": {
+			"offset_hours": schema.Int64Attribute{
 				Description: " Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_minutes": {
+			"offset_minutes": schema.Int64Attribute{
 				Description: "Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_months": {
+			"offset_months": schema.Int64Attribute{
 				Description: "Number of months to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_seconds": {
+			"offset_seconds": schema.Int64Attribute{
 				Description: "Number of seconds to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"offset_years": {
+			"offset_years": schema.Int64Attribute{
 				Description: "Number of years to offset the base timestamp. At least one of the 'offset_' arguments must be configured.",
-				Type:        types.Int64Type,
 				Optional:    true,
 			},
-			"rfc3339": {
+			"rfc3339": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
 			},
-			"second": {
+			"second": schema.Int64Attribute{
 				Description: "Number second of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"unix": {
+			"unix": schema.Int64Attribute{
 				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"year": {
+			"year": schema.Int64Attribute{
 				Description: "Number year of offset timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (t timeOffsetResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
@@ -197,14 +181,14 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 	// baseRFC3339 could be unknown if there is no value set in the config as the attribute is
 	// optional and computed. If base_rfc3339 is not set in config then the previous value from
 	// state is used and propagated to the update function.
-	if baseRFC3339.Unknown {
+	if baseRFC3339.IsUnknown() {
 		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.Value)
+	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create time offset error",
@@ -316,7 +300,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	setOffsetValues(&importedState, timestamp)
-	importedState.Triggers.ElemType = types.StringType
+	importedState.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
 
 	diags := resp.State.Set(ctx, importedState)
 	resp.Diagnostics.Append(diags...)
@@ -333,10 +317,10 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 
 	timestamp := time.Now().UTC()
 
-	if plan.BaseRFC3339.Value != "" {
+	if plan.BaseRFC3339.ValueString() != "" {
 		var err error
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.BaseRFC3339.Value); err != nil {
+		if timestamp, err = time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Create time offset error",
 				"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
@@ -364,7 +348,7 @@ func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.Value)
+	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString())
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -409,49 +393,49 @@ func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
 
 	var offsetTimestamp time.Time
 
-	if plan.OffsetDays.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(0, 0, int(plan.OffsetDays.Value))
+	if plan.OffsetDays.ValueInt64() != 0 {
+		offsetTimestamp = timestamp.AddDate(0, 0, int(plan.OffsetDays.ValueInt64()))
 	}
 
-	if plan.OffsetHours.Value != 0 {
-		hours := time.Duration(plan.OffsetHours.Value) * time.Hour
+	if plan.OffsetHours.ValueInt64() != 0 {
+		hours := time.Duration(plan.OffsetHours.ValueInt64()) * time.Hour
 		offsetTimestamp = timestamp.Add(hours)
 	}
 
-	if plan.OffsetMinutes.Value != 0 {
-		minutes := time.Duration(plan.OffsetMinutes.Value) * time.Minute
+	if plan.OffsetMinutes.ValueInt64() != 0 {
+		minutes := time.Duration(plan.OffsetMinutes.ValueInt64()) * time.Minute
 		offsetTimestamp = timestamp.Add(minutes)
 	}
 
-	if plan.OffsetMonths.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(0, int(plan.OffsetMonths.Value), 0)
+	if plan.OffsetMonths.ValueInt64() != 0 {
+		offsetTimestamp = timestamp.AddDate(0, int(plan.OffsetMonths.ValueInt64()), 0)
 	}
 
-	if plan.OffsetSeconds.Value != 0 {
-		seconds := time.Duration(plan.OffsetSeconds.Value) * time.Second
+	if plan.OffsetSeconds.ValueInt64() != 0 {
+		seconds := time.Duration(plan.OffsetSeconds.ValueInt64()) * time.Second
 		offsetTimestamp = timestamp.Add(seconds)
 	}
 
-	if plan.OffsetYears.Value != 0 {
-		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.Value), 0, 0)
+	if plan.OffsetYears.ValueInt64() != 0 {
+		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.ValueInt64()), 0, 0)
 	}
 
 	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
 
-	plan.BaseRFC3339 = types.String{Value: formattedTimestamp}
-	plan.Year = types.Int64{Value: int64(offsetTimestamp.Year())}
-	plan.Month = types.Int64{Value: int64(offsetTimestamp.Month())}
-	plan.Day = types.Int64{Value: int64(offsetTimestamp.Day())}
-	plan.Hour = types.Int64{Value: int64(offsetTimestamp.Hour())}
-	plan.Minute = types.Int64{Value: int64(offsetTimestamp.Minute())}
-	plan.Second = types.Int64{Value: int64(offsetTimestamp.Second())}
-	plan.RFC3339 = types.String{Value: formattedOffsetTimestamp}
-	plan.Unix = types.Int64{Value: offsetTimestamp.Unix()}
-	plan.ID = types.String{Value: formattedTimestamp}
+	plan.BaseRFC3339 = types.StringValue(formattedTimestamp)
+	plan.Year = types.Int64Value(int64(offsetTimestamp.Year()))
+	plan.Month = types.Int64Value(int64(offsetTimestamp.Month()))
+	plan.Day = types.Int64Value(int64(offsetTimestamp.Day()))
+	plan.Hour = types.Int64Value(int64(offsetTimestamp.Hour()))
+	plan.Minute = types.Int64Value(int64(offsetTimestamp.Minute()))
+	plan.Second = types.Int64Value(int64(offsetTimestamp.Second()))
+	plan.RFC3339 = types.StringValue(formattedOffsetTimestamp)
+	plan.Unix = types.Int64Value(offsetTimestamp.Unix())
+	plan.ID = types.StringValue(formattedTimestamp)
 }
 
 func offsetToInt64(offsetStr string) (types.Int64, error) {
-	offset := types.Int64{Null: true}
+	offset := types.Int64Null()
 
 	if offsetStr != "" {
 		offsetInt, err := strconv.ParseInt(offsetStr, 10, 64)
@@ -459,8 +443,7 @@ func offsetToInt64(offsetStr string) (types.Int64, error) {
 			return offset, fmt.Errorf("could not parse offset (%q) as int: %w", offsetStr, err)
 		}
 
-		offset.Value = offsetInt
-		offset.Null = false
+		offset = types.Int64Value(offsetInt)
 	}
 
 	return offset, nil

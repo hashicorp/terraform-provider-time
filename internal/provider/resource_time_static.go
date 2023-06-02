@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
@@ -28,83 +32,72 @@ func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataR
 	resp.TypeName = req.ProviderTypeName + "_static"
 }
 
-func (t timeStaticResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages a static time resource, which keeps a locally sourced UTC timestamp stored in the Terraform state. " +
 			"This prevents perpetual differences caused by using " +
 			"the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
-		Attributes: map[string]tfsdk.Attribute{
-			"day": {
+		Attributes: map[string]schema.Attribute{
+			"day": schema.Int64Attribute{
 				Description: "Number day of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"hour": {
+			"hour": schema.Int64Attribute{
 				Description: "Number hour of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"triggers": {
+			"triggers": schema.MapAttribute{
 				Description: "Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. " +
 					"See [the main provider documentation](../index.md) for more information.",
-				Type: types.MapType{
-					ElemType: types.StringType,
-				},
-				Optional: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				ElementType: types.StringType,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplace(),
 				},
 			},
-			"minute": {
+			"minute": schema.Int64Attribute{
 				Description: "Number minute of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"month": {
+			"month": schema.Int64Attribute{
 				Description: "Number month of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"rfc3339": {
+			"rfc3339": schema.StringAttribute{
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Type:     types.StringType,
 				Optional: true,
 				Computed: true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.RequiresReplace(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
-				Validators: []tfsdk.AttributeValidator{
+				Validators: []validator.String{
 					timevalidator.IsRFC3339Time(),
 				},
 			},
-			"second": {
+			"second": schema.Int64Attribute{
 				Description: "Number second of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"unix": {
+			"unix": schema.Int64Attribute{
 				Description: "Number of seconds since epoch time, e.g. `1581489373`.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"year": {
+			"year": schema.Int64Attribute{
 				Description: "Number year of timestamp.",
-				Type:        types.Int64Type,
 				Computed:    true,
 			},
-			"id": {
+			"id": schema.StringAttribute{
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
-				Type:        types.StringType,
 				Computed:    true,
-				PlanModifiers: []tfsdk.AttributePlanModifier{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 		},
-	}, nil
+	}
 }
 
 func (t timeStaticResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -121,17 +114,17 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 	formattedTimestamp := timestamp.Format(time.RFC3339)
 
 	state := timeStaticModelV0{
-		Year:    types.Int64{Value: int64(timestamp.Year())},
-		Month:   types.Int64{Value: int64(timestamp.Month())},
-		Day:     types.Int64{Value: int64(timestamp.Day())},
-		Hour:    types.Int64{Value: int64(timestamp.Hour())},
-		Minute:  types.Int64{Value: int64(timestamp.Minute())},
-		Second:  types.Int64{Value: int64(timestamp.Second())},
-		RFC3339: types.String{Value: formattedTimestamp},
-		Unix:    types.Int64{Value: timestamp.Unix()},
-		ID:      types.String{Value: formattedTimestamp},
+		Year:    types.Int64Value(int64(timestamp.Year())),
+		Month:   types.Int64Value(int64(timestamp.Month())),
+		Day:     types.Int64Value(int64(timestamp.Day())),
+		Hour:    types.Int64Value(int64(timestamp.Hour())),
+		Minute:  types.Int64Value(int64(timestamp.Minute())),
+		Second:  types.Int64Value(int64(timestamp.Second())),
+		RFC3339: types.StringValue(formattedTimestamp),
+		Unix:    types.Int64Value(timestamp.Unix()),
+		ID:      types.StringValue(formattedTimestamp),
 	}
-	state.Triggers.ElemType = types.StringType
+	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
 
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -148,10 +141,10 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	timestamp := time.Now().UTC()
 
-	if plan.RFC3339.Value != "" {
+	if plan.RFC3339.ValueString() != "" {
 		var err error
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.Value); err != nil {
+		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Create time static error",
 				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
@@ -165,15 +158,15 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	state := timeStaticModelV0{
 		Triggers: plan.Triggers,
-		Year:     types.Int64{Value: int64(timestamp.Year())},
-		Month:    types.Int64{Value: int64(timestamp.Month())},
-		Day:      types.Int64{Value: int64(timestamp.Day())},
-		Hour:     types.Int64{Value: int64(timestamp.Hour())},
-		Minute:   types.Int64{Value: int64(timestamp.Minute())},
-		Second:   types.Int64{Value: int64(timestamp.Second())},
-		RFC3339:  types.String{Value: formattedTimestamp},
-		Unix:     types.Int64{Value: timestamp.Unix()},
-		ID:       types.String{Value: formattedTimestamp},
+		Year:     types.Int64Value(int64(timestamp.Year())),
+		Month:    types.Int64Value(int64(timestamp.Month())),
+		Day:      types.Int64Value(int64(timestamp.Day())),
+		Hour:     types.Int64Value(int64(timestamp.Hour())),
+		Minute:   types.Int64Value(int64(timestamp.Minute())),
+		Second:   types.Int64Value(int64(timestamp.Second())),
+		RFC3339:  types.StringValue(formattedTimestamp),
+		Unix:     types.Int64Value(timestamp.Unix()),
+		ID:       types.StringValue(formattedTimestamp),
 	}
 
 	diags = resp.State.Set(ctx, state)
