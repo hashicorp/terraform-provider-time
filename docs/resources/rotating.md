@@ -39,7 +39,7 @@ resource "time_rotating" "example" {
 
 - `day` (Number) Number day of timestamp.
 - `hour` (Number) Number hour of timestamp.
-- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
+- `id` (String) RFC3339 format of the timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `minute` (Number) Number minute of timestamp.
 - `month` (Number) Number month of timestamp.
 - `second` (Number) Number second of timestamp.
