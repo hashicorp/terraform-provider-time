@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 # This resource will destroy (at least) 30 seconds after null_resource.next
 resource "null_resource" "previous" {}
 

@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "time_offset" "ami_update" {
   triggers = {
     # Save the time each switch of an AMI id
