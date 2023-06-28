@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -19,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-
 	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
@@ -30,19 +29,41 @@ var (
 	_ resource.ResourceWithImportState      = (*timeRotatingResource)(nil)
 	_ resource.ResourceWithModifyPlan       = (*timeRotatingResource)(nil)
 	_ resource.ResourceWithConfigValidators = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithConfigure        = (*timeRotatingResource)(nil)
 )
 
 func NewTimeRotatingResource() resource.Resource {
 	return &timeRotatingResource{}
 }
 
-type timeRotatingResource struct{}
+type timeRotatingResource struct {
+	now *time.Time
+}
 
-func (t timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (t *timeRotatingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	now, ok := req.ProviderData.(*time.Time)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected *DNSClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	t.now = now
+}
+
+func (t *timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_rotating"
 }
 
-func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (t *timeRotatingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
 			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
@@ -144,10 +165,10 @@ func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaReq
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
 					"`YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.",
-				Optional: true,
-				Computed: true,
+				Optional:      true,
+				Computed:      true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					//stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
 					timevalidator.IsRFC3339Time(),
@@ -169,11 +190,32 @@ func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaReq
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 			},
+			"first_rotation_rfc3339": schema.StringAttribute{
+				Description: "Configure the rotation timestamp with an " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.String{
+					//stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					timevalidator.IsRFC3339Time(),
+				},
+			},
+			"next_rotation_rfc3339": schema.StringAttribute{
+				Description: "Configure the rotation timestamp with an " +
+					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format of the offset timestamp. " +
+					"When the current time has passed the rotation timestamp, the resource will trigger recreation. " +
+					"At least one of the 'rotation_' arguments must be configured.",
+				Computed: true,
+			},
 		},
 	}
 }
 
-func (t timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (t *timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.AtLeastOneOf(
 			path.MatchRoot("rotation_minutes"),
@@ -192,89 +234,64 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	// Plan only needs modifying if the resource already exists as the purpose of
-	// the plan modifier is to show updated attribute values on CLI.
+	var state, plan, config timeRotatingModelV0
+
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	//resource is being created
 	if req.State.Raw.IsNull() {
 		return
 	}
 
-	var state, plan timeRotatingModelV0
-
-	diags := req.State.Get(ctx, &state)
+	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	diags = req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if state.RotationYears == plan.RotationYears &&
+	if !(state.RotationYears == plan.RotationYears &&
 		state.RotationMonths == plan.RotationMonths &&
 		state.RotationDays == plan.RotationDays &&
 		state.RotationHours == plan.RotationHours &&
 		state.RotationMinutes == plan.RotationMinutes &&
-		state.RotationRFC3339 == plan.RotationRFC3339 {
+		state.RotationRFC3339 == plan.RotationRFC3339 &&
+		state.FirstRotationRFC3339 == plan.FirstRotationRFC3339) { //if there's a change in config
 		return
 	}
 
-	var RFC3339, rotationRFC3339 types.String
-
-	diags = req.Plan.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-
-	diags = req.Plan.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)
-	resp.Diagnostics = append(resp.Diagnostics, diags...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// RFC3339 and rotationRFC3339 could be unknown if there is no value set in the config as the attribute is
-	// optional and computed. If base_rfc3339 is not set in config then the previous value from
-	// state is used and propagated to the update function.
-	if RFC3339.IsUnknown() {
-		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rfc3339"), &RFC3339)...)
-		if resp.Diagnostics.HasError() {
+	if !state.NextRotationRFC3339.IsNull() {
+		now := time.Now().UTC()
+		nextRotationTimestamp, err := time.Parse(time.RFC3339, state.NextRotationRFC3339.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Plan Update time rotating error",
+				"The rotation_rfc3339 that was supplied could not be parsed as RFC3339.\n\n+"+
+					fmt.Sprintf("Original Error: %s", err),
+			)
 			return
 		}
-	}
 
-	if rotationRFC3339.IsUnknown() {
-		resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("rotation_rfc3339"), &rotationRFC3339)...)
-		if resp.Diagnostics.HasError() {
-			return
+		if now.After(nextRotationTimestamp) {
+			plan.NextRotationRFC3339 = types.StringValue(createRotationTimestamp(&plan, now).Format(time.RFC3339))
+			resp.RequiresReplace = path.Paths{path.Root("next_rotation_rfc3339")}
 		}
-	}
-
-	timestamp, err := time.Parse(time.RFC3339, RFC3339.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time rotating error",
-			"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	err = setRotationValues(&plan, timestamp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time rotating error",
-			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
 	}
 
 	diags = resp.Plan.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (t *timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := req.ID
 	var state timeRotatingModelV0
 	var err error
@@ -333,7 +350,11 @@ func (t timeRotatingResource) ImportState(ctx context.Context, req resource.Impo
 }
 
 func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan timeRotatingModelV0
+	var plan, config timeRotatingModelV0
+	now := time.Now().UTC()
+
+	var nextRotationRFC3339 time.Time
+	var err error
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -341,12 +362,16 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	timestamp := time.Now().UTC()
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	if plan.RFC3339.ValueString() != "" {
-		var err error
+	setCreatePlanValues(&plan)
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
+	if !plan.NextRotationRFC3339.IsNull() {
+		if nextRotationRFC3339, err = time.Parse(time.RFC3339, plan.NextRotationRFC3339.ValueString()); err != nil {
 			resp.Diagnostics.AddError(
 				"Create time rotating error",
 				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
@@ -354,23 +379,17 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 			)
 			return
 		}
+
+		if now.After(nextRotationRFC3339) {
+			setRotationPlanValues(&plan)
+		}
 	}
 
-	err := setRotationValues(&plan, timestamp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time rotating error",
-			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-
-	diags = resp.State.Set(ctx, plan)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (t *timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state timeRotatingModelV0
 
 	diags := req.State.Get(ctx, &state)
@@ -379,7 +398,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.ValueString() != "" {
+	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.ValueString() != "" && state.NextRotationRFC3339.IsNull() {
 		now := time.Now().UTC()
 		rotationTimestamp, err := time.Parse(time.RFC3339, state.RotationRFC3339.ValueString())
 		if err != nil {
@@ -397,11 +416,10 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 			return
 		}
 	}
-
 }
 
 func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state timeRotatingModelV0
+	var plan, state, config timeRotatingModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -420,106 +438,133 @@ func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateReq
 		state.RotationDays == plan.RotationDays &&
 		state.RotationHours == plan.RotationHours &&
 		state.RotationMinutes == plan.RotationMinutes &&
-		state.RotationRFC3339 == plan.RotationRFC3339 {
+		state.RotationRFC3339 == plan.RotationRFC3339 &&
+		state.FirstRotationRFC3339 == plan.FirstRotationRFC3339 {
 		return
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, plan.ID.ValueString())
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time rotating error",
-			"The ID that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
+	diags = req.Config.Get(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	err = setRotationValues(&plan, timestamp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time rotating error",
-			"The rotation_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
-		return
-	}
-	diags = resp.State.Set(ctx, plan)
+	setCreatePlanValues(&plan)
+	diags = resp.State.Set(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+func (t *timeRotatingResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
 
 }
 
 type timeRotatingModelV0 struct {
-	Day             types.Int64  `tfsdk:"day"`
-	RotationDays    types.Int64  `tfsdk:"rotation_days"`
-	RotationHours   types.Int64  `tfsdk:"rotation_hours"`
-	RotationMinutes types.Int64  `tfsdk:"rotation_minutes"`
-	RotationMonths  types.Int64  `tfsdk:"rotation_months"`
-	RotationRFC3339 types.String `tfsdk:"rotation_rfc3339"`
-	RotationYears   types.Int64  `tfsdk:"rotation_years"`
-	Hour            types.Int64  `tfsdk:"hour"`
-	Triggers        types.Map    `tfsdk:"triggers"`
-	Minute          types.Int64  `tfsdk:"minute"`
-	Month           types.Int64  `tfsdk:"month"`
-	RFC3339         types.String `tfsdk:"rfc3339"`
-	Second          types.Int64  `tfsdk:"second"`
-	Unix            types.Int64  `tfsdk:"unix"`
-	Year            types.Int64  `tfsdk:"year"`
-	ID              types.String `tfsdk:"id"`
+	Day                  types.Int64  `tfsdk:"day"`
+	RotationDays         types.Int64  `tfsdk:"rotation_days"`
+	RotationHours        types.Int64  `tfsdk:"rotation_hours"`
+	RotationMinutes      types.Int64  `tfsdk:"rotation_minutes"`
+	RotationMonths       types.Int64  `tfsdk:"rotation_months"`
+	RotationRFC3339      types.String `tfsdk:"rotation_rfc3339"`
+	FirstRotationRFC3339 types.String `tfsdk:"first_rotation_rfc3339"`
+	NextRotationRFC3339  types.String `tfsdk:"next_rotation_rfc3339"`
+	RotationYears        types.Int64  `tfsdk:"rotation_years"`
+	Hour                 types.Int64  `tfsdk:"hour"`
+	Triggers             types.Map    `tfsdk:"triggers"`
+	Minute               types.Int64  `tfsdk:"minute"`
+	Month                types.Int64  `tfsdk:"month"`
+	RFC3339              types.String `tfsdk:"rfc3339"`
+	Second               types.Int64  `tfsdk:"second"`
+	Unix                 types.Int64  `tfsdk:"unix"`
+	Year                 types.Int64  `tfsdk:"year"`
+	ID                   types.String `tfsdk:"id"`
 }
 
-func setRotationValues(plan *timeRotatingModelV0, timestamp time.Time) error {
-	formattedTimestamp := timestamp.Format(time.RFC3339)
+func setCreatePlanValues(plan *timeRotatingModelV0) {
+	baseTimestamp := time.Now().UTC()
+	var firstRotationTimestamp time.Time
 
-	var rotationTimestamp time.Time
+	if !plan.RFC3339.IsUnknown() && !plan.RotationRFC3339.IsUnknown() {
+		baseTimestamp, _ = time.Parse(time.RFC3339, plan.RFC3339.ValueString())
+		firstRotationTimestamp, _ = time.Parse(time.RFC3339, plan.RotationRFC3339.ValueString())
+
+		plan.FirstRotationRFC3339 = types.StringNull()
+		plan.NextRotationRFC3339 = types.StringNull()
+	} else if !plan.RFC3339.IsUnknown() {
+		baseTimestamp, _ = time.Parse(time.RFC3339, plan.RFC3339.ValueString())
+		firstRotationTimestamp = createRotationTimestamp(plan, baseTimestamp)
+
+		plan.FirstRotationRFC3339 = types.StringNull()
+		plan.NextRotationRFC3339 = types.StringNull()
+	} else if !plan.RotationRFC3339.IsUnknown() {
+		firstRotationTimestamp, _ = time.Parse(time.RFC3339, plan.RotationRFC3339.ValueString())
+
+		plan.FirstRotationRFC3339 = types.StringNull()
+		plan.NextRotationRFC3339 = types.StringNull()
+	} else if !plan.FirstRotationRFC3339.IsUnknown() {
+		firstRotationTimestamp, _ = time.Parse(time.RFC3339, plan.FirstRotationRFC3339.ValueString())
+
+		plan.FirstRotationRFC3339 = types.StringValue(firstRotationTimestamp.Format(time.RFC3339))
+		plan.NextRotationRFC3339 = types.StringValue(firstRotationTimestamp.Format(time.RFC3339))
+	} else {
+		firstRotationTimestamp = createRotationTimestamp(plan, baseTimestamp)
+
+		plan.FirstRotationRFC3339 = types.StringValue(firstRotationTimestamp.Format(time.RFC3339))
+		plan.NextRotationRFC3339 = types.StringValue(firstRotationTimestamp.Format(time.RFC3339))
+	}
+
+	plan.ID = types.StringValue(baseTimestamp.Format(time.RFC3339))
+	plan.RFC3339 = types.StringValue(baseTimestamp.Format(time.RFC3339))
+	plan.RotationRFC3339 = types.StringValue(firstRotationTimestamp.Format(time.RFC3339))
+	plan.Year = types.Int64Value(int64(firstRotationTimestamp.Year()))
+	plan.Month = types.Int64Value(int64(firstRotationTimestamp.Month()))
+	plan.Day = types.Int64Value(int64(firstRotationTimestamp.Day()))
+	plan.Hour = types.Int64Value(int64(firstRotationTimestamp.Hour()))
+	plan.Minute = types.Int64Value(int64(firstRotationTimestamp.Minute()))
+	plan.Second = types.Int64Value(int64(firstRotationTimestamp.Second()))
+	plan.Unix = types.Int64Value(firstRotationTimestamp.Unix())
+}
+
+func setRotationPlanValues(plan *timeRotatingModelV0) {
+	baseTimestamp := time.Now().UTC()
+	nextRotationTimestamp := createRotationTimestamp(plan, baseTimestamp)
+
+	plan.NextRotationRFC3339 = types.StringValue(nextRotationTimestamp.Format(time.RFC3339))
+	plan.RotationRFC3339 = types.StringValue(nextRotationTimestamp.Format(time.RFC3339))
+	plan.Year = types.Int64Value(int64(nextRotationTimestamp.Year()))
+	plan.Month = types.Int64Value(int64(nextRotationTimestamp.Month()))
+	plan.Day = types.Int64Value(int64(nextRotationTimestamp.Day()))
+	plan.Hour = types.Int64Value(int64(nextRotationTimestamp.Hour()))
+	plan.Minute = types.Int64Value(int64(nextRotationTimestamp.Minute()))
+	plan.Second = types.Int64Value(int64(nextRotationTimestamp.Second()))
+	plan.Unix = types.Int64Value(nextRotationTimestamp.Unix())
+}
+
+func createRotationTimestamp(plan *timeRotatingModelV0, firstRotationTimestamp time.Time) time.Time {
+	var nextRotationTimestamp time.Time
 
 	if plan.RotationDays.ValueInt64() != 0 {
-		rotationTimestamp = timestamp.AddDate(0, 0, int(plan.RotationDays.ValueInt64()))
+		nextRotationTimestamp = firstRotationTimestamp.AddDate(0, 0, int(plan.RotationDays.ValueInt64()))
 	}
 
 	if plan.RotationHours.ValueInt64() != 0 {
 		hours := time.Duration(plan.RotationHours.ValueInt64()) * time.Hour
-		rotationTimestamp = timestamp.Add(hours)
+		nextRotationTimestamp = firstRotationTimestamp.Add(hours)
 	}
 
 	if plan.RotationMinutes.ValueInt64() != 0 {
 		minutes := time.Duration(plan.RotationMinutes.ValueInt64()) * time.Minute
-		rotationTimestamp = timestamp.Add(minutes)
+		nextRotationTimestamp = firstRotationTimestamp.Add(minutes)
 	}
 
 	if plan.RotationMonths.ValueInt64() != 0 {
-		rotationTimestamp = timestamp.AddDate(0, int(plan.RotationMonths.ValueInt64()), 0)
-	}
-
-	if plan.RotationRFC3339.ValueString() != "" {
-		var err error
-
-		if rotationTimestamp, err = time.Parse(time.RFC3339, plan.RotationRFC3339.ValueString()); err != nil {
-			return err
-		}
+		nextRotationTimestamp = firstRotationTimestamp.AddDate(0, int(plan.RotationMonths.ValueInt64()), 0)
 	}
 
 	if plan.RotationYears.ValueInt64() != 0 {
-		rotationTimestamp = timestamp.AddDate(int(plan.RotationYears.ValueInt64()), 0, 0)
+		nextRotationTimestamp = firstRotationTimestamp.AddDate(int(plan.RotationYears.ValueInt64()), 0, 0)
 	}
 
-	formattedRotationTimestamp := rotationTimestamp.Format(time.RFC3339)
-
-	plan.RotationRFC3339 = types.StringValue(formattedRotationTimestamp)
-	plan.Year = types.Int64Value(int64(rotationTimestamp.Year()))
-	plan.Month = types.Int64Value(int64(rotationTimestamp.Month()))
-	plan.Day = types.Int64Value(int64(rotationTimestamp.Day()))
-	plan.Hour = types.Int64Value(int64(rotationTimestamp.Hour()))
-	plan.Minute = types.Int64Value(int64(rotationTimestamp.Minute()))
-	plan.Second = types.Int64Value(int64(rotationTimestamp.Second()))
-	plan.RFC3339 = types.StringValue(formattedTimestamp)
-	plan.Unix = types.Int64Value(rotationTimestamp.Unix())
-	plan.ID = types.StringValue(formattedTimestamp)
-
-	return nil
+	return nextRotationTimestamp
 }
 
 func parseTwoPartId(idParts []string) (timeRotatingModelV0, error) {
@@ -620,21 +665,23 @@ func parseMultiplePartId(idParts []string) (timeRotatingModelV0, error) {
 	formattedRotationTimestamp := rotationTimestamp.Format(time.RFC3339)
 
 	state := timeRotatingModelV0{
-		Year:            types.Int64Value(int64(rotationTimestamp.Year())),
-		Month:           types.Int64Value(int64(rotationTimestamp.Month())),
-		Day:             types.Int64Value(int64(rotationTimestamp.Day())),
-		Hour:            types.Int64Value(int64(rotationTimestamp.Hour())),
-		Minute:          types.Int64Value(int64(rotationTimestamp.Minute())),
-		Second:          types.Int64Value(int64(rotationTimestamp.Second())),
-		RotationRFC3339: types.StringValue(formattedRotationTimestamp),
-		RotationYears:   rotationYears,
-		RotationMonths:  rotationMonths,
-		RotationDays:    rotationDays,
-		RotationHours:   rotationHours,
-		RotationMinutes: rotationMinutes,
-		RFC3339:         types.StringValue(formattedTimestamp),
-		Unix:            types.Int64Value(rotationTimestamp.Unix()),
-		ID:              types.StringValue(baseRfc3339),
+		Year:                 types.Int64Value(int64(rotationTimestamp.Year())),
+		Month:                types.Int64Value(int64(rotationTimestamp.Month())),
+		Day:                  types.Int64Value(int64(rotationTimestamp.Day())),
+		Hour:                 types.Int64Value(int64(rotationTimestamp.Hour())),
+		Minute:               types.Int64Value(int64(rotationTimestamp.Minute())),
+		Second:               types.Int64Value(int64(rotationTimestamp.Second())),
+		RotationRFC3339:      types.StringValue(formattedRotationTimestamp),
+		RotationYears:        rotationYears,
+		RotationMonths:       rotationMonths,
+		RotationDays:         rotationDays,
+		RotationHours:        rotationHours,
+		RotationMinutes:      rotationMinutes,
+		RFC3339:              types.StringValue(formattedTimestamp),
+		Unix:                 types.Int64Value(rotationTimestamp.Unix()),
+		ID:                   types.StringValue(baseRfc3339),
+		FirstRotationRFC3339: types.StringNull(),
+		NextRotationRFC3339:  types.StringNull(),
 	}
 
 	return state, nil
