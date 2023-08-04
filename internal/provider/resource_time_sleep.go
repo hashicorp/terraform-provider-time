@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -75,6 +76,7 @@ func (t timeSleepResource) Schema(ctx context.Context, req resource.SchemaReques
 				},
 			},
 			"id": schema.StringAttribute{
+				CustomType:  timetypes.RFC3339Type{},
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
@@ -101,7 +103,7 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	state := timeSleepModelV0{
 		CreateDuration:  types.StringNull(),
 		DestroyDuration: types.StringNull(),
-		ID:              types.StringValue(time.Now().UTC().Format(time.RFC3339)),
+		ID:              timetypes.NewRFC3339Value(time.Now().UTC().Format(time.RFC3339)),
 	}
 
 	if idParts[0] != "" {
@@ -171,7 +173,7 @@ func (t timeSleepResource) Create(ctx context.Context, req resource.CreateReques
 		CreateDuration:  plan.CreateDuration,
 		DestroyDuration: plan.DestroyDuration,
 		Triggers:        plan.Triggers,
-		ID:              types.StringValue(time.Now().UTC().Format(time.RFC3339)),
+		ID:              timetypes.NewRFC3339Value(time.Now().UTC().Format(time.RFC3339)),
 	}
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
@@ -224,8 +226,8 @@ func (t timeSleepResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 type timeSleepModelV0 struct {
-	CreateDuration  types.String `tfsdk:"create_duration"`
-	DestroyDuration types.String `tfsdk:"destroy_duration"`
-	Triggers        types.Map    `tfsdk:"triggers"`
-	ID              types.String `tfsdk:"id"`
+	CreateDuration  types.String      `tfsdk:"create_duration"`
+	DestroyDuration types.String      `tfsdk:"destroy_duration"`
+	Triggers        types.Map         `tfsdk:"triggers"`
+	ID              timetypes.RFC3339 `tfsdk:"id"`
 }

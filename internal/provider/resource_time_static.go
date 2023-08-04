@@ -8,16 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	"github.com/hashicorp/terraform-provider-time/internal/validators/timevalidator"
 )
 
 var (
@@ -67,6 +65,7 @@ func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:    true,
 			},
 			"rfc3339": schema.StringAttribute{
+				CustomType: timetypes.RFC3339Type{},
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
@@ -75,9 +74,6 @@ func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
-				},
-				Validators: []validator.String{
-					timevalidator.IsRFC3339Time(),
 				},
 			},
 			"second": schema.Int64Attribute{
@@ -93,6 +89,7 @@ func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:    true,
 			},
 			"id": schema.StringAttribute{
+				CustomType:  timetypes.RFC3339Type{},
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 				PlanModifiers: []planmodifier.String{
@@ -123,9 +120,9 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 		Hour:    types.Int64Value(int64(timestamp.Hour())),
 		Minute:  types.Int64Value(int64(timestamp.Minute())),
 		Second:  types.Int64Value(int64(timestamp.Second())),
-		RFC3339: types.StringValue(formattedTimestamp),
+		RFC3339: timetypes.NewRFC3339Value(formattedTimestamp),
 		Unix:    types.Int64Value(timestamp.Unix()),
-		ID:      types.StringValue(formattedTimestamp),
+		ID:      timetypes.NewRFC3339Value(formattedTimestamp),
 	}
 	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
 
@@ -167,9 +164,9 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 		Hour:     types.Int64Value(int64(timestamp.Hour())),
 		Minute:   types.Int64Value(int64(timestamp.Minute())),
 		Second:   types.Int64Value(int64(timestamp.Second())),
-		RFC3339:  types.StringValue(formattedTimestamp),
+		RFC3339:  timetypes.NewRFC3339Value(formattedTimestamp),
 		Unix:     types.Int64Value(timestamp.Unix()),
-		ID:       types.StringValue(formattedTimestamp),
+		ID:       timetypes.NewRFC3339Value(formattedTimestamp),
 	}
 
 	diags = resp.State.Set(ctx, state)
@@ -195,14 +192,14 @@ func (t timeStaticResource) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 type timeStaticModelV0 struct {
-	Day      types.Int64  `tfsdk:"day"`
-	Hour     types.Int64  `tfsdk:"hour"`
-	Triggers types.Map    `tfsdk:"triggers"`
-	Minute   types.Int64  `tfsdk:"minute"`
-	Month    types.Int64  `tfsdk:"month"`
-	RFC3339  types.String `tfsdk:"rfc3339"`
-	Second   types.Int64  `tfsdk:"second"`
-	Unix     types.Int64  `tfsdk:"unix"`
-	Year     types.Int64  `tfsdk:"year"`
-	ID       types.String `tfsdk:"id"`
+	Day      types.Int64       `tfsdk:"day"`
+	Hour     types.Int64       `tfsdk:"hour"`
+	Triggers types.Map         `tfsdk:"triggers"`
+	Minute   types.Int64       `tfsdk:"minute"`
+	Month    types.Int64       `tfsdk:"month"`
+	RFC3339  timetypes.RFC3339 `tfsdk:"rfc3339"`
+	Second   types.Int64       `tfsdk:"second"`
+	Unix     types.Int64       `tfsdk:"unix"`
+	Year     types.Int64       `tfsdk:"year"`
+	ID       timetypes.RFC3339 `tfsdk:"id"`
 }
