@@ -103,7 +103,7 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	state := timeSleepModelV0{
 		CreateDuration:  types.StringNull(),
 		DestroyDuration: types.StringNull(),
-		ID:              timetypes.NewRFC3339Value(time.Now().UTC().Format(time.RFC3339)),
+		ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
 	}
 
 	if idParts[0] != "" {
@@ -173,7 +173,7 @@ func (t timeSleepResource) Create(ctx context.Context, req resource.CreateReques
 		CreateDuration:  plan.CreateDuration,
 		DestroyDuration: plan.DestroyDuration,
 		Triggers:        plan.Triggers,
-		ID:              timetypes.NewRFC3339Value(time.Now().UTC().Format(time.RFC3339)),
+		ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
 	}
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)

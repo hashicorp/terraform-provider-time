@@ -111,8 +111,6 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 		return
 	}
 
-	formattedTimestamp := timestamp.Format(time.RFC3339)
-
 	state := timeStaticModelV0{
 		Year:    types.Int64Value(int64(timestamp.Year())),
 		Month:   types.Int64Value(int64(timestamp.Month())),
@@ -120,9 +118,9 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 		Hour:    types.Int64Value(int64(timestamp.Hour())),
 		Minute:  types.Int64Value(int64(timestamp.Minute())),
 		Second:  types.Int64Value(int64(timestamp.Second())),
-		RFC3339: timetypes.NewRFC3339Value(formattedTimestamp),
+		RFC3339: timetypes.NewRFC3339TimeValue(timestamp),
 		Unix:    types.Int64Value(timestamp.Unix()),
-		ID:      timetypes.NewRFC3339Value(formattedTimestamp),
+		ID:      timetypes.NewRFC3339TimeValue(timestamp),
 	}
 	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
 
@@ -142,19 +140,16 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 	timestamp := time.Now().UTC()
 
 	if plan.RFC3339.ValueString() != "" {
-		var err error
+		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.RFC3339.ValueString()); err != nil {
-			resp.Diagnostics.AddError(
-				"Create time static error",
-				"The rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-					fmt.Sprintf("Original Error: %s", err),
-			)
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
 			return
 		}
-	}
 
-	formattedTimestamp := timestamp.Format(time.RFC3339)
+		timestamp = rfc3339
+	}
 
 	state := timeStaticModelV0{
 		Triggers: plan.Triggers,
@@ -164,9 +159,9 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 		Hour:     types.Int64Value(int64(timestamp.Hour())),
 		Minute:   types.Int64Value(int64(timestamp.Minute())),
 		Second:   types.Int64Value(int64(timestamp.Second())),
-		RFC3339:  timetypes.NewRFC3339Value(formattedTimestamp),
+		RFC3339:  timetypes.NewRFC3339TimeValue(timestamp),
 		Unix:     types.Int64Value(timestamp.Unix()),
-		ID:       timetypes.NewRFC3339Value(formattedTimestamp),
+		ID:       timetypes.NewRFC3339TimeValue(timestamp),
 	}
 
 	diags = resp.State.Set(ctx, state)

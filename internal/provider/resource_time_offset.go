@@ -195,15 +195,14 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 		}
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time offset error",
-			"The base_rfc3339 timestamp could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
+	timestamp, diags := baseRFC3339.ValueRFC3339Time()
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	setOffsetValues(&plan, timestamp)
 
 	diags = resp.Plan.Set(ctx, plan)
@@ -325,16 +324,15 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 	timestamp := time.Now().UTC()
 
 	if plan.BaseRFC3339.ValueString() != "" {
-		var err error
+		baseRFC3339, diags := plan.BaseRFC3339.ValueRFC3339Time()
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString()); err != nil {
-			resp.Diagnostics.AddError(
-				"Create time offset error",
-				"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-					fmt.Sprintf("Original Error: %s", err),
-			)
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
 			return
 		}
+
+		timestamp = baseRFC3339
 	}
 
 	setOffsetValues(&plan, timestamp)
@@ -355,14 +353,11 @@ func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString())
+	timestamp, diags := plan.BaseRFC3339.ValueRFC3339Time()
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time offset error",
-			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -396,8 +391,6 @@ type timeOffsetModelV0 struct {
 }
 
 func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
-	formattedTimestamp := timestamp.Format(time.RFC3339)
-
 	var offsetTimestamp time.Time
 
 	if plan.OffsetDays.ValueInt64() != 0 {
@@ -427,18 +420,16 @@ func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
 		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.ValueInt64()), 0, 0)
 	}
 
-	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
-
-	plan.BaseRFC3339 = timetypes.NewRFC3339Value(formattedTimestamp)
+	plan.BaseRFC3339 = timetypes.NewRFC3339TimeValue(timestamp)
 	plan.Year = types.Int64Value(int64(offsetTimestamp.Year()))
 	plan.Month = types.Int64Value(int64(offsetTimestamp.Month()))
 	plan.Day = types.Int64Value(int64(offsetTimestamp.Day()))
 	plan.Hour = types.Int64Value(int64(offsetTimestamp.Hour()))
 	plan.Minute = types.Int64Value(int64(offsetTimestamp.Minute()))
 	plan.Second = types.Int64Value(int64(offsetTimestamp.Second()))
-	plan.RFC3339 = timetypes.NewRFC3339Value(formattedOffsetTimestamp)
+	plan.RFC3339 = timetypes.NewRFC3339TimeValue(offsetTimestamp)
 	plan.Unix = types.Int64Value(offsetTimestamp.Unix())
-	plan.ID = timetypes.NewRFC3339Value(formattedTimestamp)
+	plan.ID = timetypes.NewRFC3339TimeValue(timestamp)
 }
 
 func offsetToInt64(offsetStr string) (types.Int64, error) {

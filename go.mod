@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.3.4
-	github.com/hashicorp/terraform-plugin-framework-timetypes v0.1.0
+	github.com/hashicorp/terraform-plugin-framework-timetypes v0.2.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.11.0
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-testing v1.4.0
