@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -44,6 +45,7 @@ func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaReque
 			"by using the [`timestamp()` function](https://www.terraform.io/docs/configuration/functions/timestamp.html).",
 		Attributes: map[string]schema.Attribute{
 			"base_rfc3339": schema.StringAttribute{
+				CustomType: timetypes.RFC3339Type{},
 				Description: "Base timestamp in " +
 					"[RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format " +
 					"(see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., " +
@@ -101,6 +103,7 @@ func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaReque
 				Optional:    true,
 			},
 			"rfc3339": schema.StringAttribute{
+				CustomType:  timetypes.RFC3339Type{},
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 			},
@@ -117,6 +120,7 @@ func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaReque
 				Computed:    true,
 			},
 			"id": schema.StringAttribute{
+				CustomType:  timetypes.RFC3339Type{},
 				Description: "RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.",
 				Computed:    true,
 			},
@@ -172,7 +176,7 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 		return
 	}
 
-	var baseRFC3339 types.String
+	var baseRFC3339 timetypes.RFC3339
 
 	diags = req.Plan.GetAttribute(ctx, path.Root("base_rfc3339"), &baseRFC3339)
 
@@ -191,15 +195,14 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 		}
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, baseRFC3339.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create time offset error",
-			"The base_rfc3339 timestamp could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
+	timestamp, diags := baseRFC3339.ValueRFC3339Time()
+
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	setOffsetValues(&plan, timestamp)
 
 	diags = resp.Plan.Set(ctx, plan)
@@ -321,16 +324,15 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 	timestamp := time.Now().UTC()
 
 	if plan.BaseRFC3339.ValueString() != "" {
-		var err error
+		baseRFC3339, diags := plan.BaseRFC3339.ValueRFC3339Time()
 
-		if timestamp, err = time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString()); err != nil {
-			resp.Diagnostics.AddError(
-				"Create time offset error",
-				"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-					fmt.Sprintf("Original Error: %s", err),
-			)
+		resp.Diagnostics.Append(diags...)
+
+		if resp.Diagnostics.HasError() {
 			return
 		}
+
+		timestamp = baseRFC3339
 	}
 
 	setOffsetValues(&plan, timestamp)
@@ -351,14 +353,11 @@ func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	timestamp, err := time.Parse(time.RFC3339, plan.BaseRFC3339.ValueString())
+	timestamp, diags := plan.BaseRFC3339.ValueRFC3339Time()
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update time offset error",
-			"The base_rfc3339 timestamp that was supplied could not be parsed as RFC3339.\n\n+"+
-				fmt.Sprintf("Original Error: %s", err),
-		)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -372,28 +371,26 @@ func (t timeOffsetResource) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 type timeOffsetModelV0 struct {
-	BaseRFC3339   types.String `tfsdk:"base_rfc3339"`
-	Triggers      types.Map    `tfsdk:"triggers"`
-	Year          types.Int64  `tfsdk:"year"`
-	Month         types.Int64  `tfsdk:"month"`
-	Day           types.Int64  `tfsdk:"day"`
-	Hour          types.Int64  `tfsdk:"hour"`
-	Minute        types.Int64  `tfsdk:"minute"`
-	Second        types.Int64  `tfsdk:"second"`
-	OffsetYears   types.Int64  `tfsdk:"offset_years"`
-	OffsetMonths  types.Int64  `tfsdk:"offset_months"`
-	OffsetDays    types.Int64  `tfsdk:"offset_days"`
-	OffsetHours   types.Int64  `tfsdk:"offset_hours"`
-	OffsetMinutes types.Int64  `tfsdk:"offset_minutes"`
-	OffsetSeconds types.Int64  `tfsdk:"offset_seconds"`
-	RFC3339       types.String `tfsdk:"rfc3339"`
-	Unix          types.Int64  `tfsdk:"unix"`
-	ID            types.String `tfsdk:"id"`
+	BaseRFC3339   timetypes.RFC3339 `tfsdk:"base_rfc3339"`
+	Triggers      types.Map         `tfsdk:"triggers"`
+	Year          types.Int64       `tfsdk:"year"`
+	Month         types.Int64       `tfsdk:"month"`
+	Day           types.Int64       `tfsdk:"day"`
+	Hour          types.Int64       `tfsdk:"hour"`
+	Minute        types.Int64       `tfsdk:"minute"`
+	Second        types.Int64       `tfsdk:"second"`
+	OffsetYears   types.Int64       `tfsdk:"offset_years"`
+	OffsetMonths  types.Int64       `tfsdk:"offset_months"`
+	OffsetDays    types.Int64       `tfsdk:"offset_days"`
+	OffsetHours   types.Int64       `tfsdk:"offset_hours"`
+	OffsetMinutes types.Int64       `tfsdk:"offset_minutes"`
+	OffsetSeconds types.Int64       `tfsdk:"offset_seconds"`
+	RFC3339       timetypes.RFC3339 `tfsdk:"rfc3339"`
+	Unix          types.Int64       `tfsdk:"unix"`
+	ID            timetypes.RFC3339 `tfsdk:"id"`
 }
 
 func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
-	formattedTimestamp := timestamp.Format(time.RFC3339)
-
 	var offsetTimestamp time.Time
 
 	if plan.OffsetDays.ValueInt64() != 0 {
@@ -423,18 +420,16 @@ func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
 		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.ValueInt64()), 0, 0)
 	}
 
-	formattedOffsetTimestamp := offsetTimestamp.Format(time.RFC3339)
-
-	plan.BaseRFC3339 = types.StringValue(formattedTimestamp)
+	plan.BaseRFC3339 = timetypes.NewRFC3339TimeValue(timestamp)
 	plan.Year = types.Int64Value(int64(offsetTimestamp.Year()))
 	plan.Month = types.Int64Value(int64(offsetTimestamp.Month()))
 	plan.Day = types.Int64Value(int64(offsetTimestamp.Day()))
 	plan.Hour = types.Int64Value(int64(offsetTimestamp.Hour()))
 	plan.Minute = types.Int64Value(int64(offsetTimestamp.Minute()))
 	plan.Second = types.Int64Value(int64(offsetTimestamp.Second()))
-	plan.RFC3339 = types.StringValue(formattedOffsetTimestamp)
+	plan.RFC3339 = timetypes.NewRFC3339TimeValue(offsetTimestamp)
 	plan.Unix = types.Int64Value(offsetTimestamp.Unix())
-	plan.ID = types.StringValue(formattedTimestamp)
+	plan.ID = timetypes.NewRFC3339TimeValue(timestamp)
 }
 
 func offsetToInt64(offsetStr string) (types.Int64, error) {
