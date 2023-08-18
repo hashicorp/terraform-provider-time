@@ -52,8 +52,6 @@ from imports.time.offset import Offset
 class MyConvertedCode(TerraformStack):
     def __init__(self, scope, name):
         super().__init__(scope, name)
-        # The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-        #     For a more precise conversion please use the --provider flag in convert.
         ami_update = Offset(self, "ami_update",
             offset_days=7,
             triggers={
@@ -61,7 +59,7 @@ class MyConvertedCode(TerraformStack):
             }
         )
         Instance(self, "server",
-            ami=Fn.lookup_nested(ami_update, ["triggers", "ami_id"]),
+            ami=Token.as_string(Fn.lookup_nested(ami_update, ["triggers", "ami_id"])),
             tags={
                 "ExpirationTime": ami_update.rfc3339
             }
@@ -103,4 +101,4 @@ terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 -->
+<!-- cache-key: cdktf-0.18.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

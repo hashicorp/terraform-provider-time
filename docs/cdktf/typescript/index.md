@@ -37,15 +37,13 @@ import { StaticResource } from "./.gen/providers/time/static-resource";
 class MyConvertedCode extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
-    /*The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-    For a more precise conversion please use the --provider flag in convert.*/
     const amiUpdate = new StaticResource(this, "ami_update", {
       triggers: {
         ami_id: Token.asString(example.id),
       },
     });
     new Instance(this, "server", {
-      ami: Fn.lookupNested(amiUpdate, ["triggers", "ami_id"]),
+      ami: Token.asString(Fn.lookupNested(amiUpdate, ["triggers", "ami_id"])),
       tags: {
         AmiUpdateTime: amiUpdate.rfc3339,
       },
@@ -59,4 +57,4 @@ class MyConvertedCode extends TerraformStack {
 
 To force a these actions to reoccur without updating `triggers`, the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) can be used to produce the action on the next run.
 
-<!-- cache-key: cdktf-0.18.0 input-bc12960a9acfa8c6ebb6834f5fc7a95b4cc9baf2b76cbb71ea47c692591f4c4f -->
+<!-- cache-key: cdktf-0.18.0 input-bc12960a9acfa8c6ebb6834f5fc7a95b4cc9baf2b76cbb71ea47c692591f4c4f 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

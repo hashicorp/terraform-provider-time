@@ -53,15 +53,13 @@ import { StaticResource } from "./.gen/providers/time/static-resource";
 class MyConvertedCode extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
-    /*The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-    For a more precise conversion please use the --provider flag in convert.*/
     const amiUpdate = new StaticResource(this, "ami_update", {
       triggers: {
         ami_id: Token.asString(example.id),
       },
     });
     new Instance(this, "server", {
-      ami: Fn.lookupNested(amiUpdate, ["triggers", "ami_id"]),
+      ami: Token.asString(Fn.lookupNested(amiUpdate, ["triggers", "ami_id"])),
       tags: {
         AmiUpdateTime: amiUpdate.rfc3339,
       },
@@ -100,4 +98,4 @@ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 -->
+<!-- cache-key: cdktf-0.18.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

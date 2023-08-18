@@ -85,23 +85,22 @@ from imports.time.sleep import Sleep
 class MyConvertedCode(TerraformStack):
     def __init__(self, scope, name):
         super().__init__(scope, name)
-        # The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-        #     For a more precise conversion please use the --provider flag in convert.
         example = RamResourceAssociation(self, "example",
-            resource_arn=aws_subnet_example.arn,
-            resource_share_arn=aws_ram_resource_share_example.arn
+            resource_arn=Token.as_string(aws_subnet_example.arn),
+            resource_share_arn=Token.as_string(aws_ram_resource_share_example.arn)
         )
         ram_resource_propagation = Sleep(self, "ram_resource_propagation",
             create_duration="60s",
             triggers={
-                "subnet_arn": Token.as_string(example.resource_arn),
+                "subnet_arn": example.resource_arn,
                 "subnet_id": Token.as_string(aws_subnet_example.id)
             }
         )
         aws_db_subnet_group_example = DbSubnetGroup(self, "example_2",
             name="example",
             subnet_ids=[
-                Fn.lookup_nested(ram_resource_propagation.triggers, ["\"subnet_id\""])
+                Token.as_string(
+                    Fn.lookup_nested(ram_resource_propagation.triggers, ["\"subnet_id\""]))
             ]
         )
         # This allows the Terraform resource name to match the original name. You can remove the call if you don't need them to match.
@@ -138,4 +137,4 @@ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c -->
+<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
