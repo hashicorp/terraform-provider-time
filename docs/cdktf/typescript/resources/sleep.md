@@ -91,23 +91,23 @@ import { Sleep } from "./.gen/providers/time/sleep";
 class MyConvertedCode extends TerraformStack {
   constructor(scope: Construct, name: string) {
     super(scope, name);
-    /*The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-    For a more precise conversion please use the --provider flag in convert.*/
     const example = new RamResourceAssociation(this, "example", {
-      resource_arn: awsSubnetExample.arn,
-      resource_share_arn: awsRamResourceShareExample.arn,
+      resourceArn: Token.asString(awsSubnetExample.arn),
+      resourceShareArn: Token.asString(awsRamResourceShareExample.arn),
     });
     const ramResourcePropagation = new Sleep(this, "ram_resource_propagation", {
       createDuration: "60s",
       triggers: {
-        subnet_arn: Token.asString(example.resourceArn),
+        subnet_arn: example.resourceArn,
         subnet_id: Token.asString(awsSubnetExample.id),
       },
     });
     const awsDbSubnetGroupExample = new DbSubnetGroup(this, "example_2", {
       name: "example",
-      subnet_ids: [
-        Fn.lookupNested(ramResourcePropagation.triggers, ['"subnet_id"']),
+      subnetIds: [
+        Token.asString(
+          Fn.lookupNested(ramResourcePropagation.triggers, ['"subnet_id"'])
+        ),
       ],
     });
     /*This allows the Terraform resource name to match the original name. You can remove the call if you don't need them to match.*/
@@ -147,4 +147,4 @@ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c -->
+<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

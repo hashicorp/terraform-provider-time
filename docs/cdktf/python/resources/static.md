@@ -50,15 +50,13 @@ from imports.time.static_resource import StaticResource
 class MyConvertedCode(TerraformStack):
     def __init__(self, scope, name):
         super().__init__(scope, name)
-        # The following providers are missing schema information and might need manual adjustments to synthesize correctly: aws.
-        #     For a more precise conversion please use the --provider flag in convert.
         ami_update = StaticResource(self, "ami_update",
             triggers={
                 "ami_id": Token.as_string(example.id)
             }
         )
         Instance(self, "server",
-            ami=Fn.lookup_nested(ami_update, ["triggers", "ami_id"]),
+            ami=Token.as_string(Fn.lookup_nested(ami_update, ["triggers", "ami_id"])),
             tags={
                 "AmiUpdateTime": ami_update.rfc3339
             }
@@ -94,4 +92,4 @@ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 -->
+<!-- cache-key: cdktf-0.18.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
