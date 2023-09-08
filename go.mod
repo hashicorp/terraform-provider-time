@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-provider-time
 
-go 1.19
+go 1.20
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.4.0
