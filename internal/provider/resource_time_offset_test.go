@@ -359,6 +359,66 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 	})
 }
 
+func TestAccTimeOffset_OffsetAll(t *testing.T) {
+	resourceName := "time_offset.test"
+	timestamp := time.Now().UTC()
+	offsetTimestamp := timestamp.AddDate(3, 3, 3).Add(3 * time.Hour).Add(3 * time.Minute).Add(3 * time.Second)
+	offsetTimestampUpdated := timestamp.AddDate(4, 4, 4).Add(4 * time.Hour).Add(4 * time.Minute).Add(4 * time.Second)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeOffsetOffsetAll(timestamp.Format(time.RFC3339), 3),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
+					resource.TestCheckResourceAttr(resourceName, "offset_months", "3"),
+					resource.TestCheckResourceAttr(resourceName, "offset_days", "3"),
+					resource.TestCheckResourceAttr(resourceName, "offset_hours", "3"),
+					resource.TestCheckResourceAttr(resourceName, "offset_minutes", "3"),
+					resource.TestCheckResourceAttr(resourceName, "offset_seconds", "3"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateIdFunc: testAccTimeOffsetImportStateIdFunc(),
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccConfigTimeOffsetOffsetAll(timestamp.Format(time.RFC3339), 4),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
+					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
+					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
+					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
+					resource.TestCheckResourceAttr(resourceName, "offset_years", "4"),
+					resource.TestCheckResourceAttr(resourceName, "offset_months", "4"),
+					resource.TestCheckResourceAttr(resourceName, "offset_days", "4"),
+					resource.TestCheckResourceAttr(resourceName, "offset_hours", "4"),
+					resource.TestCheckResourceAttr(resourceName, "offset_minutes", "4"),
+					resource.TestCheckResourceAttr(resourceName, "offset_seconds", "4"),
+					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
+					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
+					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
+					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
+				),
+			},
+		},
+	})
+}
+
 func TestAccTimeOffset_Upgrade(t *testing.T) {
 	resourceName := "time_offset.test"
 	timestamp := time.Now().UTC()
@@ -507,4 +567,18 @@ resource "time_offset" "test" {
   offset_years = %[2]d
 }
 `, baseRfc3339, offsetYears)
+}
+
+func testAccConfigTimeOffsetOffsetAll(baseRfc3339 string, offsets int) string {
+	return fmt.Sprintf(`
+resource "time_offset" "test" {
+  base_rfc3339 = %[1]q
+  offset_years = %[2]d
+  offset_months = %[2]d
+  offset_days = %[2]d
+  offset_hours = %[2]d
+  offset_minutes = %[2]d
+  offset_seconds = %[2]d
+}
+`, baseRfc3339, offsets)
 }
