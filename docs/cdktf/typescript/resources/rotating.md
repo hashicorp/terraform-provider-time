@@ -42,7 +42,7 @@ class MyConvertedCode extends TerraformStack {
 
 ### Optional
 
-- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `yyyyMmDdthh:mm:ssz`). Defaults to the current time.
+- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `rotationDays` (Number) Number of days to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. At least one of the 'rotation_' arguments must be configured.
 - `rotationHours` (Number) Number of hours to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. At least one of the 'rotation_' arguments must be configured.
 - `rotationMinutes` (Number) Number of minutes to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger recreation. At least one of the 'rotation_' arguments must be configured.
@@ -55,7 +55,7 @@ class MyConvertedCode extends TerraformStack {
 
 - `day` (Number) Number day of timestamp.
 - `hour` (Number) Number hour of timestamp.
-- `id` (String) RFC3339 format of the timestamp, e.g. `20200212T06:36:13Z`.
+- `id` (String) RFC3339 format of the timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `minute` (Number) Number minute of timestamp.
 - `month` (Number) Number month of timestamp.
 - `second` (Number) Number second of timestamp.
@@ -78,4 +78,4 @@ terraform import time_rotating.example 2020-02-12T06:36:13Z,2020-02-13T06:36:13Z
 
 The `triggers` argument cannot be imported.
 
-<!-- cache-key: cdktf-0.18.0 input-eec8d2abb9e41d257337f27d082bf8b4b5627f1c470562afec7afd5ff5053b6b 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-eec8d2abb9e41d257337f27d082bf8b4b5627f1c470562afec7afd5ff5053b6b 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

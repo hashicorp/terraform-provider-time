@@ -122,13 +122,13 @@ class MyConvertedCode extends TerraformStack {
 
 ### Optional
 
-- `createDuration` (String) [Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource creation. For example, `30S` for 30 seconds or `5M` for 5 minutes. Updating this value by itself will not trigger a delay.
-- `destroyDuration` (String) [Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource destroy. For example, `30S` for 30 seconds or `5M` for 5 minutes. Updating this value by itself will not trigger a delay. This value or any updates to it must be successfully applied into the Terraform state before destroying this resource to take effect.
+- `createDuration` (String) [Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource creation. For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay.
+- `destroyDuration` (String) [Time duration](https://golang.org/pkg/time/#ParseDuration) to delay resource destroy. For example, `30s` for 30 seconds or `5m` for 5 minutes. Updating this value by itself will not trigger a delay. This value or any updates to it must be successfully applied into the Terraform state before destroying this resource to take effect.
 - `triggers` (Map of String) (Optional) Arbitrary map of values that, when changed, will run any creation or destroy delays again. See [the main provider documentation](../index.md) for more information.
 
 ### Read-Only
 
-- `id` (String) RFC3339 format of the offset timestamp, e.g. `20200212T06:36:13Z`.
+- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 
 ## Import
 
@@ -147,4 +147,4 @@ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

@@ -101,4 +101,4 @@ terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

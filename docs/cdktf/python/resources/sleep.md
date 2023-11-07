@@ -137,4 +137,4 @@ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
