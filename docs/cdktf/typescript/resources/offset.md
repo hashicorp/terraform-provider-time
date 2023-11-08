@@ -77,7 +77,7 @@ class MyConvertedCode extends TerraformStack {
 
 ### Optional
 
-- `baseRfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `yyyyMmDdthh:mm:ssz`). Defaults to the current time.
+- `baseRfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `offsetDays` (Number) Number of days to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
 - `offsetHours` (Number) Number of hours to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
 - `offsetMinutes` (Number) Number of minutes to offset the base timestamp. At least one of the 'offset_' arguments must be configured.
@@ -90,10 +90,10 @@ class MyConvertedCode extends TerraformStack {
 
 - `day` (Number) Number day of offset timestamp.
 - `hour` (Number) Number hour of offset timestamp.
-- `id` (String) RFC3339 format of the offset timestamp, e.g. `20200212T06:36:13Z`.
+- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `minute` (Number) Number minute of offset timestamp.
 - `month` (Number) Number month of offset timestamp.
-- `rfc3339` (String) RFC3339 format of the offset timestamp, e.g. `20200212T06:36:13Z`.
+- `rfc3339` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `second` (Number) Number second of offset timestamp.
 - `unix` (Number) Number of seconds since epoch time, e.g. `1581489373`.
 - `year` (Number) Number year of offset timestamp.
@@ -107,4 +107,4 @@ terraform import time_offset.example 2020-02-12T06:36:13Z,0,0,7,0,0,0
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-e4f51351e41d12e8bd28f5caaf9fdb208c836529abc6dd752468db509a3211e2 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->

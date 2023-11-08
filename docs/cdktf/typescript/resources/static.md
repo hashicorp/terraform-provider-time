@@ -74,14 +74,14 @@ class MyConvertedCode extends TerraformStack {
 
 ### Optional
 
-- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `yyyyMmDdthh:mm:ssz`). Defaults to the current time.
+- `rfc3339` (String) Base timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format (see [RFC3339 time string](https://tools.ietf.org/html/rfc3339#section-5.8) e.g., `YYYY-MM-DDTHH:MM:SSZ`). Defaults to the current time.
 - `triggers` (Map of String) Arbitrary map of values that, when changed, will trigger a new base timestamp value to be saved. See [the main provider documentation](../index.md) for more information.
 
 ### Read-Only
 
 - `day` (Number) Number day of timestamp.
 - `hour` (Number) Number hour of timestamp.
-- `id` (String) RFC3339 format of the offset timestamp, e.g. `20200212T06:36:13Z`.
+- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `minute` (Number) Number minute of timestamp.
 - `month` (Number) Number month of timestamp.
 - `second` (Number) Number second of timestamp.
@@ -98,4 +98,4 @@ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.18.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.19.0 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
