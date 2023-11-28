@@ -1,3 +1,9 @@
+## 0.9.2 (November 28, 2023)
+
+NOTES:
+
+* This release introduces no functional changes. It does however include dependency updates which address upstream CVEs. ([#263](https://github.com/hashicorp/terraform-provider-time/issues/263))
+
 ## 0.9.1 (November 2, 2022)
 
 BUG FIXES:
