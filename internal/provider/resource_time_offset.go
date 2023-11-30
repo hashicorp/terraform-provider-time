@@ -391,33 +391,33 @@ type timeOffsetModelV0 struct {
 }
 
 func setOffsetValues(plan *timeOffsetModelV0, timestamp time.Time) {
-	var offsetTimestamp time.Time
+	var offsetTimestamp = timestamp
 
 	if plan.OffsetDays.ValueInt64() != 0 {
-		offsetTimestamp = timestamp.AddDate(0, 0, int(plan.OffsetDays.ValueInt64()))
+		offsetTimestamp = offsetTimestamp.AddDate(0, 0, int(plan.OffsetDays.ValueInt64()))
 	}
 
 	if plan.OffsetHours.ValueInt64() != 0 {
 		hours := time.Duration(plan.OffsetHours.ValueInt64()) * time.Hour
-		offsetTimestamp = timestamp.Add(hours)
+		offsetTimestamp = offsetTimestamp.Add(hours)
 	}
 
 	if plan.OffsetMinutes.ValueInt64() != 0 {
 		minutes := time.Duration(plan.OffsetMinutes.ValueInt64()) * time.Minute
-		offsetTimestamp = timestamp.Add(minutes)
+		offsetTimestamp = offsetTimestamp.Add(minutes)
 	}
 
 	if plan.OffsetMonths.ValueInt64() != 0 {
-		offsetTimestamp = timestamp.AddDate(0, int(plan.OffsetMonths.ValueInt64()), 0)
+		offsetTimestamp = offsetTimestamp.AddDate(0, int(plan.OffsetMonths.ValueInt64()), 0)
 	}
 
 	if plan.OffsetSeconds.ValueInt64() != 0 {
 		seconds := time.Duration(plan.OffsetSeconds.ValueInt64()) * time.Second
-		offsetTimestamp = timestamp.Add(seconds)
+		offsetTimestamp = offsetTimestamp.Add(seconds)
 	}
 
 	if plan.OffsetYears.ValueInt64() != 0 {
-		offsetTimestamp = timestamp.AddDate(int(plan.OffsetYears.ValueInt64()), 0, 0)
+		offsetTimestamp = offsetTimestamp.AddDate(int(plan.OffsetYears.ValueInt64()), 0, 0)
 	}
 
 	plan.BaseRFC3339 = timetypes.NewRFC3339TimeValue(timestamp)
