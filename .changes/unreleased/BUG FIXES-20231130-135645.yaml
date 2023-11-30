@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'resource/time_offset: Fix bug preventing multiple offset arguments from being
+  set'
+time: 2023-11-30T13:56:45.120869-05:00
+custom:
+  Issue: "189"
