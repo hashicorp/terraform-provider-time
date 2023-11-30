@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
@@ -489,7 +492,7 @@ func TestAccTimeRotating_Validators(t *testing.T) {
 			},
 			{
 				Config:      testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC822), 1),
-				ExpectError: regexp.MustCompile(`.*must be a string in RFC3339 format`),
+				ExpectError: regexp.MustCompile(`.*Invalid RFC3339 String Value`),
 			},
 			{
 				Config:      testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 0),
