@@ -29,7 +29,7 @@ output "one_week_from_now" {
 
 ```terraform
 resource "time_offset" "example" {
-  offset_years = 1
+  offset_years  = 1
   offset_months = 1
 }
 
