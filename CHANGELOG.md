@@ -1,3 +1,9 @@
+## 0.10.0 (December 06, 2023)
+
+BUG FIXES:
+
+* resource/time_offset: Fix bug preventing multiple offset arguments from being set ([#189](https://github.com/hashicorp/terraform-provider-time/issues/189))
+
 ## 0.9.2 (November 28, 2023)
 
 NOTES:
