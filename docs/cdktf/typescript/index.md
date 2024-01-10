@@ -16,9 +16,9 @@ Use the navigation to the left to read about the available resources.
 
 Certain time resources, only perform actions during specific lifecycle actions:
 
-- `timeOffset`: Saves base timestamp into Terraform state only when created.
-- `timeSleep`: Sleeps when created and/or destroyed.
-- `timeStatic`: Saves base timestamp into Terraform state only when created.
+- `time_offset`: Saves base timestamp into Terraform state only when created.
+- `time_sleep`: Sleeps when created and/or destroyed.
+- `time_static`: Saves base timestamp into Terraform state only when created.
 
 These resources provide an optional map argument called `triggers` that can be populated with arbitrary key/value pairs. When the keys or values of this argument are updated, Terraform will re-perform the desired action, such as updating the base timestamp or sleeping again.
 
@@ -57,4 +57,4 @@ class MyConvertedCode extends TerraformStack {
 
 To force a these actions to reoccur without updating `triggers`, the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) can be used to produce the action on the next run.
 
-<!-- cache-key: cdktf-0.19.0 input-bc12960a9acfa8c6ebb6834f5fc7a95b4cc9baf2b76cbb71ea47c692591f4c4f 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.20.0 input-bc12960a9acfa8c6ebb6834f5fc7a95b4cc9baf2b76cbb71ea47c692591f4c4f -->

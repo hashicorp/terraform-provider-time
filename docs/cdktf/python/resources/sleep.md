@@ -30,8 +30,6 @@ from imports.time.sleep import Sleep
 class MyConvertedCode(TerraformStack):
     def __init__(self, scope, name):
         super().__init__(scope, name)
-        # The following providers are missing schema information and might need manual adjustments to synthesize correctly: null.
-        #     For a more precise conversion please use the --provider flag in convert.
         null_resource_previous = Resource(self, "previous")
         wait30_seconds = Sleep(self, "wait_30_seconds",
             create_duration="30s",
@@ -57,8 +55,6 @@ from imports.time.sleep import Sleep
 class MyConvertedCode(TerraformStack):
     def __init__(self, scope, name):
         super().__init__(scope, name)
-        # The following providers are missing schema information and might need manual adjustments to synthesize correctly: null.
-        #     For a more precise conversion please use the --provider flag in convert.
         null_resource_previous = Resource(self, "previous")
         wait30_seconds = Sleep(self, "wait_30_seconds",
             depends_on=[null_resource_previous],
@@ -137,4 +133,4 @@ terraform import time_sleep.example ,30s
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.19.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c 556251879b8ed0dc4c87a76b568667e0ab5e2c46efdd14a05c556daf05678783-->
+<!-- cache-key: cdktf-0.20.0 input-73a2d0d8f07a92177ff8e69d3b8b07c852fc6f16cd4c3f99105c5d12d1cda96c -->
