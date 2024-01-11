@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -16,7 +17,8 @@ func New() provider.Provider {
 }
 
 var (
-	_ provider.Provider = (*timeProvider)(nil)
+	_ provider.Provider              = (*timeProvider)(nil)
+	_ provider.ProviderWithFunctions = (*timeProvider)(nil)
 )
 
 type timeProvider struct{}
@@ -43,4 +45,10 @@ func (p *timeProvider) Resources(ctx context.Context) []func() resource.Resource
 }
 
 func (p *timeProvider) Schema(context.Context, provider.SchemaRequest, *provider.SchemaResponse) {
+}
+
+func (p *timeProvider) Functions(ctx context.Context) []func() function.Function {
+	return []func() function.Function{
+		NewRFC3339ParseFunction,
+	}
 }
