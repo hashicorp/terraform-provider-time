@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'function/rfc3339_parse: Added new RFC3339 timestamp parsing provider-defined
+  function'
+time: 2024-01-12T19:22:13.236226-05:00
+custom:
+  Issue: "280"
