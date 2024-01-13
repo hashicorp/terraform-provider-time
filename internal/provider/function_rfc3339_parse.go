@@ -2,11 +2,13 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var rfc3339ReturnAttrTypes = map[string]attr.Type{
@@ -21,15 +23,8 @@ var rfc3339ReturnAttrTypes = map[string]attr.Type{
 	"minute":       types.Int64Type,
 	"second":       types.Int64Type,
 	"unix":         types.Int64Type,
-
-	// TODO: Zone name may be tricky to accurately determine, might need more research into this
-	// https://stackoverflow.com/a/30741518
-	"zone_name": types.StringType,
-
-	// TODO: This is representing as # seconds east of UTC, is this too confusing for practitioners
-	"zone_offset": types.Int64Type,
-	"iso_year":    types.Int64Type,
-	"iso_week":    types.Int64Type,
+	"iso_year":     types.Int64Type,
+	"iso_week":     types.Int64Type,
 }
 
 var _ function.Function = &RFC3339ParseFunction{}
@@ -46,9 +41,8 @@ func (f *RFC3339ParseFunction) Metadata(ctx context.Context, req function.Metada
 
 func (f *RFC3339ParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary: "Parse an RFC3339 timestamp string",
-		// TODO: better wording
-		Description: "Given an RFC3339 timestamp string, will parse and return the object representation of that timestamp.",
+		Summary:     "Parse an RFC3339 timestamp string",
+		Description: "Given an RFC3339 timestamp string, will parse and return an object representation of that date and time.",
 
 		Parameters: []function.Parameter{
 			function.StringParameter{
@@ -72,13 +66,13 @@ func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest,
 
 	rfc3339, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
-		// TODO: we probably shouldn't use error messages from time.Time for practitioners because they are hecka confusing :).
-		// Ex: parsing time "abc" as "2006-01-02T15:04:05Z07:00": cannot parse "abc" as "2006".
-		resp.Diagnostics.AddArgumentError(0, "Error parsing RFC3339 timestamp", err.Error())
+		// Intentionally not returning the Go parse error to practitioners
+		tflog.Error(ctx, fmt.Sprintf("failed to parse RFC3339 timestamp, underlying time.Time error: %s", err.Error()))
+
+		resp.Diagnostics.AddArgumentError(0, "Error parsing RFC3339 timestamp", fmt.Sprintf("%q is not a valid RFC3339 timestamp", timestamp))
 		return
 	}
 
-	zoneName, zoneOffset := rfc3339.Zone()
 	isoYear, isoWeek := rfc3339.ISOWeek()
 
 	rfc3339Obj, diags := types.ObjectValue(
@@ -95,8 +89,6 @@ func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest,
 			"minute":       types.Int64Value(int64(rfc3339.Minute())),
 			"second":       types.Int64Value(int64(rfc3339.Second())),
 			"unix":         types.Int64Value(rfc3339.Unix()),
-			"zone_name":    types.StringValue(zoneName),
-			"zone_offset":  types.Int64Value(int64(zoneOffset)),
 			"iso_year":     types.Int64Value(int64(isoYear)),
 			"iso_week":     types.Int64Value(int64(isoWeek)),
 		},
