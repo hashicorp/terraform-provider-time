@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'functions/rfc3339_parse: Added a new `rfc3339_parse` function that parses an
+  RFC3339 timestamp string and returns an object representation.'
+time: 2024-01-16T13:51:42.329253-05:00
+custom:
+  Issue: "280"
