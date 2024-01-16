@@ -14,6 +14,9 @@ import (
 
 func TestRFC3339Parse_UTC(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
+		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
+		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
@@ -75,6 +78,9 @@ func TestRFC3339Parse_UTC(t *testing.T) {
 
 func TestRFC3339Parse_offset(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
+		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
+		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
@@ -112,6 +118,9 @@ func TestRFC3339Parse_offset(t *testing.T) {
 
 func TestRFC3339Parse_invalid(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
+		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
+		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
