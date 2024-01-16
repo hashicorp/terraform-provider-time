@@ -17,7 +17,6 @@ func New() provider.Provider {
 }
 
 var (
-	_ provider.Provider              = (*timeProvider)(nil)
 	_ provider.ProviderWithFunctions = (*timeProvider)(nil)
 )
 
