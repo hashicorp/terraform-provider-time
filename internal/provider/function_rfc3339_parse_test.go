@@ -18,7 +18,6 @@ func TestRFC3339Parse_UTC(t *testing.T) {
 		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
 		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
-		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: `
