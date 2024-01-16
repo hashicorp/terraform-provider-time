@@ -81,7 +81,6 @@ func TestRFC3339Parse_offset(t *testing.T) {
 		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
 		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
-		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -121,7 +120,6 @@ func TestRFC3339Parse_invalid(t *testing.T) {
 		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
 		// },
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
-		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{
 				Config: `
