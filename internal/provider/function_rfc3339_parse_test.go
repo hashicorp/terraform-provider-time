@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestRFC3339Parse_UTC(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
-		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
-		// },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_8_0),
+		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
@@ -77,9 +78,9 @@ func TestRFC3339Parse_UTC(t *testing.T) {
 
 func TestRFC3339Parse_offset(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
-		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
-		// },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_8_0),
+		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
@@ -116,9 +117,9 @@ func TestRFC3339Parse_offset(t *testing.T) {
 
 func TestRFC3339Parse_invalid(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
-		// TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-		// 	tfversion.RequireAbove(tfversion.Version1_8_0),
-		// },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_8_0),
+		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
