@@ -6,12 +6,15 @@ package provider
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 func TestAccTimeOffset_Triggers(t *testing.T) {
@@ -23,17 +26,17 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetTriggers1("key1", "value1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_seconds"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-					testSleep(1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_seconds"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+					timetesting.Sleep(2),
+				},
 			},
 			{
 				ResourceName:            resourceName,
@@ -44,16 +47,16 @@ func TestAccTimeOffset_Triggers(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetTriggers1("key1", "value1updated"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					resource.TestCheckResourceAttr(resourceName, "offset_days", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_minutes"),
-					resource.TestCheckNoResourceAttr(resourceName, "offset_seconds"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_seconds"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 		},
 	})
@@ -71,18 +74,18 @@ func TestAccTimeOffset_OffsetDays(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetDays(timestamp.Format(time.RFC3339), 7),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_days", "7"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_days"), knownvalue.Int64Exact(7)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -92,18 +95,18 @@ func TestAccTimeOffset_OffsetDays(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetDays(timestamp.Format(time.RFC3339), 8),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_days", "8"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_days"), knownvalue.Int64Exact(8)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -121,18 +124,18 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetHours(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_hours", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_hours"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -142,18 +145,18 @@ func TestAccTimeOffset_OffsetHours(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetHours(timestamp.Format(time.RFC3339), 2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_hours", "2"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_hours"), knownvalue.Int64Exact(2)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -171,18 +174,18 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetMinutes(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_minutes", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_minutes"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -192,18 +195,18 @@ func TestAccTimeOffset_OffsetMinutes(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetMinutes(timestamp.Format(time.RFC3339), 2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_minutes", "2"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_minutes"), knownvalue.Int64Exact(2)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -221,18 +224,18 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetMonths(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_months", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -242,18 +245,18 @@ func TestAccTimeOffset_OffsetMonths(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetMonths(timestamp.Format(time.RFC3339), 4),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_months", "4"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Int64Exact(4)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -271,18 +274,18 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetSeconds(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_seconds", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_seconds"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -292,18 +295,18 @@ func TestAccTimeOffset_OffsetSeconds(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetSeconds(timestamp.Format(time.RFC3339), 2),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_seconds", "2"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_seconds"), knownvalue.Int64Exact(2)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -321,18 +324,18 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -342,18 +345,18 @@ func TestAccTimeOffset_OffsetYears(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 4),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "4"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(4)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -371,19 +374,19 @@ func TestAccTimeOffset_OffsetYearsAndMonths(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeOffsetOffsetYearsAndMonths(timestamp.Format(time.RFC3339), 3, 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "offset_months", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -393,19 +396,19 @@ func TestAccTimeOffset_OffsetYearsAndMonths(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeOffsetOffsetYearsAndMonths(timestamp.Format(time.RFC3339), 4, 4),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestampUpdated.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestampUpdated.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestampUpdated.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestampUpdated.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "4"),
-					resource.TestCheckResourceAttr(resourceName, "offset_months", "4"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestampUpdated.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestampUpdated.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestampUpdated.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestampUpdated.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(4)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_months"), knownvalue.Int64Exact(4)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestampUpdated.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestampUpdated.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestampUpdated.Year()))),
+				},
 			},
 		},
 	})
@@ -422,18 +425,18 @@ func TestAccTimeOffset_Upgrade(t *testing.T) {
 			{
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -443,18 +446,18 @@ func TestAccTimeOffset_Upgrade(t *testing.T) {
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeOffsetOffsetYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "base_rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "day", strconv.Itoa(offsetTimestamp.Day())),
-					resource.TestCheckResourceAttr(resourceName, "hour", strconv.Itoa(offsetTimestamp.Hour())),
-					resource.TestCheckResourceAttr(resourceName, "minute", strconv.Itoa(offsetTimestamp.Minute())),
-					resource.TestCheckResourceAttr(resourceName, "month", strconv.Itoa(int(offsetTimestamp.Month()))),
-					resource.TestCheckResourceAttr(resourceName, "offset_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", offsetTimestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", strconv.Itoa(offsetTimestamp.Second())),
-					resource.TestCheckResourceAttr(resourceName, "unix", strconv.Itoa(int(offsetTimestamp.Unix()))),
-					resource.TestCheckResourceAttr(resourceName, "year", strconv.Itoa(offsetTimestamp.Year())),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("base_rfc3339"), knownvalue.StringExact(timestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), knownvalue.Int64Exact(int64(offsetTimestamp.Day()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), knownvalue.Int64Exact(int64(offsetTimestamp.Hour()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), knownvalue.Int64Exact(int64(offsetTimestamp.Minute()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), knownvalue.Int64Exact(int64(offsetTimestamp.Month()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("offset_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(offsetTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), knownvalue.Int64Exact(int64(offsetTimestamp.Second()))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), knownvalue.Int64Exact(offsetTimestamp.Unix())),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), knownvalue.Int64Exact(int64(offsetTimestamp.Year()))),
+				},
 			},
 		},
 	})

@@ -10,7 +10,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
@@ -22,18 +26,18 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingTriggers1("key1", "value1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_days", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rotation_rfc3339"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-					testSleep(1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+					timetesting.Sleep(2),
+				},
 			},
 			{
 				ResourceName:            resourceName,
@@ -44,17 +48,17 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeRotatingTriggers1("key1", "value1updated"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_days", "1"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rotation_rfc3339"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 		},
 	})
@@ -70,15 +74,15 @@ func TestAccTimeRotating_RotationDays_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 7),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_days", "7"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 0, 7).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 0, 7).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -100,15 +104,15 @@ func TestAccTimeRotating_RotationDays_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_days", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 0, 1).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 0, 1).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -125,15 +129,15 @@ func TestAccTimeRotating_RotationHours_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationHours(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_hours", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.Add(3*time.Hour).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.Add(3*time.Hour).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -155,15 +159,15 @@ func TestAccTimeRotating_RotationHours_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationHours(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_hours", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.Add(1*time.Hour).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.Add(1*time.Hour).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -180,15 +184,15 @@ func TestAccTimeRotating_RotationMinutes_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_minutes", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.Add(3*time.Minute).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.Add(3*time.Minute).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -210,15 +214,15 @@ func TestAccTimeRotating_RotationMinutes_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMinutes(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_minutes", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.Add(1*time.Minute).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.Add(1*time.Minute).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -235,15 +239,15 @@ func TestAccTimeRotating_RotationMonths_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_months", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 3, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 3, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -265,15 +269,15 @@ func TestAccTimeRotating_RotationMonths_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_months", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 1, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 1, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -291,15 +295,15 @@ func TestAccTimeRotating_RotationRfc3339_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationRfc3339(timestamp.Format(time.RFC3339), rotationTimestamp.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(rotationTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -322,15 +326,15 @@ func TestAccTimeRotating_RotationRfc3339_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationRfc3339(timestamp.Format(time.RFC3339), rotationTimestamp.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", rotationTimestamp.Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(rotationTimestamp.Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -347,15 +351,15 @@ func TestAccTimeRotating_RotationYears_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(3, 0, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(3, 0, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ResourceName:      resourceName,
@@ -377,15 +381,15 @@ func TestAccTimeRotating_RotationYears_expired(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 1),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_years", "1"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(1, 0, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(1, 0, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -402,27 +406,27 @@ func TestAccTimeRotating_RotationDays_ToRotationMonths(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeRotatingRotationDays(timestamp.Format(time.RFC3339), 7),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_days", "7"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 0, 7).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 0, 7).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				Config: testAccConfigTimeRotatingRotationMonths(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_months", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(0, 3, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_years"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(0, 3, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 		},
 	})
@@ -439,15 +443,15 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 			{
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(3, 0, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(3, 0, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -457,15 +461,15 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "rotation_years", "3"),
-					resource.TestCheckResourceAttr(resourceName, "rotation_rfc3339", timestamp.AddDate(3, 0, 0).Format(time.RFC3339)),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_months"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_days"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_hours"),
-					resource.TestCheckNoResourceAttr(resourceName, "rotation_minutes"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(3, 0, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
