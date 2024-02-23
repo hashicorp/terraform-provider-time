@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	time_knownvalue "github.com/hashicorp/terraform-provider-time/internal/testing/knownvalue"
+	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 func TestAccTimeStatic_basic(t *testing.T) {
@@ -27,14 +27,14 @@ func TestAccTimeStatic_basic(t *testing.T) {
 			{
 				Config: testAccConfigTimeStatic(),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
 				},
 			},
 			{
@@ -47,8 +47,11 @@ func TestAccTimeStatic_basic(t *testing.T) {
 }
 
 func TestAccTimeStatic_Triggers(t *testing.T) {
-	var time1, time2 string
+
 	resourceName := "time_static.test"
+
+	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
+	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -56,13 +59,13 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStaticTriggers1("key1", "value1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time1),
-					testSleep(1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+					captureTimeState1,
+					timetesting.Sleep(2),
+				},
 			},
 			{
 				ResourceName:            resourceName,
@@ -72,16 +75,19 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 			},
 			{
 				Config: testAccConfigTimeStaticTriggers1("key1", "value1updated"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					resource.TestCheckResourceAttrSet(resourceName, "rfc3339"),
-					testExtractResourceAttr(resourceName, "rfc3339", &time2),
-					testCheckAttributeValuesDiffer(&time1, &time2),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+					captureTimeState2,
+				},
 			},
 		},
 	})
+
+	if captureTimeState1.Value == captureTimeState2.Value {
+		t.Fatal("attribute values are the same")
+	}
 }
 
 func TestAccTimeStatic_Rfc3339(t *testing.T) {
@@ -147,16 +153,16 @@ func TestAccTimeStatic_Upgrade(t *testing.T) {
 			{
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeStatic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "day", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "hour", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "minute", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "month", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "rfc3339", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
-					resource.TestMatchResourceAttr(resourceName, "second", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "unix", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(resourceName, "year", regexp.MustCompile(`^\d{4}$`)),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+				},
 			},
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -166,16 +172,16 @@ func TestAccTimeStatic_Upgrade(t *testing.T) {
 			{
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeStatic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "day", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "hour", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "minute", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "month", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "rfc3339", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
-					resource.TestMatchResourceAttr(resourceName, "second", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "unix", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(resourceName, "year", regexp.MustCompile(`^\d{4}$`)),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+				},
 			},
 		},
 	})
