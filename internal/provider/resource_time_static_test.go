@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	time_knownvalue "github.com/hashicorp/terraform-provider-time/internal/testing/knownvalue"
 )
 
 func TestAccTimeStatic_basic(t *testing.T) {
@@ -25,16 +26,16 @@ func TestAccTimeStatic_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStatic(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(resourceName, "day", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "hour", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "minute", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "month", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "rfc3339", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)),
-					resource.TestMatchResourceAttr(resourceName, "second", regexp.MustCompile(`^\d{1,2}$`)),
-					resource.TestMatchResourceAttr(resourceName, "unix", regexp.MustCompile(`^\d+$`)),
-					resource.TestMatchResourceAttr(resourceName, "year", regexp.MustCompile(`^\d{4}$`)),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), time_knownvalue.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+				},
 			},
 			{
 				ResourceName:      resourceName,
