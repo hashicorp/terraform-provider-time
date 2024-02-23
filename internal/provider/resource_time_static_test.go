@@ -85,6 +85,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 		},
 	})
 
+	// Ensure the rfc3339 time value is different due to the sleep
 	if captureTimeState1.Value == captureTimeState2.Value {
 		t.Fatal("attribute values are the same")
 	}

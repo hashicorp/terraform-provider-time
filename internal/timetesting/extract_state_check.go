@@ -19,7 +19,6 @@ type ExtractState struct {
 	Value *string
 }
 
-// CheckState implements the state check logic.
 func (e *ExtractState) CheckState(ctx context.Context, req statecheck.CheckStateRequest, resp *statecheck.CheckStateResponse) {
 	var resource *tfjson.StateResource
 
