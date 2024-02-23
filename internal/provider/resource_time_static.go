@@ -20,6 +20,7 @@ import (
 
 var (
 	_ resource.Resource                = (*timeStaticResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*timeStaticResource)(nil)
 	_ resource.ResourceWithImportState = (*timeStaticResource)(nil)
 )
 
@@ -28,6 +29,42 @@ func NewTimeStaticResource() resource.Resource {
 }
 
 type timeStaticResource struct{}
+
+func (t timeStaticResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification unless it's a create operation
+	if req.Plan.Raw.IsNull() || !req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan timeStaticModelV0
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// We can't enhance the plan unless the rfc3339 attribute is known
+	if plan.RFC3339.IsNull() || plan.RFC3339.IsUnknown() {
+		return
+	}
+
+	rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	plan.Year = types.Int64Value(int64(rfc3339.Year()))
+	plan.Month = types.Int64Value(int64(rfc3339.Month()))
+	plan.Day = types.Int64Value(int64(rfc3339.Day()))
+	plan.Hour = types.Int64Value(int64(rfc3339.Hour()))
+	plan.Minute = types.Int64Value(int64(rfc3339.Minute()))
+	plan.Second = types.Int64Value(int64(rfc3339.Second()))
+	plan.Unix = types.Int64Value(rfc3339.Unix())
+	plan.ID = plan.RFC3339
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+}
 
 func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_static"
@@ -139,7 +176,7 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	timestamp := time.Now().UTC()
 
-	if plan.RFC3339.ValueString() != "" {
+	if !plan.RFC3339.IsNull() && !plan.RFC3339.IsUnknown() {
 		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
 
 		resp.Diagnostics.Append(diags...)

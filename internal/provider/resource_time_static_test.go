@@ -6,11 +6,14 @@ package provider
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccTimeStatic_basic(t *testing.T) {
@@ -83,13 +86,15 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 func TestAccTimeStatic_Rfc3339(t *testing.T) {
 	resourceName := "time_static.test"
 	timestamp := time.Now().UTC()
-	day := strconv.Itoa(timestamp.Day())
-	hour := strconv.Itoa(timestamp.Hour())
-	minute := strconv.Itoa(timestamp.Minute())
-	month := strconv.Itoa(int(timestamp.Month()))
-	second := strconv.Itoa(timestamp.Second())
-	unix := strconv.Itoa(int(timestamp.Unix()))
-	year := strconv.Itoa(timestamp.Year())
+
+	rfc3339 := knownvalue.StringExact(timestamp.Format(time.RFC3339))
+	year := knownvalue.Int64Exact(int64(timestamp.Year()))
+	month := knownvalue.Int64Exact(int64(timestamp.Month()))
+	day := knownvalue.Int64Exact(int64(timestamp.Day()))
+	hour := knownvalue.Int64Exact(int64(timestamp.Hour()))
+	minute := knownvalue.Int64Exact(int64(timestamp.Minute()))
+	second := knownvalue.Int64Exact(int64(timestamp.Second()))
+	unix := knownvalue.Int64Exact(timestamp.Unix())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -97,16 +102,31 @@ func TestAccTimeStatic_Rfc3339(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeStaticRfc3339(timestamp.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "day", day),
-					resource.TestCheckResourceAttr(resourceName, "hour", hour),
-					resource.TestCheckResourceAttr(resourceName, "minute", minute),
-					resource.TestCheckResourceAttr(resourceName, "month", month),
-					resource.TestCheckResourceAttr(resourceName, "rfc3339", timestamp.Format(time.RFC3339)),
-					resource.TestCheckResourceAttr(resourceName, "second", second),
-					resource.TestCheckResourceAttr(resourceName, "unix", unix),
-					resource.TestCheckResourceAttr(resourceName, "year", year),
-				),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), year),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), month),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), day),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), hour),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), minute),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), second),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), unix),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), rfc3339),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), rfc3339),
+					},
+				},
+
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), year),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), month),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), day),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), hour),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), minute),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), second),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), unix),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), rfc3339),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), rfc3339),
+				},
 			},
 			{
 				ResourceName:      resourceName,
