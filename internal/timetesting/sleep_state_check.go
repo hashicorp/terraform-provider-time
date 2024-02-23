@@ -20,7 +20,7 @@ func (s *sleep) CheckState(ctx context.Context, req statecheck.CheckStateRequest
 	time.Sleep(time.Duration(s.seconds) * time.Second)
 }
 
-// Sleep returns a state check that sleep for the given number of seconds. This state check can be used
+// Sleep returns a state check that sleeps for the given number of seconds. This state check can be used
 // for certain tests that require time differences that are too fast for unit testing.
 func Sleep(seconds int) statecheck.StateCheck {
 	return &sleep{
