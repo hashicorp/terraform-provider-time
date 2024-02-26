@@ -5,6 +5,7 @@ package provider
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"testing"
 	"time"
@@ -27,14 +28,14 @@ func TestAccTimeStatic_basic(t *testing.T) {
 			{
 				Config: testAccConfigTimeStatic(),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.Int64Between(1, 31)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.Int64Between(0, 23)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.Int64Between(1, 12)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.Int64Between(1, math.MaxInt64)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.Int64Between(1, 9999)),
 				},
 			},
 			{
@@ -158,14 +159,14 @@ func TestAccTimeStatic_Upgrade(t *testing.T) {
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeStatic(),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.Int64Between(1, 31)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.Int64Between(0, 23)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.Int64Between(1, 12)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.Int64Between(1, math.MaxInt64)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.Int64Between(1, 9999)),
 				},
 			},
 			{
@@ -177,14 +178,14 @@ func TestAccTimeStatic_Upgrade(t *testing.T) {
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeStatic(),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("day"), timetesting.Int64Between(1, 31)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("hour"), timetesting.Int64Between(0, 23)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("minute"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("month"), timetesting.Int64Between(1, 12)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringRegularExpression(regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{1,2}$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d+$`))),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.NumberRegularExpression(regexp.MustCompile(`^\d{4}$`))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("second"), timetesting.Int64Between(0, 59)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("unix"), timetesting.Int64Between(1, math.MaxInt64)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("year"), timetesting.Int64Between(1, 9999)),
 				},
 			},
 		},
