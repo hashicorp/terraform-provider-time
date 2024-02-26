@@ -64,7 +64,6 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
 					captureTimeState1,
-					timetesting.Sleep(2),
 				},
 			},
 			{
@@ -74,6 +73,10 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"triggers"},
 			},
 			{
+				// Ensures a time difference when running unit tests in CI
+				PreConfig: func() {
+					time.Sleep(time.Duration(1) * time.Second)
+				},
 				Config: testAccConfigTimeStaticTriggers1("key1", "value1updated"),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),

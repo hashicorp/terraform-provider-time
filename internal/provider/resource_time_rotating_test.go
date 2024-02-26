@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
@@ -36,7 +35,6 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
-					timetesting.Sleep(2),
 				},
 			},
 			{
@@ -47,6 +45,10 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"triggers"},
 			},
 			{
+				// Ensures a time difference when running unit tests in CI
+				PreConfig: func() {
+					time.Sleep(time.Duration(1) * time.Second)
+				},
 				Config: testAccConfigTimeRotatingTriggers1("key1", "value1updated"),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
