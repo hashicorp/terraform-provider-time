@@ -62,8 +62,8 @@ func (f *RFC3339ParseFunction) Definition(ctx context.Context, req function.Defi
 func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 	var timestamp string
 
-	resp.Diagnostics.Append(req.Arguments.Get(ctx, &timestamp)...)
-	if resp.Diagnostics.HasError() {
+	resp.Error = req.Arguments.Get(ctx, &timestamp)
+	if resp.Error != nil {
 		return
 	}
 
@@ -72,7 +72,7 @@ func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest,
 		// Intentionally not returning the Go parse error to practitioners
 		tflog.Error(ctx, fmt.Sprintf("failed to parse RFC3339 timestamp, underlying time.Time error: %s", err.Error()))
 
-		resp.Diagnostics.AddArgumentError(0, "Error parsing RFC3339 timestamp", fmt.Sprintf("%q is not a valid RFC3339 timestamp", timestamp))
+		resp.Error = function.NewArgumentFuncError(0, fmt.Sprintf("Error parsing RFC3339 timestamp: %q is not a valid RFC3339 timestamp", timestamp))
 		return
 	}
 
@@ -97,10 +97,10 @@ func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest,
 		},
 	)
 
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	resp.Error = function.FuncErrorFromDiags(ctx, diags)
+	if resp.Error != nil {
 		return
 	}
 
-	resp.Diagnostics.Append(resp.Result.Set(ctx, &rfc3339Obj)...)
+	resp.Error = resp.Result.Set(ctx, &rfc3339Obj)
 }
