@@ -44,7 +44,7 @@ func (f *RFC3339ParseFunction) Metadata(ctx context.Context, req function.Metada
 
 func (f *RFC3339ParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary:     "Parse an RFC3339 timestamp string",
+		Summary:     "Parse an RFC3339 timestamp string into an object",
 		Description: "Given an RFC3339 timestamp string, will parse and return an object representation of that date and time.",
 
 		Parameters: []function.Parameter{
@@ -69,7 +69,8 @@ func (f *RFC3339ParseFunction) Run(ctx context.Context, req function.RunRequest,
 
 	rfc3339, err := time.Parse(time.RFC3339, timestamp)
 	if err != nil {
-		// Intentionally not returning the Go parse error to practitioners
+		// Intentionally not including the Go parse error in the return diagnostic, as the message is based on a Go-specific
+		// reference time that may be unfamiliar to practitioners
 		tflog.Error(ctx, fmt.Sprintf("failed to parse RFC3339 timestamp, underlying time.Time error: %s", err.Error()))
 
 		resp.Error = function.NewArgumentFuncError(0, fmt.Sprintf("Error parsing RFC3339 timestamp: %q is not a valid RFC3339 timestamp", timestamp))

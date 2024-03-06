@@ -1,7 +1,7 @@
 page_title: "rfc3339_parse function - terraform-provider-time"
 subcategory: ""
 description: |-
-  Parse an RFC3339 timestamp string
+  Parse an RFC3339 timestamp string into an object
 ---
 
 # function: rfc3339_parse
