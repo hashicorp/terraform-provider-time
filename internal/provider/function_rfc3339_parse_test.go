@@ -18,7 +18,7 @@ func TestRFC3339Parse_UTC(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			// TODO: Replace with the stable v1.8.0 release when available
-			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-alpha20240228"))),
+			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
@@ -82,7 +82,7 @@ func TestRFC3339Parse_offset(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			// TODO: Replace with the stable v1.8.0 release when available
-			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-alpha20240228"))),
+			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
@@ -122,7 +122,7 @@ func TestRFC3339Parse_invalid(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			// TODO: Replace with the stable v1.8.0 release when available
-			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-alpha20240228"))),
+			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0-beta1"))),
 		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{

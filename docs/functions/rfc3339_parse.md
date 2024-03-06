@@ -25,7 +25,7 @@ terraform {
 }
 
 output "example_output" {
-  value = provider :: time :: rfc3339_parse("2023-07-25T23:43:16Z")
+  value = provider::time::rfc3339_parse("2023-07-25T23:43:16Z")
 }
 ```
 
