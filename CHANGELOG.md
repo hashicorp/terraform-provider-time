@@ -1,3 +1,9 @@
+## 0.11.0 (March 11, 2024)
+
+FEATURES:
+
+* functions/rfc3339_parse: Added a new `rfc3339_parse` function that parses an RFC3339 timestamp string and returns an object representation. ([#280](https://github.com/hashicorp/terraform-provider-time/issues/280))
+
 ## 0.10.0 (December 06, 2023)
 
 BUG FIXES:
