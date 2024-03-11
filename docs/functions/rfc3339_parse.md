@@ -1,3 +1,4 @@
+---
 page_title: "rfc3339_parse function - terraform-provider-time"
 subcategory: ""
 description: |-
