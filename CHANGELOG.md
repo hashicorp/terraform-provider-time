@@ -1,3 +1,9 @@
+## 0.11.1 (March 11, 2024)
+
+NOTES:
+
+* No functional changes from v0.11.0. Minor documentation fixes. ([#299](https://github.com/hashicorp/terraform-provider-time/issues/299))
+
 ## 0.11.0 (March 11, 2024)
 
 FEATURES:
