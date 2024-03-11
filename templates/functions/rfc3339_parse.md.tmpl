@@ -1,0 +1,43 @@
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Summary | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+{{ if .HasExample -}}
+## Example Usage
+
+{{tffile .ExampleFile }}
+{{- end }}
+
+## Signature
+
+{{ .FunctionSignatureMarkdown }}
+
+## Arguments
+
+{{ .FunctionArgumentsMarkdown }}
+{{ if .HasVariadic -}}
+{{ .FunctionVariadicArgumentMarkdown }}
+{{- end }}
+
+## Return Type
+
+The `object` returned from `rfc3339_parse` has the following attributes:
+- `year` (Number) The year for the timestamp.
+- `year_day` (Number) The day of the year for the timestamp, in the range [1, 365] for non-leap years, and [1, 366] in leap years.
+- `day` (Number) The day of the month for the timestamp.
+- `month` (Number) The month of the year for the timestamp.
+- `month_name` (String) The name of the month for the timestamp (ex. "January").
+- `weekday` (Number) The day of the week for the timestamp.
+- `weekday_name` (String) The name of the day for the timestamp (ex. "Sunday").
+- `hour` (Number) The hour within the day for the timestamp, in the range [0, 23].
+- `minute` (Number) The minute offset within the hour for the timestamp, in the range [0, 59].
+- `second` (Number) The second offset within the minute for the timestamp, in the range [0, 59].
+- `unix` (Number) The number of seconds elapsed since January 1, 1970 UTC.
+- `iso_year` (Number) The ISO 8601 year number.
+- `iso_week` (Number) The ISO 8601 week number.
