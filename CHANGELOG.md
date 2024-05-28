@@ -1,3 +1,9 @@
+## 0.11.2 (May 28, 2024)
+
+NOTES:
+
+* This release introduces no functional changes. It does however include dependency updates which address upstream CVEs. ([#327](https://github.com/hashicorp/terraform-provider-time/issues/327))
+
 ## 0.11.1 (March 11, 2024)
 
 NOTES:
