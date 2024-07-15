@@ -1,3 +1,21 @@
+## 0.11.2 (May 28, 2024)
+
+NOTES:
+
+* This release introduces no functional changes. It does however include dependency updates which address upstream CVEs. ([#327](https://github.com/hashicorp/terraform-provider-time/issues/327))
+
+## 0.11.1 (March 11, 2024)
+
+NOTES:
+
+* No functional changes from v0.11.0. Minor documentation fixes. ([#299](https://github.com/hashicorp/terraform-provider-time/issues/299))
+
+## 0.11.0 (March 11, 2024)
+
+FEATURES:
+
+* functions/rfc3339_parse: Added a new `rfc3339_parse` function that parses an RFC3339 timestamp string and returns an object representation. ([#280](https://github.com/hashicorp/terraform-provider-time/issues/280))
+
 ## 0.10.0 (December 06, 2023)
 
 BUG FIXES:
