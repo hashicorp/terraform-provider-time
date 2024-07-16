@@ -161,6 +161,8 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
+	// These ID comparisons can eventually be replaced by the multiple value checks once released
+	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
 	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 
@@ -205,6 +207,8 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
+	// These ID comparisons can eventually be replaced by the multiple value checks once released
+	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
 	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 
@@ -249,6 +253,8 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 func TestAccTimeSleep_Triggers(t *testing.T) {
 	resourceName := "time_sleep.test"
 
+	// These ID comparisons can eventually be replaced by the multiple value checks once released
+	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
 	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
 

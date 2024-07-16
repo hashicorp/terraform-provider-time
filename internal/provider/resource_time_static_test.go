@@ -51,6 +51,8 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 
 	resourceName := "time_static.test"
 
+	// These ID comparisons can eventually be replaced by the multiple value checks once released
+	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
 	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
 	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
 
