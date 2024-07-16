@@ -20,6 +20,7 @@ import (
 
 var (
 	_ resource.Resource                = (*timeStaticResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*timeStaticResource)(nil)
 	_ resource.ResourceWithImportState = (*timeStaticResource)(nil)
 )
 
@@ -28,6 +29,53 @@ func NewTimeStaticResource() resource.Resource {
 }
 
 type timeStaticResource struct{}
+
+func (t timeStaticResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification unless it's a create operation
+	if req.Plan.Raw.IsNull() || !req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan timeStaticModelV0
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Currently, it is only possible to enhance the plan when the rfc3339 value is defined in configuration (i.e. value is not null and known in plan).
+	//
+	// Terraform calls the PlanResourceChange RPC twice (initial planned state and final planned state) and currently has no mechanism for sharing information between
+	// the initial plan call and final plan call. This means that we can't create a final plan that matches the initial plan using something like time.Now()
+	// which will differ between the two calls and result in a "Provider produced inconsistent final plan" error from Terraform.
+	//
+	// If functionality is introduced in the future that allows us to create consistent final and initial plans, we'd likely want to introduce a new managed resource that
+	// always determines its results at plan time. Changing this resource to adopt that behavior would be a breaking change for practitioners who are relying on the time being
+	// determined at apply time.
+	//
+	// There is no time provider feature request currently for this behavior, but a similar long-standing issue exists on the random provider:
+	// - https://github.com/hashicorp/terraform-provider-random/issues/121
+	if plan.RFC3339.IsNull() || plan.RFC3339.IsUnknown() {
+		return
+	}
+
+	rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	plan.Year = types.Int64Value(int64(rfc3339.Year()))
+	plan.Month = types.Int64Value(int64(rfc3339.Month()))
+	plan.Day = types.Int64Value(int64(rfc3339.Day()))
+	plan.Hour = types.Int64Value(int64(rfc3339.Hour()))
+	plan.Minute = types.Int64Value(int64(rfc3339.Minute()))
+	plan.Second = types.Int64Value(int64(rfc3339.Second()))
+	plan.Unix = types.Int64Value(rfc3339.Unix())
+	plan.ID = plan.RFC3339
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+}
 
 func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_static"
@@ -139,7 +187,7 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 
 	timestamp := time.Now().UTC()
 
-	if plan.RFC3339.ValueString() != "" {
+	if !plan.RFC3339.IsNull() && !plan.RFC3339.IsUnknown() {
 		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
 
 		resp.Diagnostics.Append(diags...)
