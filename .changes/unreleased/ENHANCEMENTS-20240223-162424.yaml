@@ -1,6 +1,0 @@
-kind: ENHANCEMENTS
-body: 'resource/time_static: If the `rfc3339` value is set in config and known at
-  plan-time, all other attributes will also be known during plan.'
-time: 2024-02-23T16:24:24.067014-05:00
-custom:
-  Issue: "255"

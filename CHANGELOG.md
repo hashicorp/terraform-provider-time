@@ -1,3 +1,9 @@
+## 0.12.0 (July 17, 2024)
+
+ENHANCEMENTS:
+
+* resource/time_static: If the `rfc3339` value is set in config and known at plan-time, all other attributes will also be known during plan. ([#255](https://github.com/hashicorp/terraform-provider-time/issues/255))
+
 ## 0.11.2 (May 28, 2024)
 
 NOTES:
