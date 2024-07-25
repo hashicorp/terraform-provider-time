@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
@@ -434,6 +435,81 @@ func TestAccTimeRotating_RotationDays_ToRotationMonths(t *testing.T) {
 	})
 }
 
+func TestAccTimeRotating_ComputedRotation_expired(t *testing.T) {
+	resourceName := "time_rotating.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeRotatingComputedRotation(1),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_rfc3339")),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rfc3339")),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					},
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionNoop),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile("2024-07-25T*"))),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile("2024-07-25T*"))),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					},
+					PostApplyPostRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionNoop),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile("2024-07-25T*"))),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile("2024-07-25T*"))),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile("2024-07-25T*"))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
+				},
+			},
+			{
+				// Ensures a time difference when running unit tests in CI
+				PreConfig: func() {
+					time.Sleep(time.Duration(1) * time.Minute)
+				},
+				RefreshState:       true,
+				ExpectNonEmptyPlan: true,
+				RefreshPlanChecks: resource.RefreshPlanChecks{
+					PostRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_rfc3339")),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rfc3339")),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Int64Exact(1)),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
+						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
+					},
+				},
+			},
+		},
+	})
+}
+
 func TestAccTimeRotation_Upgrade(t *testing.T) {
 	resourceName := "time_rotating.test"
 	timestamp := time.Now().UTC()
@@ -446,10 +522,10 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeRotatingRotationYears(timestamp.Format(time.RFC3339), 3),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(3)),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(3, 0, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile(""))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
@@ -593,4 +669,12 @@ resource "time_rotating" "test" {
   rfc3339          = %[1]q
 }
 `, rfc3339, rotationRfc3339)
+}
+
+func testAccConfigTimeRotatingComputedRotation(rotationMinutes int) string {
+	return fmt.Sprintf(`
+resource "time_rotating" "test" {
+  rotation_minutes = %[1]d
+}
+`, rotationMinutes)
 }
