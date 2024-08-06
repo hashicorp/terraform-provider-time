@@ -6,12 +6,16 @@ package provider
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"regexp"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	r "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -354,6 +358,212 @@ func TestAccTimeSleep_Validators(t *testing.T) {
 	})
 }
 
+// Validate that importing works as expected
+func TestResourceTimeSleepImport(t *testing.T) {
+
+	// want := timeSleepModelV0{
+	// 	CreateDuration:  types.StringValue("1s"),
+	// 	DestroyDuration: types.StringValue("1s"),
+	// 	Triggers:        types.MapValueMust(types.StringType, triggers),
+	// 	ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+	// }
+	var tests = []struct {
+		name    string
+		id      string
+		want    timeSleepModelV0
+		error   bool
+		summary string
+	}{
+		{
+			name: "just_createduration",
+			id:   "1s,",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringNull(),
+				Triggers:        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "create_and_destroy_duration_only",
+			id:   "1s,20s",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringValue("20s"),
+				Triggers:        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "destroy_duration_only",
+			id:   ",20s",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringNull(),
+				DestroyDuration: types.StringValue("20s"),
+				Triggers:        types.MapValueMust(types.StringType, map[string]attr.Value{}),
+				ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "create_destroy_single_trigger_only",
+			id:   "1s,1s,test=testvalue",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringValue("1s"),
+				Triggers: types.MapValueMust(types.StringType, map[string]attr.Value{
+					"test": types.StringValue("testvalue"),
+				}),
+				ID: timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "create_destroy_multi",
+			id:   "1s,1s,test1=testvalue1,test2=testvalue2",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringValue("1s"),
+				Triggers: types.MapValueMust(types.StringType, map[string]attr.Value{
+					"test1": types.StringValue("testvalue1"),
+					"test2": types.StringValue("testvalue2"),
+				}),
+				ID: timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "create_no_destroy_single_only",
+			id:   "1s,,test1=testvalue1",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringNull(),
+				Triggers: types.MapValueMust(types.StringType, map[string]attr.Value{
+					"test1": types.StringValue("testvalue1"),
+				}),
+				ID: timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "no_create_destroy_single_only",
+			id:   ",1s,test1=testvalue1",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringNull(),
+				DestroyDuration: types.StringValue("1s"),
+				Triggers: types.MapValueMust(types.StringType, map[string]attr.Value{
+					"test1": types.StringValue("testvalue1"),
+				}),
+				ID: timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error: false,
+		},
+		{
+			name: "create_destroy_invalid_trigger_format",
+			id:   "1s,1s,test=testvalue,test2==testvalue2",
+			want: timeSleepModelV0{
+				CreateDuration:  types.StringValue("1s"),
+				DestroyDuration: types.StringValue("1s"),
+				Triggers: types.MapValueMust(types.StringType, map[string]attr.Value{
+					"test": types.StringValue("testvalue"),
+				}),
+				ID: timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+			},
+			error:   true,
+			summary: "Trigger import error",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			sleepResource := NewTimeSleepResource()
+
+			schemaResponse := r.SchemaResponse{}
+			sleepResource.Schema(context.Background(), r.SchemaRequest{}, &schemaResponse)
+
+			req := r.ImportStateRequest{
+				ID: test.id,
+			}
+
+			resp := r.ImportStateResponse{
+				State: tfsdk.State{
+					Schema: schemaResponse.Schema,
+				},
+				Diagnostics: nil,
+			}
+
+			sleepResource.(r.ResourceWithImportState).ImportState(context.Background(), req, &resp)
+			if resp.Diagnostics.HasError() {
+				if !test.error {
+					t.Fatalf("Diags was not empty: %+v", resp.Diagnostics)
+				}
+
+				for _, diag := range resp.Diagnostics {
+					if diag.Summary() != test.summary {
+						t.Fatalf("Diags had additional errors that were not expected: %+v", resp.Diagnostics)
+					}
+				}
+				// Passed the test
+				return
+			}
+
+			state := timeSleepModelV0{}
+			resp.State.Get(context.Background(), &state)
+
+			// This is a bit of a cheat, because the ID of the state object is generated inside the function
+			// so we need to set the `want` structure to have the right time.
+			test.want.ID = state.ID
+
+			if !reflect.DeepEqual(state, test.want) {
+				t.Fatal(fmt.Sprintf("Trigger map was not what we expected, want `%+v` got `%+v`", test.want, state))
+			}
+		})
+	}
+}
+
+func TestAccTimeSleepImport_Triggers1(t *testing.T) {
+	resourceName := "time_sleep.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeSleepImportTriggers1("key1", "value1"),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
+				},
+			},
+		},
+	})
+}
+
+func TestAccTimeSleepImport_Triggers2(t *testing.T) {
+	resourceName := "time_sleep.test"
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfigTimeSleepImportTriggers2("key1", "value1", "key2", "value2"),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(2)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key2"), knownvalue.StringExact("value2")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
+				},
+			},
+		},
+	})
+}
+
 //func testAccTimeSleepImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
 //	return func(s *terraform.State) (string, error) {
 //		rs, ok := s.RootModule().Resources[resourceName]
@@ -394,4 +604,39 @@ resource "time_sleep" "test" {
   }
 }
 `, keeperKey1, keeperKey2)
+}
+
+func testAccConfigTimeSleepImportTriggers1(keeperKey1 string, keeperKey2 string) string {
+	return fmt.Sprintf(`
+import {
+  to = time_sleep.test
+  id = "1s,,%s=%s"
+}
+
+resource "time_sleep" "test" {
+  create_duration = "1s"
+
+  triggers = {
+    %[1]q = %[2]q
+  }
+}
+`, keeperKey1, keeperKey2)
+}
+
+func testAccConfigTimeSleepImportTriggers2(keeperKey1 string, keeperKey2 string, keeperKey3 string, keeperKey4 string) string {
+	return fmt.Sprintf(`
+import {
+  to = time_sleep.test
+  id = "1s,,%s=%s,%s=%s"
+}
+
+resource "time_sleep" "test" {
+  create_duration = "1s"
+
+  triggers = {
+    %[1]q = %[2]q
+    %[3]q = %[4]q
+  }
+}
+`, keeperKey1, keeperKey2, keeperKey3, keeperKey4)
 }
