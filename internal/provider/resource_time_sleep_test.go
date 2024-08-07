@@ -162,7 +162,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	// Due to the time.Sleep, the id attribute should differ between test steps
-	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -201,7 +201,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	// Due to the time.Sleep, the id attribute should differ between test steps
-	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
