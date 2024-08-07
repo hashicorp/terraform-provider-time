@@ -162,7 +162,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	// The id attribute should not change between test steps
-	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
+	assertIDSame := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -173,7 +173,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("1ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -190,7 +190,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("2ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 		},
@@ -201,7 +201,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
 	// The id attribute should not change between test steps
-	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
+	assertIDSame := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -212,7 +212,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("1ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -229,7 +229,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("2ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 		},
