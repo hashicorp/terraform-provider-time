@@ -161,7 +161,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	// Due to the time.Sleep, the id attribute should differ between test steps
+	// The id attribute should not change between test steps
 	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
@@ -200,7 +200,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	// Due to the time.Sleep, the id attribute should differ between test steps
+	// The id attribute should not change between test steps
 	assertIDUpdated := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
