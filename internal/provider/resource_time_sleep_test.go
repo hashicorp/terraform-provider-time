@@ -13,11 +13,11 @@ import (
 	r "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 // Since the acceptance testing framework can introduce uncontrollable time delays,
@@ -161,10 +161,8 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	// These ID comparisons can eventually be replaced by the multiple value checks once released
-	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
-	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
-	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
+	// Due to the time.Sleep, the id attribute should differ between test steps
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -175,7 +173,7 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("1ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					captureTimeState1,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -192,25 +190,18 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("2ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					captureTimeState2,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 		},
 	})
-
-	// Ensure the id time value is different due to the sleep
-	if captureTimeState1.Value == captureTimeState2.Value {
-		t.Fatal("attribute values are the same")
-	}
 }
 
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	// These ID comparisons can eventually be replaced by the multiple value checks once released
-	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
-	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
-	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
+	// Due to the time.Sleep, the id attribute should differ between test steps
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -221,7 +212,7 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("1ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					captureTimeState1,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -238,25 +229,18 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("2ms")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
-					captureTimeState2,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 		},
 	})
-
-	// Ensure the id time value is different due to the sleep
-	if captureTimeState1.Value == captureTimeState2.Value {
-		t.Fatal("attribute values are the same")
-	}
 }
 
 func TestAccTimeSleep_Triggers(t *testing.T) {
 	resourceName := "time_sleep.test"
 
-	// These ID comparisons can eventually be replaced by the multiple value checks once released
-	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
-	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
-	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("id"))
+	// Due to the time.Sleep, the id attribute should differ between test steps
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -269,7 +253,7 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
-					captureTimeState1,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
@@ -289,16 +273,11 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
-					captureTimeState2,
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
 				},
 			},
 		},
 	})
-
-	// Ensure the id time value is different due to the sleep
-	if captureTimeState1.Value == captureTimeState2.Value {
-		t.Fatal("attribute values are the same")
-	}
 }
 
 func TestAccTimeSleep_Upgrade(t *testing.T) {

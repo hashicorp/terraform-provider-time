@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -51,10 +52,8 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 
 	resourceName := "time_static.test"
 
-	// These ID comparisons can eventually be replaced by the multiple value checks once released
-	// in terraform-plugin-testing: https://github.com/hashicorp/terraform-plugin-testing/issues/295
-	captureTimeState1 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
-	captureTimeState2 := timetesting.NewExtractState(resourceName, tfjsonpath.New("rfc3339"))
+	// Due to the time.Sleep, the rfc3339 attribute should differ between test steps
+	assertRfc3339Updated := statecheck.CompareValue(compare.ValuesDiffer())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -66,7 +65,7 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
-					captureTimeState1,
+					assertRfc3339Updated.AddStateValue(resourceName, tfjsonpath.New("rfc3339")),
 				},
 			},
 			{
@@ -85,16 +84,11 @@ func TestAccTimeStatic_Triggers(t *testing.T) {
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
-					captureTimeState2,
+					assertRfc3339Updated.AddStateValue(resourceName, tfjsonpath.New("rfc3339")),
 				},
 			},
 		},
 	})
-
-	// Ensure the rfc3339 time value is different due to the sleep
-	if captureTimeState1.Value == captureTimeState2.Value {
-		t.Fatal("attribute values are the same")
-	}
 }
 
 func TestAccTimeStatic_Rfc3339(t *testing.T) {
