@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"code.cloudfoundry.org/clock"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -37,10 +38,14 @@ var (
 )
 
 func NewTimeRotatingResource() resource.Resource {
-	return &timeRotatingResource{}
+	return &timeRotatingResource{
+		clock: clock.NewClock(),
+	}
 }
 
-type timeRotatingResource struct{}
+type timeRotatingResource struct {
+	clock clock.Clock
+}
 
 func (t timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_rotating"
@@ -336,7 +341,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	timestamp := time.Now().UTC()
+	timestamp := t.clock.Now()
 
 	if plan.RFC3339.ValueString() != "" {
 		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
@@ -370,7 +375,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.ValueString() != "" {
-		now := time.Now().UTC()
+		now := t.clock.Now()
 		rotationTimestamp, diags := state.RotationRFC3339.ValueRFC3339Time()
 
 		resp.Diagnostics.Append(diags...)
