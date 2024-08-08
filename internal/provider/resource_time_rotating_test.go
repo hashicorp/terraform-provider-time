@@ -1305,10 +1305,10 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeRotatingRFC3339RotationYears(timestamp.Format(time.RFC3339), 3),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(1)),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Null()),
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringRegexp(regexp.MustCompile(""))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_years"), knownvalue.Int64Exact(3)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(timestamp.AddDate(3, 0, 0).Format(time.RFC3339))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Null()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_hours"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_minutes"), knownvalue.Null()),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.NotNull()),
