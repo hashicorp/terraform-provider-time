@@ -1238,7 +1238,7 @@ func TestAccTimeRotating_LifecycleReplaceTriggeredBy(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			// "terraform_data" resource is only available in Terraform v1.4.0 and above.
-			tfversion.RequireAbove(tfversion.Version1_4_0),
+			tfversion.SkipBelow(tfversion.Version1_4_0),
 		},
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		CheckDestroy:             nil,
