@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "time_rotating" "computed_rotation" {
   rotation_minutes = 1
 }

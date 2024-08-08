@@ -5,6 +5,7 @@ go 1.21
 toolchain go1.21.6
 
 require (
+	code.cloudfoundry.org/clock v1.2.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/terraform-json v0.22.1
 	github.com/hashicorp/terraform-plugin-framework v1.10.0
@@ -16,7 +17,6 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.2.0 // indirect
 	github.com/ProtonMail/go-crypto v1.1.0-alpha.2 // indirect
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
