@@ -5,7 +5,6 @@ go 1.21
 toolchain go1.21.6
 
 require (
-	code.cloudfoundry.org/clock v1.2.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.11.0
 	github.com/hashicorp/terraform-plugin-framework-timetypes v0.5.0

@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 
-	"code.cloudfoundry.org/clock"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -16,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	testingresource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 var (

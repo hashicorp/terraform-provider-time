@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"code.cloudfoundry.org/clock"
 	"github.com/hashicorp/terraform-plugin-framework-timetypes/timetypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -27,6 +26,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 )
 

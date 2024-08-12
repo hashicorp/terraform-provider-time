@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"code.cloudfoundry.org/clock/fakeclock"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -18,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
@@ -74,7 +75,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationDays_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationDays := 7
 
 	resource.UnitTest(t, resource.TestCase{
@@ -107,8 +108,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationDays_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationDate := now.AddDate(0, 0, -8)
-					mockClock.Increment(mockClock.Since(rotationDate)) // 8 days
+					mockClock.IncrementDate(0, 0, 8)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRotationDays(rotationDays),
@@ -136,7 +136,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationDays_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationDays := 7
 
 	resource.UnitTest(t, resource.TestCase{
@@ -169,8 +169,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationDays_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationDate := baseTimestamp.AddDate(0, 0, -8)
-					mockClock.Increment(mockClock.Since(rotationDate)) // 8 days
+					mockClock.IncrementDate(0, 0, 8)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRFC3339RotationDays(baseTimestamp.Format(time.RFC3339), rotationDays),
@@ -242,7 +241,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationHours_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationHours := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -303,7 +302,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationHours_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationHours := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -408,7 +407,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMinutes_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationMinutes := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -469,7 +468,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationMinutes := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -575,7 +574,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationMonths := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -608,8 +607,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationDate := now.AddDate(0, -4, 0)
-					mockClock.Increment(mockClock.Since(rotationDate)) // 4 months
+					mockClock.IncrementDate(0, 4, 0)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRotationMonths(rotationMonths),
@@ -637,7 +635,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMonths_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationMonths := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -670,8 +668,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMonths_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationTimestamp := baseTimestamp.AddDate(0, -4, 0)
-					mockClock.Increment(mockClock.Since(rotationTimestamp)) // 4 months
+					mockClock.IncrementDate(0, 4, 0)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRFC3339RotationMonths(baseTimestamp.Format(time.RFC3339), rotationMonths),
@@ -744,7 +741,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationRfc3339_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -774,8 +771,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationRfc3339_basic(t *testing.T) {
 			},
 			{
 				PreConfig: func() {
-					rotationDate := now.AddDate(0, 0, -8)
-					mockClock.Increment(mockClock.Since(rotationDate)) // 8 days
+					mockClock.IncrementDate(0, 0, 8)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRotationRfc3339(rotationTimestamp.Format(time.RFC3339)),
@@ -807,7 +803,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationRfc3339_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -837,8 +833,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationRfc3339_basic(t *testing.T) {
 			},
 			{
 				PreConfig: func() {
-					rotationTimestamp := baseTimestamp.AddDate(0, 0, -8)
-					mockClock.Increment(mockClock.Since(rotationTimestamp)) // 8 days
+					mockClock.IncrementDate(0, 0, 8)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRFC3339RotationRfc3339(baseTimestamp.Format(time.RFC3339), rotationTimestamp.Format(time.RFC3339)),
@@ -910,7 +905,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationYears_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(now)
+	mockClock := clock.NewFakeClock(now)
 	rotationYears := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -943,8 +938,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationYears_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationTimestamp := now.AddDate(-4, 0, 0)
-					mockClock.Increment(mockClock.Since(rotationTimestamp)) // 4 years
+					mockClock.IncrementDate(4, 0, 0)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRotationYears(rotationYears),
@@ -972,7 +966,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationYears_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationYears := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -1005,8 +999,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationYears_basic(t *testing.T) {
 			// Trigger a rotation
 			{
 				PreConfig: func() {
-					rotationTimestamp := baseTimestamp.AddDate(-4, 0, 0)
-					mockClock.Increment(mockClock.Since(rotationTimestamp)) // 4 years
+					mockClock.IncrementDate(4, 0, 0)
 				},
 				ProtoV5ProviderFactories: protoV5ProviderFactoriesTestProvider(mockClock),
 				Config:                   testAccConfigTimeRotatingRFC3339RotationYears(baseTimestamp.Format(time.RFC3339), rotationYears),
@@ -1079,7 +1072,7 @@ func TestAccTimeRotating_ComputedRFC3339_RotationDays_ToRotationMonths(t *testin
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := fakeclock.NewFakeClock(baseTimestamp)
+	mockClock := clock.NewFakeClock(baseTimestamp)
 	rotationDays := 7
 	rotationMonths := 3
 
