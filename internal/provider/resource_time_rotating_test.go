@@ -22,6 +22,7 @@ import (
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	resource.UnitTest(t, resource.TestCase{
@@ -72,6 +73,7 @@ func TestAccTimeRotating_Triggers(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationDays_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -133,6 +135,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationDays_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationDays_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -200,6 +203,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationDays_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationDays_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 	expiredTimestamp := time.Now().UTC().AddDate(0, 0, -2)
 	rotationDays := 1
@@ -238,6 +242,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationDays_expired(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationHours_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -299,6 +304,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationHours_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationHours_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -366,6 +372,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationHours_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationHours_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 	expiredTimestamp := time.Now().UTC().Add(-5 * time.Hour)
 	rotationHours := 3
@@ -404,6 +411,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationHours_expired(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationMinutes_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -465,6 +473,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMinutes_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -532,6 +541,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	expiredTimestamp := time.Now().UTC().Add(-2 * time.Minute)
@@ -571,6 +581,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_expired(t *testing.T) 
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -632,6 +643,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationMonths_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -699,6 +711,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMonths_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_RotationMonths_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	expiredTimestamp := time.Now().UTC().AddDate(0, -2, 0)
@@ -738,6 +751,7 @@ func TestAccTimeRotating_RotationMonths_expired(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationRfc3339_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -800,6 +814,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationRfc3339_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationRfc3339_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -862,6 +877,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationRfc3339_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC339RotationRfc3339_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 	baseTimestamp := time.Now().UTC().AddDate(0, 0, -2)
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, -1)
@@ -902,6 +918,7 @@ func TestAccTimeRotating_ConfiguredRFC339RotationRfc3339_expired(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339RotationYears_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
@@ -963,6 +980,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationYears_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationYears_basic(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -1030,6 +1048,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationYears_basic(t *testing.T) {
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339RotationYears_expired(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	expiredTimestamp := time.Now().UTC().AddDate(-2, 0, 0)
@@ -1069,6 +1088,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationYears_expired(t *testing.T) {
 }
 
 func TestAccTimeRotating_ComputedRFC3339_RotationDays_ToRotationMonths(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -1120,6 +1140,7 @@ func TestAccTimeRotating_ComputedRFC3339_RotationDays_ToRotationMonths(t *testin
 }
 
 func TestAccTimeRotating_ConfiguredRFC3339_RotationDays_ToRotationMonths(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -1175,6 +1196,7 @@ func TestAccTimeRotating_ConfiguredRFC3339_RotationDays_ToRotationMonths(t *test
 // the final plan, causing Terraform core to throw an error
 // Ref: https://github.com/hashicorp/terraform-provider-time/issues/227
 func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
+	t.Parallel()
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
@@ -1228,6 +1250,7 @@ func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
 // a rotation is considered to be a creation of a new resource rather than an update or replacement.
 // Ref: https://github.com/hashicorp/terraform-provider-time/issues/118
 func TestAccTimeRotating_LifecycleReplaceTriggeredBy(t *testing.T) {
+	t.Parallel()
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			// "terraform_data" resource is only available in Terraform v1.4.0 and above.
@@ -1336,6 +1359,7 @@ func TestAccTimeRotation_Upgrade(t *testing.T) {
 }
 
 func TestAccTimeRotating_Validators(t *testing.T) {
+	t.Parallel()
 	timestamp := time.Now().UTC()
 
 	resource.UnitTest(t, resource.TestCase{
