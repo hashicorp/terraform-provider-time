@@ -22,24 +22,56 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 var (
 	_ resource.Resource                = (*timeSleepResource)(nil)
 	_ resource.ResourceWithImportState = (*timeSleepResource)(nil)
+	_ resource.ResourceWithConfigure   = (*timeSleepResource)(nil)
 )
 
 func NewTimeSleepResource() resource.Resource {
 	return &timeSleepResource{}
 }
 
-type timeSleepResource struct{}
+func NewTimeSleepTestResource() resource.Resource {
+	return &timeSleepResource{
+		clock: clock.NewClock(),
+	}
+}
 
-func (t timeSleepResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+type timeSleepResource struct {
+	clock clock.Clock
+}
+
+func (t *timeSleepResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	pClock, ok := req.ProviderData.(clock.Clock)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected clock.Clock, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	t.clock = pClock
+}
+
+func (t *timeSleepResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_sleep"
 }
 
-func (t timeSleepResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (t *timeSleepResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a resource that delays creation and/or destruction, typically for further resources. " +
 			"This prevents cross-platform compatibility and destroy-time issues with using " +
@@ -87,7 +119,7 @@ func (t timeSleepResource) Schema(ctx context.Context, req resource.SchemaReques
 	}
 }
 
-func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (t *timeSleepResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := req.ID
 
 	idParts := strings.Split(id, ",")
@@ -103,7 +135,7 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	state := timeSleepModelV0{
 		CreateDuration:  types.StringNull(),
 		DestroyDuration: types.StringNull(),
-		ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+		ID:              timetypes.NewRFC3339TimeValue(t.clock.Now().UTC()),
 	}
 
 	if idParts[0] != "" {
@@ -138,7 +170,7 @@ func (t timeSleepResource) ImportState(ctx context.Context, req resource.ImportS
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeSleepResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (t *timeSleepResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeSleepModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -173,17 +205,17 @@ func (t timeSleepResource) Create(ctx context.Context, req resource.CreateReques
 		CreateDuration:  plan.CreateDuration,
 		DestroyDuration: plan.DestroyDuration,
 		Triggers:        plan.Triggers,
-		ID:              timetypes.NewRFC3339TimeValue(time.Now().UTC()),
+		ID:              timetypes.NewRFC3339TimeValue(t.clock.Now().UTC()),
 	}
 	diags = resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeSleepResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (t *timeSleepResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 }
 
-func (t timeSleepResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (t *timeSleepResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data timeSleepModelV0
 
 	// Read Terraform plan data into the model
@@ -193,7 +225,7 @@ func (t timeSleepResource) Update(ctx context.Context, req resource.UpdateReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (t timeSleepResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (t *timeSleepResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state timeSleepModelV0
 
 	diags := req.State.Get(ctx, &state)

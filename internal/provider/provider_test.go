@@ -4,69 +4,13 @@
 package provider
 
 import (
-	"context"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/function"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	testingresource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
-
-var (
-	_ provider.ProviderWithFunctions = (*testTimeProvider)(nil)
-)
-
-func NewTestProvider(clock clock.Clock) provider.Provider {
-	return &testTimeProvider{
-		clock: clock,
-	}
-}
-
-type testTimeProvider struct {
-	clock clock.Clock
-}
-
-func (p *testTimeProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "time"
-}
-
-func (p *testTimeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-}
-
-func (p *testTimeProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return nil
-}
-
-func (p *testTimeProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewTimeOffsetResource,
-		p.NewTestTimeRotatingResource,
-		NewTimeSleepResource,
-		NewTimeStaticResource,
-	}
-}
-
-func (p *testTimeProvider) Schema(context.Context, provider.SchemaRequest, *provider.SchemaResponse) {
-}
-
-func (p *testTimeProvider) Functions(ctx context.Context) []func() function.Function {
-	return []func() function.Function{
-		NewRFC3339ParseFunction,
-	}
-}
-
-func (p *testTimeProvider) NewTestTimeRotatingResource() resource.Resource {
-	return &timeRotatingResource{
-		clock: p.clock,
-	}
-}
 
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
 	return map[string]func() (tfprotov5.ProviderServer, error){

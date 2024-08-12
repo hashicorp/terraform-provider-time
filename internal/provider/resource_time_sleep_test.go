@@ -30,7 +30,7 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepResource()
+	sleepResource := NewTimeSleepTestResource()
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, durationStr),
@@ -107,7 +107,7 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepResource()
+	sleepResource := NewTimeSleepTestResource()
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, nil),

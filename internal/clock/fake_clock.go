@@ -31,6 +31,6 @@ func (clock *FakeClock) Increment(duration time.Duration) {
 }
 
 func (clock *FakeClock) IncrementDate(years int, months int, days int) {
-	now := clock.Now().AddDate(years, months, days)
+	now := clock.now.AddDate(years, months, days)
 	clock.now = now
 }
