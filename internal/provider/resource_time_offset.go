@@ -19,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 var (
@@ -26,19 +28,43 @@ var (
 	_ resource.ResourceWithImportState      = (*timeOffsetResource)(nil)
 	_ resource.ResourceWithModifyPlan       = (*timeOffsetResource)(nil)
 	_ resource.ResourceWithConfigValidators = (*timeOffsetResource)(nil)
+	_ resource.ResourceWithConfigure        = (*timeOffsetResource)(nil)
 )
 
 func NewTimeOffsetResource() resource.Resource {
 	return &timeOffsetResource{}
 }
 
-type timeOffsetResource struct{}
+type timeOffsetResource struct {
+	clock clock.Clock
+}
 
-func (t timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (t *timeOffsetResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	pClock, ok := req.ProviderData.(clock.Clock)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected clock.Clock, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	t.clock = pClock
+}
+
+func (t *timeOffsetResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_offset"
 }
 
-func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (t *timeOffsetResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages an offset time resource, which keeps an UTC timestamp stored in the Terraform state that is" +
 			" offset from a locally sourced base timestamp. This prevents perpetual differences caused " +
@@ -128,7 +154,7 @@ func (t timeOffsetResource) Schema(ctx context.Context, req resource.SchemaReque
 	}
 }
 
-func (t timeOffsetResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+func (t *timeOffsetResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.AtLeastOneOf(
 			path.MatchRoot("offset_seconds"),
@@ -141,7 +167,7 @@ func (t timeOffsetResource) ConfigValidators(_ context.Context) []resource.Confi
 	}
 }
 
-func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (t *timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Plan does not need to be modified when the resource is being destroyed.
 	if req.Plan.Raw.IsNull() {
 		return
@@ -209,7 +235,7 @@ func (t timeOffsetResource) ModifyPlan(ctx context.Context, req resource.ModifyP
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeOffsetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (t *timeOffsetResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	var importedState timeOffsetModelV0
 	var err error
 
@@ -312,7 +338,7 @@ func (t timeOffsetResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (t *timeOffsetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeOffsetModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -321,7 +347,7 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	timestamp := time.Now().UTC()
+	timestamp := t.clock.Now().UTC()
 
 	if plan.BaseRFC3339.ValueString() != "" {
 		baseRFC3339, diags := plan.BaseRFC3339.ValueRFC3339Time()
@@ -340,11 +366,11 @@ func (t timeOffsetResource) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeOffsetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (t *timeOffsetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 }
 
-func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (t *timeOffsetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan timeOffsetModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -366,7 +392,7 @@ func (t timeOffsetResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeOffsetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (t *timeOffsetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 }
 
