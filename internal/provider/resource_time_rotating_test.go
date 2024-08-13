@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 
-	"github.com/hashicorp/terraform-provider-time/internal/clock"
+	"github.com/hashicorp/terraform-provider-time/internal/timetesting"
 )
 
 func TestAccTimeRotating_Triggers(t *testing.T) {
@@ -77,7 +77,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationDays_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationDays := 7
 
 	resource.UnitTest(t, resource.TestCase{
@@ -139,7 +139,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationDays_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationDays := 7
 
 	resource.UnitTest(t, resource.TestCase{
@@ -246,7 +246,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationHours_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationHours := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -308,7 +308,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationHours_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationHours := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -415,7 +415,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMinutes_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationMinutes := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -477,7 +477,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMinutes_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationMinutes := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -585,7 +585,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationMonths := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -647,7 +647,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationMonths_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationMonths := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -755,7 +755,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationRfc3339_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -818,7 +818,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationRfc3339_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationTimestamp := time.Now().UTC().AddDate(0, 0, 7)
 
 	resource.UnitTest(t, resource.TestCase{
@@ -922,7 +922,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationYears_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	now := time.Now().UTC()
-	mockClock := clock.NewFakeClock(now)
+	mockClock := timetesting.NewFakeClock(now)
 	rotationYears := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -984,7 +984,7 @@ func TestAccTimeRotating_ConfiguredRFC3339RotationYears_basic(t *testing.T) {
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationYears := 3
 
 	resource.UnitTest(t, resource.TestCase{
@@ -1092,7 +1092,7 @@ func TestAccTimeRotating_ComputedRFC3339_RotationDays_ToRotationMonths(t *testin
 	resourceName := "time_rotating.test"
 
 	baseTimestamp := time.Now().UTC()
-	mockClock := clock.NewFakeClock(baseTimestamp)
+	mockClock := timetesting.NewFakeClock(baseTimestamp)
 	rotationDays := 7
 	rotationMonths := 3
 
