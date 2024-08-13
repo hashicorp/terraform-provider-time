@@ -18,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 // Since the acceptance testing framework can introduce uncontrollable time delays,
@@ -30,7 +32,14 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepTestResource()
+	sleepResource, ok := NewTimeSleepResource().(r.ResourceWithConfigure)
+	if !ok {
+		t.Fatalf("expected resource.ResouceWithConfigure, got %T", NewTimeSleepResource())
+	}
+	configureReq := r.ConfigureRequest{
+		ProviderData: clock.NewClock(),
+	}
+	sleepResource.Configure(context.Background(), configureReq, &r.ConfigureResponse{})
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, durationStr),
@@ -107,7 +116,14 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepTestResource()
+	sleepResource, ok := NewTimeSleepResource().(r.ResourceWithConfigure)
+	if !ok {
+		t.Fatalf("expected resource.ResouceWithConfigure, got %T", NewTimeSleepResource())
+	}
+	configureReq := r.ConfigureRequest{
+		ProviderData: clock.NewClock(),
+	}
+	sleepResource.Configure(context.Background(), configureReq, &r.ConfigureResponse{})
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, nil),

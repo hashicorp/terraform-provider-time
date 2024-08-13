@@ -36,12 +36,6 @@ func NewTimeSleepResource() resource.Resource {
 	return &timeSleepResource{}
 }
 
-func NewTimeSleepTestResource() resource.Resource {
-	return &timeSleepResource{
-		clock: clock.NewClock(),
-	}
-}
-
 type timeSleepResource struct {
 	clock clock.Clock
 }
