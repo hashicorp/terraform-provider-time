@@ -26,6 +26,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 	"github.com/hashicorp/terraform-provider-time/internal/modifiers/timemodifier"
 )
 
@@ -34,19 +35,43 @@ var (
 	_ resource.ResourceWithImportState      = (*timeRotatingResource)(nil)
 	_ resource.ResourceWithModifyPlan       = (*timeRotatingResource)(nil)
 	_ resource.ResourceWithConfigValidators = (*timeRotatingResource)(nil)
+	_ resource.ResourceWithConfigure        = (*timeRotatingResource)(nil)
 )
 
 func NewTimeRotatingResource() resource.Resource {
 	return &timeRotatingResource{}
 }
 
-type timeRotatingResource struct{}
+type timeRotatingResource struct {
+	clock clock.Clock
+}
 
-func (t timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (t *timeRotatingResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	pClock, ok := req.ProviderData.(clock.Clock)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected clock.Clock, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	t.clock = pClock
+}
+
+func (t *timeRotatingResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_rotating"
 }
 
-func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (t *timeRotatingResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform " +
 			"state and proposes resource recreation when the locally sourced current time is beyond the rotation time. " +
@@ -174,7 +199,7 @@ func (t timeRotatingResource) Schema(ctx context.Context, req resource.SchemaReq
 	}
 }
 
-func (t timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (t *timeRotatingResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.AtLeastOneOf(
 			path.MatchRoot("rotation_minutes"),
@@ -187,7 +212,7 @@ func (t timeRotatingResource) ConfigValidators(ctx context.Context) []resource.C
 	}
 }
 
-func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func (t *timeRotatingResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	// Plan does not need to be modified when the resource is being destroyed.
 	if req.Plan.Raw.IsNull() {
 		return
@@ -269,7 +294,7 @@ func (t timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modif
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (t *timeRotatingResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := req.ID
 	var state timeRotatingModelV0
 	var err error
@@ -327,7 +352,7 @@ func (t timeRotatingResource) ImportState(ctx context.Context, req resource.Impo
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (t *timeRotatingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeRotatingModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -336,7 +361,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	timestamp := time.Now().UTC()
+	timestamp := t.clock.Now().UTC()
 
 	if plan.RFC3339.ValueString() != "" {
 		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
@@ -360,7 +385,7 @@ func (t timeRotatingResource) Create(ctx context.Context, req resource.CreateReq
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (t *timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state timeRotatingModelV0
 
 	diags := req.State.Get(ctx, &state)
@@ -370,7 +395,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	if !state.RotationRFC3339.IsNull() && state.RotationRFC3339.ValueString() != "" {
-		now := time.Now().UTC()
+		now := t.clock.Now().UTC()
 		rotationTimestamp, diags := state.RotationRFC3339.ValueRFC3339Time()
 
 		resp.Diagnostics.Append(diags...)
@@ -388,7 +413,7 @@ func (t timeRotatingResource) Read(ctx context.Context, req resource.ReadRequest
 
 }
 
-func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (t *timeRotatingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state timeRotatingModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -430,7 +455,7 @@ func (t timeRotatingResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeRotatingResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+func (t *timeRotatingResource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
 
 }
 

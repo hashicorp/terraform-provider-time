@@ -5,10 +5,11 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	testingresource "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, error) {
@@ -17,8 +18,14 @@ func protoV5ProviderFactories() map[string]func() (tfprotov5.ProviderServer, err
 	}
 }
 
-func providerVersion080() map[string]resource.ExternalProvider {
-	return map[string]resource.ExternalProvider{
+func protoV5ProviderFactoriesTestProvider(testClock clock.Clock) map[string]func() (tfprotov5.ProviderServer, error) {
+	return map[string]func() (tfprotov5.ProviderServer, error){
+		"time": providerserver.NewProtocol5WithError(NewTestProvider(testClock)),
+	}
+}
+
+func providerVersion080() map[string]testingresource.ExternalProvider {
+	return map[string]testingresource.ExternalProvider{
 		"time": {
 			VersionConstraint: "0.8.0",
 			Source:            "hashicorp/time",
