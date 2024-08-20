@@ -49,9 +49,9 @@ func (v int64Between) String() string {
 }
 
 // Int64Between returns a Check for asserting that a value is between the supplied min and max int64 values (inclusive).
-func Int64Between(min, max int64) int64Between {
+func Int64Between(minVal, maxVal int64) int64Between {
 	return int64Between{
-		min: min,
-		max: max,
+		min: minVal,
+		max: maxVal,
 	}
 }
