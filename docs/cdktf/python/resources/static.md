@@ -92,4 +92,4 @@ terraform import time_static.example 2020-02-12T06:36:13Z
 ```
 
 The `triggers` argument cannot be imported.
-<!-- cache-key: cdktf-0.20.1 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 -->
+<!-- cache-key: cdktf-0.20.8 input-2146f927c8bb8e527bb2f114b61e2f9275e5bb5fe013e14866a96eaf7e90c011 -->
