@@ -21,21 +21,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    strategy:
-      matrix:
-        go-version: [ '1.21', '1.22' ]
-
     steps:
 
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
       with:
-        go-version: ${{ matrix.go-version }}
+        go-version-file: 'go.mod'
 
     - name: Run linters
       uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86 # v6.1.0
       with:
         version: latest
+
+    # We need the latest version of Terraform for our documentation generation to use
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      with:
+        terraform_wrapper: false
 
     - name: Generate
       run: make generate
