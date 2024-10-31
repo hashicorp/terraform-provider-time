@@ -633,7 +633,7 @@ func TestAccTimeRotating_ComputedRFC3339RotationMonths_basic(t *testing.T) {
 					},
 				},
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(now.AddDate(0, rotationMonths+4, 0).Format(time.RFC3339))),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact(now.AddDate(0, 4, 0).AddDate(0, rotationMonths, 0).Format(time.RFC3339))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(now.AddDate(0, 4, 0).Format(time.RFC3339))),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_months"), knownvalue.Int64Exact(int64(rotationMonths))),
 				},
