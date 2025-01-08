@@ -46,3 +46,65 @@ resource "aws_instance" "server" {
 `triggers` are *not* treated as sensitive attributes; a value used for `triggers` will be displayed in Terraform UI output as plaintext.
 
 To force a these actions to reoccur without updating `triggers`, the [`terraform taint` command](https://www.terraform.io/docs/commands/taint.html) can be used to produce the action on the next run.
+
+## Implementing Rotation Windows
+
+The following example demonstrates how to use `time_rotating` to implement a rotation mechanism for tokens, ensuring overlapping availability during transitions.
+
+### Example Usage
+
+```terraform
+resource "time_rotating" "rotate_token_1" {
+  rotation_minutes = var.expiration_time_in_minutes
+}
+
+resource "time_rotating" "rotate_token_2" {
+  rfc3339 = time_rotating.rotate_token_1.rotation_rfc3339
+  
+  # Shorter rotation window to overlap with the first token
+  rotation_minutes = var.expiration_time_in_minutes / 2
+
+  lifecycle {
+    ignore_changes = [
+      rfc3339
+    ]
+  }
+}
+
+# Replace with a token resource from another provider
+resource "token_resource" "token_1" {
+  expires_at = timeadd(time_rotating.rotate_token_1.rfc3339, "${var.expiration_time_in_minutes * 1.5}m")
+
+  # ... (other token arguments) ...
+}
+
+# Replace with a token resource from another provider
+resource "token_resource" "token_2" {
+  expires_at = timeadd(time_rotating.rotate_token_2.rfc3339, "${var.expiration_time_in_minutes * 1.5}m")
+
+  # ... (other token arguments) ...
+}
+
+locals {
+  use_token1 = timecmp(time_rotating.rotate_token_1.rfc3339, time_rotating.rotate_token_2.rfc3339) > 0
+}
+
+output "active_token" {
+  value     = local.use_token1 ? token_resource.token_1.value : token_resource.token_2.value
+  sensitive = true
+}
+```
+
+### Key Considerations
+
+1. **Overlapping Availability**:
+   - Token 1 and Token 2 have overlapping rotation windows to ensure seamless availability during transitions. This minimizes potential downtime or lapses in functionality.
+
+2. **Simplified Token Resources**:
+   - The `token_resource` represents a generalized token configuration. Replace this with your specific token implementation.
+
+3. **Active Token Logic**:
+   - The `local.use_token1` logic determines which token is currently active based on the rotation timestamps.
+
+4. **Customizable Rotation**:
+   - The rotation intervals (`rotation_minutes`) can be tailored to meet your system's requirements for availability and security.
