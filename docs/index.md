@@ -71,14 +71,14 @@ resource "time_rotating" "rotate_token_2" {
   }
 }
 
-# Replace with a token resource from other providers
+# Replace with a token resource from another provider
 resource "token_resource" "token_1" {
   expires_at = timeadd(time_rotating.rotate_token_1.rfc3339, "${var.expiration_time_in_minutes * 1.5}m")
 
   # ... (other token arguments) ...
 }
 
-# Replace with a token resource from other providers
+# Replace with a token resource from another provider
 resource "token_resource" "token_2" {
   expires_at = timeadd(time_rotating.rotate_token_2.rfc3339, "${var.expiration_time_in_minutes * 1.5}m")
 
