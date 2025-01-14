@@ -2,6 +2,10 @@ module github.com/hashicorp/terraform-provider-time
 
 go 1.22.7
 
+replace github.com/hashicorp/terraform-plugin-go => /Users/rain.kwan/GolandProjects/terraform-plugin-go
+
+replace github.com/hashicorp/terraform-plugin-framework => /Users/rain.kwan/GolandProjects/terraform-plugin-framework
+
 require (
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.13.0
