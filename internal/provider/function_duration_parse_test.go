@@ -31,12 +31,12 @@ func TestDurationParse_valid(t *testing.T) {
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownOutputValue("test", knownvalue.ObjectExact(
 							map[string]knownvalue.Check{
-								"hours":        knownvalue.Float64Exact(time.Hour.Hours()),
-								"minutes":      knownvalue.Float64Exact(time.Hour.Minutes()),
-								"seconds":      knownvalue.Float64Exact(time.Hour.Seconds()),
-								"milliseconds": knownvalue.Int64Exact(time.Hour.Milliseconds()),
-								"microseconds": knownvalue.Int64Exact(time.Hour.Microseconds()),
-								"nanoseconds":  knownvalue.Int64Exact(time.Hour.Nanoseconds()),
+								"hours":        knownvalue.Float64Exact(1),
+								"minutes":      knownvalue.Float64Exact(60),
+								"seconds":      knownvalue.Float64Exact(3600),
+								"milliseconds": knownvalue.Int64Exact(3600000),
+								"microseconds": knownvalue.Int64Exact(3600000000),
+								"nanoseconds":  knownvalue.Int64Exact(3600000000000),
 							},
 						)),
 					},
