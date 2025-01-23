@@ -37,8 +37,8 @@ func (f *DurationParseFunction) Metadata(ctx context.Context, req function.Metad
 
 func (f *DurationParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary:     "Parse a duration string into an object",
-		Description: "Given a duration string, will parse and return an object representation of that duration.",
+		Summary:     "Parse a [Go duration string](https://pkg.go.dev/time#ParseDuration) into an object",
+		Description: "Given a [Go duration string](https://pkg.go.dev/time#ParseDuration), will parse and return an object representation of that duration.",
 
 		Parameters: []function.Parameter{
 			function.StringParameter{
