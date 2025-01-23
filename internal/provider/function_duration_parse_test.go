@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
-func TestParseDuration_valid(t *testing.T) {
+func TestDurationParse_valid(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_8_0),
@@ -24,7 +24,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("1h")
+					value = provider::time::duration_parse("1h")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -45,7 +45,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("60m")
+					value = provider::time::duration_parse("60m")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -57,7 +57,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("3600s")
+					value = provider::time::duration_parse("3600s")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -69,7 +69,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("3600000ms")
+					value = provider::time::duration_parse("3600000ms")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -81,7 +81,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("3600000000us")
+					value = provider::time::duration_parse("3600000000us")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -93,7 +93,7 @@ func TestParseDuration_valid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("3600000000000ns")
+					value = provider::time::duration_parse("3600000000000ns")
 				}
 				`,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
@@ -106,7 +106,7 @@ func TestParseDuration_valid(t *testing.T) {
 	})
 }
 
-func TestParseDuration_invalid(t *testing.T) {
+func TestDurationParse_invalid(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_8_0),
@@ -116,7 +116,7 @@ func TestParseDuration_invalid(t *testing.T) {
 			{
 				Config: `
 				output "test" {
-					value = provider::time::parse_duration("abcdef")
+					value = provider::time::duration_parse("abcdef")
 				}
 				`,
 				ExpectError: regexp.MustCompile(`"abcdef" is not a valid duration string.`),
