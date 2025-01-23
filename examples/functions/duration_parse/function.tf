@@ -12,5 +12,5 @@ terraform {
 }
 
 output "example_output" {
-  value = provider::time::parse_duration("1h")
+  value = provider::time::duration_parse("1h")
 }

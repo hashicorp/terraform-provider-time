@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var parseDurationReturnAttrTypes = map[string]attr.Type{
+var durationParseReturnAttrTypes = map[string]attr.Type{
 	"hours":        types.Float64Type,
 	"minutes":      types.Float64Type,
 	"seconds":      types.Float64Type,
@@ -23,19 +23,19 @@ var parseDurationReturnAttrTypes = map[string]attr.Type{
 	"nanoseconds":  types.Int64Type,
 }
 
-var _ function.Function = &ParseDurationFunction{}
+var _ function.Function = &DurationParseFunction{}
 
-type ParseDurationFunction struct{}
+type DurationParseFunction struct{}
 
-func NewParseDurationFunction() function.Function {
-	return &ParseDurationFunction{}
+func NewDurationParseFunction() function.Function {
+	return &DurationParseFunction{}
 }
 
-func (f *ParseDurationFunction) Metadata(ctx context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
-	resp.Name = "parse_duration"
+func (f *DurationParseFunction) Metadata(ctx context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
+	resp.Name = "duration_parse"
 }
 
-func (f *ParseDurationFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+func (f *DurationParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary:     "Parse a duration string into an object",
 		Description: "Given a duration string, will parse and return an object representation of that duration.",
@@ -47,12 +47,12 @@ func (f *ParseDurationFunction) Definition(ctx context.Context, req function.Def
 			},
 		},
 		Return: function.ObjectReturn{
-			AttributeTypes: parseDurationReturnAttrTypes,
+			AttributeTypes: durationParseReturnAttrTypes,
 		},
 	}
 }
 
-func (f *ParseDurationFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+func (f *DurationParseFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 	var input string
 
 	resp.Error = req.Arguments.Get(ctx, &input)
@@ -60,7 +60,7 @@ func (f *ParseDurationFunction) Run(ctx context.Context, req function.RunRequest
 		return
 	}
 
-	duration, err := time.ParseDuration(input)
+	duration, err := time.DurationParse(input)
 	if err != nil {
 		// Intentionally not including the Go parse error in the return diagnostic, as the message is based on a Go-specific
 		// reference time that may be unfamiliar to practitioners
@@ -71,7 +71,7 @@ func (f *ParseDurationFunction) Run(ctx context.Context, req function.RunRequest
 	}
 
 	durationObj, diags := types.ObjectValue(
-		parseDurationReturnAttrTypes,
+		durationParseReturnAttrTypes,
 		map[string]attr.Value{
 			"hours":        types.Float64Value(duration.Hours()),
 			"minutes":      types.Float64Value(duration.Minutes()),
