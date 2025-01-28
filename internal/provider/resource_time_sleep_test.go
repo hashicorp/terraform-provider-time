@@ -13,7 +13,13 @@ import (
 	r "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 // Since the acceptance testing framework can introduce uncontrollable time delays,
@@ -26,7 +32,14 @@ func TestResourceTimeSleepCreate(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepResource()
+	sleepResource, ok := NewTimeSleepResource().(r.ResourceWithConfigure)
+	if !ok {
+		t.Fatalf("expected resource.ResouceWithConfigure, got %T", NewTimeSleepResource())
+	}
+	configureReq := r.ConfigureRequest{
+		ProviderData: clock.NewClock(),
+	}
+	sleepResource.Configure(context.Background(), configureReq, &r.ConfigureResponse{})
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, durationStr),
@@ -103,7 +116,14 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 		t.Fatalf("unable to parse test duration: %s", err)
 	}
 
-	sleepResource := NewTimeSleepResource()
+	sleepResource, ok := NewTimeSleepResource().(r.ResourceWithConfigure)
+	if !ok {
+		t.Fatalf("expected resource.ResouceWithConfigure, got %T", NewTimeSleepResource())
+	}
+	configureReq := r.ConfigureRequest{
+		ProviderData: clock.NewClock(),
+	}
+	sleepResource.Configure(context.Background(), configureReq, &r.ConfigureResponse{})
 
 	m := map[string]tftypes.Value{
 		"create_duration":  tftypes.NewValue(tftypes.String, nil),
@@ -155,8 +175,10 @@ func TestResourceTimeSleepDelete(t *testing.T) {
 }
 
 func TestAccTimeSleep_CreateDuration(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
+
+	// The id attribute should not change between test steps
+	assertIDSame := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -164,11 +186,11 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepCreateDuration("1ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					testExtractResourceAttr(resourceName, "id", &time1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("1ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
 			// on the current time stamp in the ID. We will also need to revisit this test later once TF core allows
@@ -181,20 +203,21 @@ func TestAccTimeSleep_CreateDuration(t *testing.T) {
 			//},
 			{
 				Config: testAccConfigTimeSleepCreateDuration("2ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_duration", "2ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesSame(&time1, &time2),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("2ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 		},
 	})
 }
 
 func TestAccTimeSleep_DestroyDuration(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
+
+	// The id attribute should not change between test steps
+	assertIDSame := statecheck.CompareValue(compare.ValuesSame())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -202,11 +225,11 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepDestroyDuration("1ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "1ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					testExtractResourceAttr(resourceName, "id", &time1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("1ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
 			// on the current time stamp in the ID. We will also need to revisit this test later once TF core allows
@@ -219,20 +242,21 @@ func TestAccTimeSleep_DestroyDuration(t *testing.T) {
 			//},
 			{
 				Config: testAccConfigTimeSleepDestroyDuration("2ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "destroy_duration", "2ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesSame(&time1, &time2),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("destroy_duration"), knownvalue.StringExact("2ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					assertIDSame.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 		},
 	})
 }
 
 func TestAccTimeSleep_Triggers(t *testing.T) {
-	var time1, time2 string
 	resourceName := "time_sleep.test"
+
+	// Due to the time.Sleep, the id attribute should differ between test steps
+	assertIDUpdated := statecheck.CompareValue(compare.ValuesDiffer())
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -240,13 +264,13 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTimeSleepTriggers1("key1", "value1"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
-					testExtractResourceAttr(resourceName, "id", &time1),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 			// This test may work in local execution but typically does not work in CI because of its reliance
 			// on the current time stamp in the ID. We will also need to revisit this test later once TF core allows
@@ -260,14 +284,13 @@ func TestAccTimeSleep_Triggers(t *testing.T) {
 			//},
 			{
 				Config: testAccConfigTimeSleepTriggers1("key1", "value1updated"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "triggers.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "triggers.key1", "value1updated"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "create_duration"),
-					testExtractResourceAttr(resourceName, "id", &time2),
-					testCheckAttributeValuesDiffer(&time1, &time2),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers"), knownvalue.MapSizeExact(1)),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key1"), knownvalue.StringExact("value1updated")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.NotNull()),
+					assertIDUpdated.AddStateValue(resourceName, tfjsonpath.New("id")),
+				},
 			},
 		},
 	})
@@ -282,10 +305,10 @@ func TestAccTimeSleep_Upgrade(t *testing.T) {
 			{
 				ExternalProviders: providerVersion080(),
 				Config:            testAccConfigTimeSleepCreateDuration("1ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("1ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+				},
 			},
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
@@ -295,10 +318,10 @@ func TestAccTimeSleep_Upgrade(t *testing.T) {
 			{
 				ProtoV5ProviderFactories: protoV5ProviderFactories(),
 				Config:                   testAccConfigTimeSleepCreateDuration("1ms"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "create_duration", "1ms"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("create_duration"), knownvalue.StringExact("1ms")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("id"), knownvalue.NotNull()),
+				},
 			},
 		},
 	})

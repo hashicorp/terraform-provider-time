@@ -1,3 +1,21 @@
+## 0.12.1 (September 11, 2024)
+
+NOTES:
+
+* all: This release introduces no functional changes. It does however include dependency updates which address upstream CVEs. ([#351](https://github.com/hashicorp/terraform-provider-time/issues/351))
+
+## 0.12.0 (July 17, 2024)
+
+ENHANCEMENTS:
+
+* resource/time_static: If the `rfc3339` value is set in config and known at plan-time, all other attributes will also be known during plan. ([#255](https://github.com/hashicorp/terraform-provider-time/issues/255))
+
+## 0.11.2 (May 28, 2024)
+
+NOTES:
+
+* This release introduces no functional changes. It does however include dependency updates which address upstream CVEs. ([#327](https://github.com/hashicorp/terraform-provider-time/issues/327))
+
 ## 0.11.1 (March 11, 2024)
 
 NOTES:

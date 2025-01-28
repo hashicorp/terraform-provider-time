@@ -10,24 +10,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 func New() provider.Provider {
-	return &timeProvider{}
+	return &timeProvider{
+		clock.NewClock(),
+	}
+}
+
+func NewTestProvider(clock clock.Clock) provider.Provider {
+	return &timeProvider{
+		clock: clock,
+	}
 }
 
 var (
 	_ provider.ProviderWithFunctions = (*timeProvider)(nil)
 )
 
-type timeProvider struct{}
+type timeProvider struct {
+	clock clock.Clock
+}
 
 func (p *timeProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "time"
 }
 
 func (p *timeProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-
+	resp.ResourceData = p.clock
 }
 
 func (p *timeProvider) DataSources(ctx context.Context) []func() datasource.DataSource {

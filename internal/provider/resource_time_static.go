@@ -16,24 +16,98 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-provider-time/internal/clock"
 )
 
 var (
 	_ resource.Resource                = (*timeStaticResource)(nil)
+	_ resource.ResourceWithModifyPlan  = (*timeStaticResource)(nil)
 	_ resource.ResourceWithImportState = (*timeStaticResource)(nil)
+	_ resource.ResourceWithConfigure   = (*timeStaticResource)(nil)
 )
 
 func NewTimeStaticResource() resource.Resource {
 	return &timeStaticResource{}
 }
 
-type timeStaticResource struct{}
+type timeStaticResource struct {
+	clock clock.Clock
+}
 
-func (t timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (t *timeStaticResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	// Always perform a nil check when handling ProviderData because Terraform
+	// sets that data after it calls the ConfigureProvider RPC.
+	if req.ProviderData == nil {
+		return
+	}
+
+	pClock, ok := req.ProviderData.(clock.Clock)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configure Type",
+			fmt.Sprintf("Expected clock.Clock, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	t.clock = pClock
+}
+
+func (t *timeStaticResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip plan modification unless it's a create operation
+	if req.Plan.Raw.IsNull() || !req.State.Raw.IsNull() {
+		return
+	}
+
+	var plan timeStaticModelV0
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Currently, it is only possible to enhance the plan when the rfc3339 value is defined in configuration (i.e. value is not null and known in plan).
+	//
+	// Terraform calls the PlanResourceChange RPC twice (initial planned state and final planned state) and currently has no mechanism for sharing information between
+	// the initial plan call and final plan call. This means that we can't create a final plan that matches the initial plan using something like time.Now()
+	// which will differ between the two calls and result in a "Provider produced inconsistent final plan" error from Terraform.
+	//
+	// If functionality is introduced in the future that allows us to create consistent final and initial plans, we'd likely want to introduce a new managed resource that
+	// always determines its results at plan time. Changing this resource to adopt that behavior would be a breaking change for practitioners who are relying on the time being
+	// determined at apply time.
+	//
+	// There is no time provider feature request currently for this behavior, but a similar long-standing issue exists on the random provider:
+	// - https://github.com/hashicorp/terraform-provider-random/issues/121
+	if plan.RFC3339.IsNull() || plan.RFC3339.IsUnknown() {
+		return
+	}
+
+	rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	plan.Year = types.Int64Value(int64(rfc3339.Year()))
+	plan.Month = types.Int64Value(int64(rfc3339.Month()))
+	plan.Day = types.Int64Value(int64(rfc3339.Day()))
+	plan.Hour = types.Int64Value(int64(rfc3339.Hour()))
+	plan.Minute = types.Int64Value(int64(rfc3339.Minute()))
+	plan.Second = types.Int64Value(int64(rfc3339.Second()))
+	plan.Unix = types.Int64Value(rfc3339.Unix())
+	plan.ID = plan.RFC3339
+
+	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+}
+
+func (t *timeStaticResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_static"
 }
 
-func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (t *timeStaticResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a static time resource, which keeps a locally sourced UTC timestamp stored in the Terraform state. " +
 			"This prevents perpetual differences caused by using " +
@@ -100,7 +174,7 @@ func (t timeStaticResource) Schema(ctx context.Context, req resource.SchemaReque
 	}
 }
 
-func (t timeStaticResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (t *timeStaticResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	timestamp, err := time.Parse(time.RFC3339, req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -128,7 +202,7 @@ func (t timeStaticResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeStaticResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (t *timeStaticResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan timeStaticModelV0
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -137,9 +211,9 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
-	timestamp := time.Now().UTC()
+	timestamp := t.clock.Now().UTC()
 
-	if plan.RFC3339.ValueString() != "" {
+	if !plan.RFC3339.IsNull() && !plan.RFC3339.IsUnknown() {
 		rfc3339, diags := plan.RFC3339.ValueRFC3339Time()
 
 		resp.Diagnostics.Append(diags...)
@@ -168,11 +242,11 @@ func (t timeStaticResource) Create(ctx context.Context, req resource.CreateReque
 	resp.Diagnostics.Append(diags...)
 }
 
-func (t timeStaticResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (t *timeStaticResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
 }
 
-func (t timeStaticResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (t *timeStaticResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data timeStaticModelV0
 
 	// Read Terraform plan data into the model
@@ -182,7 +256,7 @@ func (t timeStaticResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (t timeStaticResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (t *timeStaticResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 }
 
