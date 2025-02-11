@@ -2,12 +2,12 @@
 page_title: "duration_parse function - terraform-provider-time"
 subcategory: ""
 description: |-
-  Parse a duration string into an object
+  Parse a Go duration string https://pkg.go.dev/time#ParseDuration into an object
 ---
 
 # function: duration_parse
 
-Given a duration string, will parse and return an object representation of that duration.
+Given a [Go duration string](https://pkg.go.dev/time#ParseDuration), will parse and return an object representation of that duration.
 
 ## Example Usage
 
