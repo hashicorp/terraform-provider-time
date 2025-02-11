@@ -31,11 +31,11 @@ func NewDurationParseFunction() function.Function {
 	return &DurationParseFunction{}
 }
 
-func (f *DurationParseFunction) Metadata(ctx context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
+func (f *DurationParseFunction) Metadata(_ context.Context, _ function.MetadataRequest, resp *function.MetadataResponse) {
 	resp.Name = "duration_parse"
 }
 
-func (f *DurationParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
+func (f *DurationParseFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary:     "Parse a [Go duration string](https://pkg.go.dev/time#ParseDuration) into an object",
 		Description: "Given a [Go duration string](https://pkg.go.dev/time#ParseDuration), will parse and return an object representation of that duration.",
@@ -60,7 +60,7 @@ func (f *DurationParseFunction) Run(ctx context.Context, req function.RunRequest
 		return
 	}
 
-	duration, err := time.DurationParse(input)
+	duration, err := time.ParseDuration(input)
 	if err != nil {
 		// Intentionally not including the Go parse error in the return diagnostic, as the message is based on a Go-specific
 		// reference time that may be unfamiliar to practitioners
