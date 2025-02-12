@@ -60,7 +60,7 @@ func (f *DurationParseFunction) Run(ctx context.Context, req function.RunRequest
 		return
 	}
 
-	duration, err := time.DurationParse(input)
+	duration, err := time.ParseDuration(input)
 	if err != nil {
 		// Intentionally not including the Go parse error in the return diagnostic, as the message is based on a Go-specific
 		// reference time that may be unfamiliar to practitioners
