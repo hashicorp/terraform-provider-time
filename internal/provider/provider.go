@@ -60,6 +60,7 @@ func (p *timeProvider) Schema(context.Context, provider.SchemaRequest, *provider
 
 func (p *timeProvider) Functions(ctx context.Context) []func() function.Function {
 	return []func() function.Function{
+		NewDurationParseFunction,
 		NewRFC3339ParseFunction,
 	}
 }
