@@ -8,7 +8,7 @@ description: |-
 
 # function: unix_timestamp_parse
 
-Given a unix timestamp integer, will parse and return an object representation of that date and time.
+Given a unix timestamp integer, will parse and return an object representation of that date and time. A unix timestamp is the number of seconds elapsed since January 1, 1970 UTC.
 
 ## Example Usage
 
