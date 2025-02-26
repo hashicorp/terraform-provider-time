@@ -23,7 +23,6 @@ func TestUnixTimestampParseFunction_Valid(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			// TODO: Replace with the stable v1.8.0 release when available
 			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0"))),
 		},
 		ProtoV6ProviderFactories: protoV6ProviderFactories(),
