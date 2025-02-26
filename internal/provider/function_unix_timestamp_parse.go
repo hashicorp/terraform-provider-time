@@ -39,7 +39,7 @@ func (f *UnixTimestampParseFunction) Metadata(ctx context.Context, req function.
 func (f *UnixTimestampParseFunction) Definition(ctx context.Context, req function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary:             "Parse a unix timestamp integer into an object",
-		MarkdownDescription: "Given a unix timestamp integer, will parse and return an object representation of that date and time.",
+		MarkdownDescription: "Given a unix timestamp integer, will parse and return an object representation of that date and time. A unix timestamp is the number of seconds elapsed since January 1, 1970 UTC.",
 
 		Parameters: []function.Parameter{
 			function.Int64Parameter{
