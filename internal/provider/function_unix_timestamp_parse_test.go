@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -23,12 +22,16 @@ func TestUnixTimestampParseFunction_Valid(t *testing.T) {
 
 	resource.UnitTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(version.Must(version.NewVersion("v1.8.0"))),
+			tfversion.SkipBelow(tfversion.Version1_8_0),
 		},
 		ProtoV6ProviderFactories: protoV6ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConfigUnixTimestampParseFunctionBasic(knownUnixTime),
+				Config: fmt.Sprintf(`
+output "test" {
+  value = provider::time::unix_timestamp_parse(%d)
+}
+`, knownUnixTime),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownOutputValue("test", knownvalue.ObjectExact(
@@ -59,28 +62,19 @@ func TestUnixTimestampParseFunction_Null(t *testing.T) {
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_8_0),
+		},
 		ProtoV6ProviderFactories: protoV6ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccConfigUnixTimestampParseFunctionNull(),
+				Config: `
+output "test" {
+  value = provider::time::unix_timestamp_parse(null)
+}
+`,
 				ExpectError: regexp.MustCompile(`Invalid value for "unix_timestamp" parameter: argument must not be null`),
 			},
 		},
 	})
-}
-
-func testAccConfigUnixTimestampParseFunctionBasic(unixTime int) string {
-	return fmt.Sprintf(`
-output "test" {
-  value = provider::time::unix_timestamp_parse(%d)
-}
-`, unixTime)
-}
-
-func testAccConfigUnixTimestampParseFunctionNull() string {
-	return `
-output "test" {
-  value = provider::time::unix_timestamp_parse(null)
-}
-`
 }
