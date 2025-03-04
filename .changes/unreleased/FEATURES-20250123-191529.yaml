@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'functions/duration_parse: Added a new `duration_parse` function that parses [Go duration strings](https://pkg.go.dev/time#ParseDuration).'
-time: 2025-01-23T19:15:29.754845+01:00
-custom:
-    Issue: "350"

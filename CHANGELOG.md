@@ -1,3 +1,10 @@
+## 0.13.0 (March 04, 2025)
+
+FEATURES:
+
+* functions/duration_parse: Added a new `duration_parse` function that parses [Go duration strings](https://pkg.go.dev/time#ParseDuration). ([#350](https://github.com/hashicorp/terraform-provider-time/issues/350))
+* functions/unix_timestamp_parse: Added a new `unix_timestamp_parse` function that parses a unix timestamp integer and returns an object representation. ([#385](https://github.com/hashicorp/terraform-provider-time/issues/385))
+
 ## 0.12.1 (September 11, 2024)
 
 NOTES:
