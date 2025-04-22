@@ -1,3 +1,9 @@
+## 0.13.1-alpha1 (April 22, 2025)
+
+NOTES:
+
+* all: This release is being used to test new build and release actions. ([#413](https://github.com/hashicorp/terraform-provider-time/issues/413))
+
 ## 0.13.0 (March 04, 2025)
 
 FEATURES:
