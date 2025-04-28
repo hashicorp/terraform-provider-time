@@ -1,3 +1,9 @@
+## 0.13.1 (April 28, 2025)
+
+NOTES:
+
+* Update dependencies ([#410](https://github.com/hashicorp/terraform-provider-time/issues/410))
+
 ## 0.13.1-alpha1 (April 22, 2025)
 
 NOTES:
