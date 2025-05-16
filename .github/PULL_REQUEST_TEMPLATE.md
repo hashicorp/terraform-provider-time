@@ -1,11 +1,16 @@
-<!--- Please keep this note for the community --->
+## Related Issue
 
-### Community Note
+Fixes # <!-- INSERT ISSUE NUMBER -->
 
-* Please vote on this pull request by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original pull request comment to help the community and maintainers prioritize this request
-* Please do not leave "+1" or other comments that do not add relevant new information or questions, they generate extra noise for pull request followers and do not help prioritize the request
+## Description
 
-<!--- Thank you for keeping this note for the community --->
+In plain English, describe your approach to addressing the issue linked above. For example, if you made a particular design decision, let us know why you chose this path instead of another solution.
 
-<!--- If your PR fully resolves and should automatically close the linked issue, use Closes. Otherwise, use Relates --->
-Relates OR Closes #0000
+<!-- heimdall_github_prtemplate:grc-pci_dss-2024-01-05 -->
+## Rollback Plan
+
+- [ ] If a change needs to be reverted, we will roll out an update to the code within 7 days.
+
+## Changes to Security Controls
+
+Are there any changes to security controls (access controls, encryption, logging) in this pull request? If so, explain.
