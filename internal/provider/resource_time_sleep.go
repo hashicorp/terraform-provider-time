@@ -118,10 +118,12 @@ func (t *timeSleepResource) ImportState(ctx context.Context, req resource.Import
 
 	idParts := strings.Split(id, ",")
 
-	if len(idParts) != 2 || (idParts[0] == "" && idParts[1] == "") {
+	if len(idParts) < 2 || (idParts[0] == "" && idParts[1] == "") {
 		resp.Diagnostics.AddError(
 			"Unexpected Format of ID",
-			fmt.Sprintf("Unexpected format of ID (%q), expected CREATEDURATION,DESTROYDURATION where at least one value is non-empty", id))
+			fmt.Sprintf(
+				`Unexpected format of ID (%q), expected CREATEDURATION,DESTROYDURATION,KEY=VALUE,KEY=VALUE... ",
+				where at least one CREATIONDURATION or DESTROYDURATION value is non-empty`, id))
 
 		return
 	}
@@ -158,7 +160,23 @@ func (t *timeSleepResource) ImportState(ctx context.Context, req resource.Import
 		state.DestroyDuration = types.StringValue(idParts[1])
 	}
 
-	state.Triggers = types.MapValueMust(types.StringType, map[string]attr.Value{})
+	triggers := map[string]attr.Value{}
+	// We have triggers defined so we need to parse and import.
+	if len(idParts) > 2 {
+		for _, trigger := range idParts[2:] {
+			value := strings.Split(trigger, "=")
+			if len(value) != 2 {
+				resp.Diagnostics.AddError("Trigger import error",
+					fmt.Sprintf("Trigger import entries must be KEY=VALUE, got %s", trigger),
+				)
+				return
+			}
+
+			triggers[value[0]] = types.StringValue(value[1])
+		}
+	}
+
+	state.Triggers = types.MapValueMust(types.StringType, triggers)
 
 	diags := resp.State.Set(ctx, state)
 	resp.Diagnostics.Append(diags...)
