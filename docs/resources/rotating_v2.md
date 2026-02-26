@@ -1,0 +1,147 @@
+---
+page_title: "time_rotating_v2 Resource - terraform-provider-time"
+subcategory: ""
+description: |-
+  Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform state and triggers resource replacement when the locally sourced current time is beyond the rotation time. This is an improved version of time_rotating that properly integrates with Terraform's replace_triggered_by lifecycle argument. The rotation_* units are cumulative (e.g., rotation_years=1 and rotation_days=1 means 1 year plus 1 day). Drift behavior is controlled by the first_rotation_rfc3339 attribute.
+---
+
+# time_rotating_v2 (Resource)
+
+Manages a rotating time resource, which keeps a rotating UTC timestamp stored in the Terraform state and triggers resource replacement when the locally sourced current time is beyond the rotation time. This is an improved version of time_rotating that properly integrates with Terraform's replace_triggered_by lifecycle argument. The rotation_* units are cumulative (e.g., rotation_years=1 and rotation_days=1 means 1 year plus 1 day). Drift behavior is controlled by the first_rotation_rfc3339 attribute.
+
+-> Further manipulation of incoming or outgoing values can be accomplished with the [`formatdate()` function](https://www.terraform.io/docs/configuration/functions/formatdate.html) and the [`timeadd()` function](https://www.terraform.io/docs/configuration/functions/timeadd.html).
+
+## Key Improvements Over time_rotating
+
+This resource (`time_rotating_v2`) is an improved version of `time_rotating` that fixes several important issues:
+
+1. **Fixes `replace_triggered_by` compatibility** - When rotation expires, this resource properly triggers replacement using Terraform's plan modification system instead of removing state during Read. This allows dependent resources using `lifecycle.replace_triggered_by` to correctly detect and respond to rotations. See [issue #118](https://github.com/hashicorp/terraform-provider-time/issues/118).
+
+2. **Cumulative rotation units** - All rotation unit arguments (`rotation_years`, `rotation_months`, `rotation_days`, `rotation_hours`, `rotation_minutes`) are now cumulative. For example, setting both `rotation_years = 1` and `rotation_days = 1` results in a rotation period of 1 year plus 1 day, not just one of them.
+
+3. **Drift control** - The new `first_rotation_rfc3339` attribute enables explicit control over drift behavior:
+   - **With `first_rotation_rfc3339` configured** (drift mode): Subsequent rotations advance from the actual rotation time, allowing drift from the original schedule.
+   - **Without `first_rotation_rfc3339`** (non-drift mode): Both first and next rotation timestamps advance together, maintaining a consistent rotation schedule.
+
+## Example Usage
+
+### Basic Usage
+
+```terraform
+resource "time_rotating_v2" "example" {
+  rotation_days = 30
+}
+
+output "rotation_timestamp" {
+  value = time_rotating_v2.example.next_rotation_rfc3339
+}
+```
+
+### Using with replace_triggered_by
+
+One of the key improvements in `time_rotating_v2` is proper support for Terraform's `replace_triggered_by` lifecycle argument:
+
+```terraform
+resource "time_rotating_v2" "rotation" {
+  rotation_days = 7
+}
+
+resource "random_password" "password" {
+  length  = 16
+  special = true
+
+  lifecycle {
+    replace_triggered_by = [time_rotating_v2.rotation]
+  }
+}
+```
+
+When the rotation expires, both the `time_rotating_v2` resource and the dependent `random_password` resource will be replaced automatically.
+
+### Cumulative Rotation Units
+
+All rotation units add together:
+
+```terraform
+resource "time_rotating_v2" "example" {
+  rotation_years   = 1
+  rotation_months  = 6
+  rotation_days    = 15
+  rotation_hours   = 12
+  rotation_minutes = 30
+}
+```
+
+This creates a rotation period of 1 year + 6 months + 15 days + 12 hours + 30 minutes.
+
+### Drift Mode
+
+When you explicitly configure `first_rotation_rfc3339`, the resource operates in drift mode:
+
+```terraform
+resource "time_rotating_v2" "drift_example" {
+  first_rotation_rfc3339 = "2024-01-01T00:00:00Z"
+  rotation_days          = 30
+}
+```
+
+In this mode:
+- The first rotation occurs at exactly `2024-01-01T00:00:00Z`
+- If the rotation happens at `2024-01-05T00:00:00Z` (5 days late), the next rotation will be scheduled for `2024-02-04T00:00:00Z` (30 days from actual rotation time)
+- The `first_rotation_rfc3339` attribute remains unchanged at `2024-01-01T00:00:00Z`
+
+### Non-Drift Mode (Default)
+
+Without configuring `first_rotation_rfc3339`, the resource maintains a consistent schedule:
+
+```terraform
+resource "time_rotating_v2" "non_drift_example" {
+  rotation_days = 30
+}
+```
+
+In this mode:
+- Both `first_rotation_rfc3339` and `next_rotation_rfc3339` are computed
+- If rotation happens late, both timestamps advance together to maintain the schedule
+- Prevents accumulating drift over multiple rotation cycles
+
+<!-- schema generated by tfplugindocs -->
+## Schema
+
+### Optional
+
+- `first_rotation_rfc3339` (String) Configure the first rotation timestamp with an [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format timestamp. When configured, enables drift mode where subsequent rotations advance from actual rotation time. When omitted, both first_rotation_rfc3339 and next_rotation_rfc3339 advance together (non-drift mode). Defaults to current time plus rotation duration.
+- `rotation_days` (Number) Number of days to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger replacement. At least one of the 'rotation_' arguments must be configured. All rotation units are cumulative.
+- `rotation_hours` (Number) Number of hours to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger replacement. At least one of the 'rotation_' arguments must be configured. All rotation units are cumulative.
+- `rotation_minutes` (Number) Number of minutes to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger replacement. At least one of the 'rotation_' arguments must be configured. All rotation units are cumulative.
+- `rotation_months` (Number) Number of months to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger replacement. At least one of the 'rotation_' arguments must be configured. All rotation units are cumulative.
+- `rotation_years` (Number) Number of years to add to the base timestamp to configure the rotation timestamp. When the current time has passed the rotation timestamp, the resource will trigger replacement. At least one of the 'rotation_' arguments must be configured. All rotation units are cumulative.
+- `triggers` (Map of String) Arbitrary map of values that, when changed, will trigger a new rotation timestamp to be calculated. These conditions recreate the resource in addition to rotation time expiration. See [the main provider documentation](../index.md) for more information.
+
+### Read-Only
+
+- `day` (Number) Number day of next rotation timestamp.
+- `hour` (Number) Number hour of next rotation timestamp.
+- `id` (String) RFC3339 format of the next rotation timestamp, e.g. `2020-02-12T06:36:13Z`.
+- `minute` (Number) Number minute of next rotation timestamp.
+- `month` (Number) Number month of next rotation timestamp.
+- `next_rotation_rfc3339` (String) Computed timestamp in [RFC3339](https://datatracker.ietf.org/doc/html/rfc3339#section-5.8) format indicating when the next rotation will occur. When current time exceeds this value, the resource triggers replacement.
+- `second` (Number) Number second of next rotation timestamp.
+- `unix` (Number) Number of seconds since epoch time for next rotation, e.g. `1581489373`.
+- `year` (Number) Number year of next rotation timestamp.
+
+## Import
+
+This resource can be imported using the first rotation UTC RFC3339 value and rotation years, months, days, hours, and minutes, separated by commas (`,`).
+
+For example, to import a resource with first rotation on January 1, 2024 and a 7-day rotation period:
+
+```shell
+terraform import time_rotating_v2.example "2024-01-01T00:00:00Z,0,0,7,0,0"
+```
+
+The import format is: `FIRST_ROTATION_RFC3339,YEARS,MONTHS,DAYS,HOURS,MINUTES`
+
+Empty values should be specified as `0`, and at least one rotation value must be non-zero.
+
+The `triggers` argument cannot be imported.
