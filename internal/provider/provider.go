@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -63,5 +64,11 @@ func (p *timeProvider) Functions(ctx context.Context) []func() function.Function
 		NewDurationParseFunction,
 		NewRFC3339ParseFunction,
 		NewUnixTimestampParseFunction,
+	}
+}
+
+func (p *timeProvider) Actions(ctx context.Context) []func() action.Action {
+	return []func() action.Action{
+		NewTimeSleepAction,
 	}
 }
