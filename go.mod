@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-provider-time
 
-go 1.25.8
+go 1.26.8
 
 require (
 	github.com/google/go-cmp v0.7.0
