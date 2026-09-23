@@ -81,7 +81,7 @@ resource "aws_instance" "server" {
 
 - `day` (Number) Number day of offset timestamp.
 - `hour` (Number) Number hour of offset timestamp.
-- `id` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
+- `id` (String) RFC3339 format of the base timestamp, e.g. `2020-02-12T06:36:13Z`.
 - `minute` (Number) Number minute of offset timestamp.
 - `month` (Number) Number month of offset timestamp.
 - `rfc3339` (String) RFC3339 format of the offset timestamp, e.g. `2020-02-12T06:36:13Z`.
