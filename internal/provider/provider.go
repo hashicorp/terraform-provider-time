@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -27,7 +28,8 @@ func NewTestProvider(clock clock.Clock) provider.Provider {
 }
 
 var (
-	_ provider.ProviderWithFunctions = (*timeProvider)(nil)
+	_ provider.ProviderWithFunctions          = (*timeProvider)(nil)
+	_ provider.ProviderWithEphemeralResources = (*timeProvider)(nil)
 )
 
 type timeProvider struct {
@@ -63,5 +65,11 @@ func (p *timeProvider) Functions(ctx context.Context) []func() function.Function
 		NewDurationParseFunction,
 		NewRFC3339ParseFunction,
 		NewUnixTimestampParseFunction,
+	}
+}
+
+func (p *timeProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{
+		NewTimeSleepEphemeralResource,
 	}
 }
