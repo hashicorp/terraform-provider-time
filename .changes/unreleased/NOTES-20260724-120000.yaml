@@ -1,0 +1,5 @@
+kind: NOTES
+body: 'resource/time_offset: The `id` attribute documentation now correctly describes it as the base timestamp rather than the offset timestamp, matching its actual value'
+time: 2026-07-24T12:00:00.000000000Z
+custom:
+  Issue: "416"
