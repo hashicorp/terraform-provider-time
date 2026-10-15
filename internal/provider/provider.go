@@ -50,6 +50,7 @@ func (p *timeProvider) Resources(ctx context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		NewTimeOffsetResource,
 		NewTimeRotatingResource,
+		NewTimeRotatingV2Resource,
 		NewTimeSleepResource,
 		NewTimeStaticResource,
 	}
