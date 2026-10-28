@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'resource/time_rotating: Return a clear error when an existing resource is updated with a configuration value that is unknown during planning, instead of "Provider produced inconsistent final plan"'
+time: 2026-10-28T18:00:00.000000+05:30
+custom:
+  Issue: "227"

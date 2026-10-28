@@ -224,6 +224,30 @@ func (t *timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modi
 		return
 	}
 
+	// Rotation values are calculated during planning, so a configuration value
+	// that is unknown until apply would make the final plan inconsistent.
+	for _, p := range []string{
+		"rotation_years", "rotation_months", "rotation_days", "rotation_hours",
+		"rotation_minutes", "rotation_rfc3339", "rfc3339",
+	} {
+		var v attr.Value
+		resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root(p), &v)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if v.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root(p),
+				"Unknown value when updating time_rotating",
+				fmt.Sprintf("The %q attribute of an existing time_rotating resource cannot be updated with a value that "+
+					"is unknown until apply (for example, the result of timestamp()). Use a value known during planning, "+
+					"such as plantimestamp(), or replace the resource.", p),
+			)
+			return
+		}
+	}
+
 	var state, plan timeRotatingModelV0
 
 	diags := req.State.Get(ctx, &state)

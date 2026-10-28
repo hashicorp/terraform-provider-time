@@ -1193,7 +1193,7 @@ func TestAccTimeRotating_ConfiguredRFC3339_RotationDays_ToRotationMonths(t *test
 // is computed during ModifyPlan(). If any of the "rotation_" attributes
 // are unknown during the plan, then an incorrect value will be calculated
 // for "rotation_rfc3339" during the initial plan which will differ from
-// the final plan, causing Terraform core to throw an error
+// the final plan, so the provider returns an error instead.
 // Ref: https://github.com/hashicorp/terraform-provider-time/issues/227
 func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
 	t.Parallel()
@@ -1229,15 +1229,7 @@ func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
   							rotation_days   = time_static.unknown.day
   							rfc3339         = %q
 						}`, baseTimestamp.Format(time.RFC3339)),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_days")),
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact("0001-01-01T00:00:00Z")),
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(baseTimestamp.Format(time.RFC3339))),
-					},
-				},
-				ExpectError: regexp.MustCompile(`.*Error: Provider produced inconsistent final plan`),
+				ExpectError: regexp.MustCompile(`Unknown value when updating time_rotating`),
 			},
 		},
 	})
