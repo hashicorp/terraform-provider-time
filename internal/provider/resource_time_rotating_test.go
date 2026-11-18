@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -1230,6 +1231,66 @@ func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
   							rfc3339         = %q
 						}`, baseTimestamp.Format(time.RFC3339)),
 				ExpectError: regexp.MustCompile(`Unknown value when updating time_rotating`),
+			},
+		},
+	})
+}
+
+// An unknown "rotation_" value is only a problem on the in-place update path.
+// When another attribute forces replacement (here: "triggers"), Terraform core
+// re-plans the resource as a create with a null prior state, so the values
+// computed during the update-path ModifyPlan() are discarded and the unknown
+// value must be allowed.
+func TestAccTimeRotating_UpdateUnknownValue_TriggersReplace(t *testing.T) {
+	t.Parallel()
+	resourceName := "time_rotating.test"
+
+	baseTimestamp := time.Now().UTC()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "time_rotating" "test" {
+  triggers = {
+    key = "a"
+  }
+  rotation_days = 7
+  rfc3339       = %q
+}
+`, baseTimestamp.Format(time.RFC3339)),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+				},
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "time_static" "unknown" {}
+
+resource "time_rotating" "test" {
+  triggers = {
+    key = "b"
+  }
+  rotation_days = time_static.unknown.day
+  rfc3339       = %q
+}
+`, baseTimestamp.Format(time.RFC3339)),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionReplace),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_days")),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key"), knownvalue.StringExact("b")),
+					statecheck.CompareValuePairs(
+						resourceName, tfjsonpath.New("rotation_days"),
+						"time_static.unknown", tfjsonpath.New("day"),
+						compare.ValuesSame(),
+					),
+				},
 			},
 		},
 	})
