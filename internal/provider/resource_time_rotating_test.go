@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/compare"
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -1193,7 +1194,7 @@ func TestAccTimeRotating_ConfiguredRFC3339_RotationDays_ToRotationMonths(t *test
 // is computed during ModifyPlan(). If any of the "rotation_" attributes
 // are unknown during the plan, then an incorrect value will be calculated
 // for "rotation_rfc3339" during the initial plan which will differ from
-// the final plan, causing Terraform core to throw an error
+// the final plan, so the provider returns an error instead.
 // Ref: https://github.com/hashicorp/terraform-provider-time/issues/227
 func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
 	t.Parallel()
@@ -1229,15 +1230,123 @@ func TestAccTimeRotating_UpdateUnknownValue(t *testing.T) {
   							rotation_days   = time_static.unknown.day
   							rfc3339         = %q
 						}`, baseTimestamp.Format(time.RFC3339)),
+				ExpectError: regexp.MustCompile(`Unknown value when updating time_rotating`),
+			},
+		},
+	})
+}
+
+// An unknown "rotation_" value is only a problem on the in-place update path.
+// When another attribute forces replacement (here: "triggers"), Terraform core
+// re-plans the resource as a create with a null prior state, so the values
+// computed during the update-path ModifyPlan() are discarded and the unknown
+// value must be allowed.
+func TestAccTimeRotating_UpdateUnknownValue_TriggersReplace(t *testing.T) {
+	t.Parallel()
+	resourceName := "time_rotating.test"
+
+	baseTimestamp := time.Now().UTC()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "time_rotating" "test" {
+  triggers = {
+    key = "a"
+  }
+  rotation_days = 7
+  rfc3339       = %q
+}
+`, baseTimestamp.Format(time.RFC3339)),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+				},
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "time_static" "unknown" {}
+
+resource "time_rotating" "test" {
+  triggers = {
+    key = "b"
+  }
+  rotation_days = time_static.unknown.day
+  rfc3339       = %q
+}
+`, baseTimestamp.Format(time.RFC3339)),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionReplace),
 						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_days")),
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_rfc3339"), knownvalue.StringExact("0001-01-01T00:00:00Z")),
-						plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("rfc3339"), knownvalue.StringExact(baseTimestamp.Format(time.RFC3339))),
 					},
 				},
-				ExpectError: regexp.MustCompile(`.*Error: Provider produced inconsistent final plan`),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("triggers").AtMapKey("key"), knownvalue.StringExact("b")),
+					statecheck.CompareValuePairs(
+						resourceName, tfjsonpath.New("rotation_days"),
+						"time_static.unknown", tfjsonpath.New("day"),
+						compare.ValuesSame(),
+					),
+				},
+			},
+		},
+	})
+}
+
+// An expired rotation_rfc3339 value causes Read to remove the resource from
+// state. The subsequent plan is a create, so an unknown rotation value must
+// remain allowed on that path.
+func TestAccTimeRotating_UpdateUnknownValue_ExpiredRotationCreate(t *testing.T) {
+	t.Parallel()
+	resourceName := "time_rotating.test"
+
+	baseTimestamp := time.Now().UTC()
+	expiredRotationTimestamp := time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "time_rotating" "test" {
+  rotation_days    = 7
+  rotation_rfc3339 = %q
+  rfc3339          = %q
+}
+`, expiredRotationTimestamp.Format(time.RFC3339), baseTimestamp.Format(time.RFC3339)),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+				},
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "time_static" "unknown" {}
+
+resource "time_rotating" "test" {
+  rotation_days    = time_static.unknown.day
+  rotation_rfc3339 = %q
+  rfc3339          = %q
+}
+`, expiredRotationTimestamp.Format(time.RFC3339), baseTimestamp.Format(time.RFC3339)),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_days")),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.CompareValuePairs(
+						resourceName, tfjsonpath.New("rotation_days"),
+						"time_static.unknown", tfjsonpath.New("day"),
+						compare.ValuesSame(),
+					),
+				},
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

@@ -238,6 +238,56 @@ func (t *timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modi
 		return
 	}
 
+	// Rotation values are calculated during planning, so a configuration value
+	// that is unknown until apply would make the final plan inconsistent. This
+	// does not apply when another attribute forces replacement ("triggers" or
+	// "rfc3339"), as the resource is then planned as a create and these values
+	// are discarded.
+	var configRFC3339 timetypes.RFC3339
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("rfc3339"), &configRFC3339)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	replacing := !plan.Triggers.Equal(state.Triggers) ||
+		(!configRFC3339.IsNull() && !configRFC3339.Equal(state.RFC3339))
+	if !replacing && !state.RotationRFC3339.IsNull() && !state.RotationRFC3339.IsUnknown() {
+		rotationTimestamp, err := time.Parse(time.RFC3339, state.RotationRFC3339.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to parse rotation_rfc3339 from state",
+				fmt.Sprintf("The rotation_rfc3339 timestamp in state could not be parsed as RFC3339: %s", err),
+			)
+			return
+		}
+
+		replacing = time.Now().UTC().After(rotationTimestamp)
+	}
+
+	if !replacing {
+		for _, p := range []string{
+			"rotation_years", "rotation_months", "rotation_days", "rotation_hours",
+			"rotation_minutes", "rotation_rfc3339", "rfc3339",
+		} {
+			var v attr.Value
+			resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root(p), &v)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
+
+			if v.IsUnknown() {
+				resp.Diagnostics.AddAttributeError(
+					path.Root(p),
+					"Unknown value when updating time_rotating",
+					fmt.Sprintf("The %q attribute of an existing time_rotating resource cannot be updated with a value that "+
+						"is unknown until apply (for example, the result of timestamp()). Use a value known during planning, "+
+						"such as plantimestamp(), or replace the resource.", p),
+				)
+				return
+			}
+		}
+	}
+
 	if state.RotationYears == plan.RotationYears &&
 		state.RotationMonths == plan.RotationMonths &&
 		state.RotationDays == plan.RotationDays &&
