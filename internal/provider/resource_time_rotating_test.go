@@ -1296,6 +1296,62 @@ resource "time_rotating" "test" {
 	})
 }
 
+// An expired rotation_rfc3339 value causes Read to remove the resource from
+// state. The subsequent plan is a create, so an unknown rotation value must
+// remain allowed on that path.
+func TestAccTimeRotating_UpdateUnknownValue_ExpiredRotationCreate(t *testing.T) {
+	t.Parallel()
+	resourceName := "time_rotating.test"
+
+	baseTimestamp := time.Now().UTC()
+	expiredRotationTimestamp := time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		CheckDestroy:             nil,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "time_rotating" "test" {
+  rotation_days    = 7
+  rotation_rfc3339 = %q
+  rfc3339          = %q
+}
+`, expiredRotationTimestamp.Format(time.RFC3339), baseTimestamp.Format(time.RFC3339)),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("rotation_days"), knownvalue.Int64Exact(7)),
+				},
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: fmt.Sprintf(`
+resource "time_static" "unknown" {}
+
+resource "time_rotating" "test" {
+  rotation_days    = time_static.unknown.day
+  rotation_rfc3339 = %q
+  rfc3339          = %q
+}
+`, expiredRotationTimestamp.Format(time.RFC3339), baseTimestamp.Format(time.RFC3339)),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionCreate),
+						plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("rotation_days")),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.CompareValuePairs(
+						resourceName, tfjsonpath.New("rotation_days"),
+						"time_static.unknown", tfjsonpath.New("day"),
+						compare.ValuesSame(),
+					),
+				},
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 // The "time_rotating" resource predates the `replace_triggered_by`
 // lifestyle argument introduced in Terraform v1.2.0. The `replace_triggered_by` argument looks
 // for an update or replacement of the supplied resource instance. Because the "time_rotating" rotation

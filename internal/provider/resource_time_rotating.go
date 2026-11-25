@@ -251,6 +251,18 @@ func (t *timeRotatingResource) ModifyPlan(ctx context.Context, req resource.Modi
 
 	replacing := !plan.Triggers.Equal(state.Triggers) ||
 		(!configRFC3339.IsNull() && !configRFC3339.Equal(state.RFC3339))
+	if !replacing && !state.RotationRFC3339.IsNull() && !state.RotationRFC3339.IsUnknown() {
+		rotationTimestamp, err := time.Parse(time.RFC3339, state.RotationRFC3339.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Unable to parse rotation_rfc3339 from state",
+				fmt.Sprintf("The rotation_rfc3339 timestamp in state could not be parsed as RFC3339: %s", err),
+			)
+			return
+		}
+
+		replacing = time.Now().UTC().After(rotationTimestamp)
+	}
 
 	if !replacing {
 		for _, p := range []string{
